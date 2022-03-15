@@ -1,0 +1,36 @@
+[
+  {
+    "code": "UnderWatcherSensor_TU2",
+    "args": {
+      "lvl": 80
+    }
+  },
+  {
+  },
+  {
+  },
+  {
+    "code": "UnderWatcher_TU2",
+    "args": {
+      "lvl": 80
+    }
+  },
+  {
+  },
+  {
+    "code": "UnderWatcherGenerator_TU2",
+    "args": {
+      "lvl": 80
+    }
+  },
+  {
+  },
+  {
+  },
+  {
+    "code": "UnderWatcherArm_TU2",
+    "args": {
+      "lvl": 80
+    }
+  }
+]

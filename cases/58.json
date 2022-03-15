@@ -1,0 +1,36 @@
+[
+  {
+    "code": "UnderWatcherSensor_B05",
+    "args": {
+      "lvl": 70
+    }
+  },
+  {
+  },
+  {
+  },
+  {
+    "code": "UnderWatcher_B05",
+    "args": {
+      "lvl": 70
+    }
+  },
+  {
+  },
+  {
+    "code": "UnderWatcherGenerator_B05",
+    "args": {
+      "lvl": 70
+    }
+  },
+  {
+  },
+  {
+  },
+  {
+    "code": "UnderWatcherArm_B05",
+    "args": {
+      "lvl": 70
+    }
+  }
+]
