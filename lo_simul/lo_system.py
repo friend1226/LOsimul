@@ -543,7 +543,9 @@ class Buff:
 
     def __str__(self):
         result = ''
-        if self.desc:
+        if self.tag in GIMMICKS:
+            result += f"[{self.desc if self.desc else self.tag}] : "
+        elif self.desc:
             result += f"{self.desc} : "
         if isinstance(self.data, D.FDmgInfo):
             if self.data.element == 0 and self.type == BT.INSTANT_DMG:
@@ -564,11 +566,12 @@ class Buff:
                             BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE, *BT.ELEMENT_RES, BT.SKILL_RATE
                         } else '')
             elif self.type == BT.TARGET_PROTECT or self.type == BT.PROVOKED:
-                result += f" ({self.data.target})"
+                result += f" ({self.data.target if self.data else None})"
             elif self.type == BT.FOLLOW_ATTACK:
-                result += f" ({self.data.attacker})"
+                result += f" ({self.data.attacker if self.data else None})"
             elif self.type == BT.COOP_ATTACK:
-                result += f" ({self.data.attacker} - {self.data.skill_no}번 스킬)"
+                result += f" ({self.data.attacker if self.data else None} - " \
+                          f"{self.data.skill_no if self.data else None}번 스킬)"
         result += ' '
         if self.round > 99:
             result += '(99+라운드, '
@@ -623,6 +626,9 @@ class Buff:
     def base_passive(self, tt, args=None):
         if tt == TR.ROUND_END:
             self.round -= 1
+        elif self.tag == G.PHOSPHIDE and tt == TR.GET_HIT and args.element == E.FIRE:
+            self.owner.give_buff(BT.INSTANT_DMG, 0, d('.5'), data=D.FDmgInfo(subject=args.attack),
+                                 desc=G.PHOSPHIDE_DESC)
         if tt in self.count_triggers:
             self.count -= 1
 

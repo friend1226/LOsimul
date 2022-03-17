@@ -218,7 +218,7 @@ class BuffEffectType:
 
 
 class Gimmick:
-    PHOSPHIDE = "인화물"
+    PHOSPHIDE = "인화물 부착"
     PHOSPHIDE_DESC = "인화물 폭발"
 
     FLOOD = "침수"
@@ -233,6 +233,13 @@ class Gimmick:
 
     GOLTARION = "불사의 장갑"
 
+
+GIMMICKS = set()
+for x in dir(Gimmick):
+    if x.startswith('__') and x.endswith('__'):
+        continue
+    GIMMICKS.add(x)
+    del x
 
 R = Rarity
 CT = CharType

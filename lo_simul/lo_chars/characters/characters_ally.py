@@ -84,7 +84,7 @@ class Labiata(Character):
                  wr: NUM_T,
                  element: int):
         if any(targets[t] for t in targets):
-            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=G.LABIATA, desc=G.LABIATA)
+            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=G.LABIATA)
         for t in targets:
             if targets[t] > 1:
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], _round=0, desc="회심의 일격")
@@ -272,8 +272,6 @@ class Vanilla(Character):
             if targets[t] > 0:
                 if t.find_buff(type_={BT.ROOTED, BT.EVA}, efft=BET.DEBUFF):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, data=D.FDmgInfo(element=E.FIRE), desc="정밀 사격")
-                if t.find_buff(tag=G.PHOSPHIDE):
-                    t.give_buff(BT.INSTANT_DMG, 0, d('.5'), data=D.FDmgInfo(subject=self), desc=G.PHOSPHIDE_DESC)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -364,6 +362,52 @@ class Titania(Character):
             self.give_buff(BT.COUNTER_ATTACK, 1, d('.8'), _round=1, efft=BET.BUFF, desc=desc)
 
 
+class Fotia(Character):
+    id_ = 15
+    name = "포티아"
+    code = "3P_Fotia"
+    group = Group.ANYWHERE
+    isenemy = False
+    is21squad = False
+
+    def _active1(self,
+                 targets: Dict['Character', NUM_T],
+                 atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                 bv: Sequence[NUM_T],
+                 wr: NUM_T,
+                 element: int):
+        desc = "점화"
+        for t in targets:
+            if targets[t] > 0:
+                t.give_buff(BT.DOT_DMG, 0, bv[0], _round=3, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[1], _round=2, efft=BET.DEBUFF, desc=desc)
+        return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
+
+    def _active2(self,
+                 targets: Dict['Character', NUM_T],
+                 atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                 bv: Sequence[NUM_T],
+                 wr: NUM_T,
+                 element: int):
+        desc = "점화"
+        for t in targets:
+            if targets[t] > 0:
+                t.give_buff(BT.DOT_DMG, 0, bv[0], _round=3, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[1], _round=2, efft=BET.DEBUFF, desc=desc)
+        return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
+
+    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+        if tt == TR.ROUND_START:
+            tag = "Fotia_P1_ATK"
+            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=tag)
+            if self.stack_limited_buff_tags[tag] == 3:
+                desc = "과출력 버너"
+                self.give_buff(BT.ATK, 1, bv[0]*2, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, }, max_stack=1,
+                               tag="Fotia_P1_MAXATK_ATK", desc=desc)
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, },
+                               max_stack=1, tag="Fotia_P1_MAXATK_IGN", desc=desc)
+
+
 class Emily(Character):
     id_ = 68
     name = "에밀리"
@@ -429,7 +473,7 @@ class Emily(Character):
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt in {TR.ROUND_START, TR.ATTACK, TR.GET_ATTACKED} and self.hp / self.maxhp <= d('.33'):
-            self.give_buff(BT.GIMMICK, 0, 1, max_stack=1, tag=Gimmick.EMILY, desc=Gimmick.EMILY)
+            self.give_buff(BT.GIMMICK, 0, 1, max_stack=1, tag=Gimmick.EMILY)
             self.give_buff(BT.ATK, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_ATK")
             self.give_buff(BT.SPD, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_SPD")
             self.give_buff(BT.EVA, 0, bv[2], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_EVA")
@@ -489,7 +533,7 @@ class Goltarion(Character):
             if self.hp / self.maxhp >= d('.9'):
                 if len(list(filter(lambda c: c.isags, self.game.get_chars(field=self.isenemy).values()))) > 3:
                     self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION, desc=G.GOLTARION)
+                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True),
                                desc="내부 부품 손상")
@@ -545,7 +589,7 @@ class Goltarion(Character):
             if self.hp / self.maxhp >= d('.9'):
                 if momo and baekto and faucre:
                     self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED,}, tag=G.GOLTARION, desc=G.GOLTARION)
+                                   count_trig={TR.BATTLE_CONTINUED,}, tag=G.GOLTARION)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True), desc="내부 부품 손상")
 

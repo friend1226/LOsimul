@@ -561,7 +561,7 @@ class TyrantChallenge1(Character):
                                tag="TyrantCh1_P1_ACC", desc=desc)
         elif tt == TR.GET_HIT:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.PROVOKED), desc="먹잇감 집중")
-            if isinstance(args, int) and args > 0:
+            if args.element > 0:
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.GIMMICK, tag="TyrantCh1_P1"),
                                desc="먹잇감 탐색")
 

@@ -545,7 +545,8 @@ class Character:
                     else:
                         attacker_follow.trigger(TR.KILL, attacker_skill_no)
         elif hit_value > 0 and damage_value > 0:
-            self.trigger(TR.GET_HIT, attacker.get_skill_element(attacker_skill_no))
+            self.trigger(TR.GET_HIT,
+                         D.FDmgInfo(subject=attacker, element=attacker.get_skill_element(attacker_skill_no)))
         elif hit_value == 0:
             self.trigger(TR.EVADE)
 
