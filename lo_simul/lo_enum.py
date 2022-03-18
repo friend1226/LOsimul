@@ -222,6 +222,11 @@ class Gimmick:
     PHOSPHIDE_DESC = "인화물 폭발"
 
     FLOOD = "침수"
+    FLOOD_FIRE = "침수_화"
+    FLOOD_ICE = "침수_냉"
+    FLOOD_ELEC = "침수_전"
+
+    CORROSION = "부식"
 
     LABIATA = "플라즈마 제너레이터"
     EMILY = "리미터 해제"

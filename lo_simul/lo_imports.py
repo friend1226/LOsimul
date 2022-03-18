@@ -156,8 +156,8 @@ class Datas:
     class FDmgInfo(NamedTuple):
         # 공격력% & 속성 데미지 정보; 공격력을 계산할 캐릭터, 데미지 속성(E)
         # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC, INSTANT_DMG
-        # 공격력% 고정피해 / 속성 추가 피해
-        # GET_HIT를 트리거할 때 사용됨; 인화물 기믹 작동 목적
+        # 공격력% 고정피해 (INSTANT_DMG) / 속성 추가 피해 (나머지)
+        # GET_HIT를 트리거할 때에도 사용됨; 인화물 기믹 작동 목적
         subject: 'Character' = None
         element: int = 0
 

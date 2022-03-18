@@ -453,6 +453,7 @@ class Character:
         if 0 < buff.max_stack <= self.stack_limited_buff_tags[buff.tag]:
             self.remove_buff(tag=buff.tag, force=True, limit=1)
         for immune_buff in self.find_buff(type_=BT.IMMUNE_BUFF):
+            # TODO: 로직 변경 필요 (인게임과 다름)
             if buff.issatisfy(**immune_buff.data):
                 print(f"[!@!] <{self}> - 버프 무효됨: [{buff}]")
                 return
