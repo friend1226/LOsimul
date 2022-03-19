@@ -323,16 +323,18 @@ class Character:
         chance = self.specialBuffs.getSUM().calc(BT.ACTIVE_RATE, chance)
         return random.random()*100 <= chance
 
-    def judge_active_resist(self):
-        addp = d('100')
-        mulp = d('1')
+    def judge_active_resist(self, base_chance=100):
+        chances = [0]
         for b in self.specialBuffs.find(type_=BT.ACTIVE_RESIST):
-            if b.value < 0:
-                addp += b.value
-            else:
-                mulp *= (d('1') - b.value/d('100'))
-        addp *= mulp
-        return random.random()*100 >= addp
+            if b.opr:  # 효과 저항 (독립시행)
+                chances.append(b.value)
+            else:      # 효과 저항 (기본 확률 증감)
+                base_chance -= b.value
+        for c in chances:
+            if random.random()*100 > base_chance - c:
+                # base_chance가 작을 수록 저항 성공 확률이 올라감
+                return True
+        return False
         # True = 저항 성공
         # False = 저항 실패
 
@@ -431,7 +433,8 @@ class Character:
                   tag: Optional[str] = None,
                   data: Optional[Data] = None,
                   desc: Optional[str] = None,
-                  force: bool = False):
+                  force: bool = False,
+                  chance: NUM_T = 100):
         """
 
         :param _type: BT.type_name
@@ -447,18 +450,18 @@ class Character:
         :param data: NamedTuple in Datas
         :param desc: str
         :param force: bool
+        :param chance: number between 0 and 100
         """
         buff = Buff(_type, opr, value, _round, count, count_trig, efft, max_stack, removable, tag, data, desc)
         # 최대 중첩
         if 0 < buff.max_stack <= self.stack_limited_buff_tags[buff.tag]:
             self.remove_buff(tag=buff.tag, force=True, limit=1)
         for immune_buff in self.find_buff(type_=BT.IMMUNE_BUFF):
-            # TODO: 로직 변경 필요 (인게임과 다름)
             if buff.issatisfy(**immune_buff.data):
                 print(f"[!@!] <{self}> - 버프 무효됨: [{buff}]")
                 return
         if (self.type_ != BT.ACTIVE_RESIST or not self.isenemy) and buff.efftype == BET.DEBUFF and not force:
-            if self.judge_active_resist():
+            if self.judge_active_resist(chance):
                 print(f"[!@!] <{self}> - 버프 저항함: [{buff}]")
                 return
         if buff.type in BT.STATS_SET:
@@ -478,7 +481,8 @@ class Character:
         elif buff.type == BT.GIVEDMGDEC:
             self.dmgGiveDecBuffs.append(buff)
         elif buff.type == BT.REMOVE_BUFF:
-            self.remove_buff(**buff.data._asdict())
+            if buff.data is not None:
+                self.remove_buff(**buff.data._asdict())
         else:
             self.specialBuffs.append(buff)
         print(f"[!!!] <{self}> - 버프 추가됨: [{buff}]")

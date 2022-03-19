@@ -142,7 +142,7 @@ class Game:
                         # 적군의 경우 (자신 열 번호)+1부터 2까지
                         if result.get((i, j)) is not None:
                             result[(i, j)] = (BT.ROW_PROTECT, rowprot[i])
-                            protected = True  # TODO : 여기부터
+                            protected = True
                     if protected and rowprot[i].getposxy() in result:
                         result[rowprot[i].getposxy()] = (BT.ROW_PROTECT, rowprot[i])
 
@@ -494,7 +494,12 @@ class Buff:
                  desc: Optional[str] = None,
                  owner: Optional['Character'] = None):
         self.type: str = _type
-        self.opr: int = opr  # 0 if +, 1 if *
+        self.opr: int = opr
+        # 0 = '+', 1 = '*'
+        # BT_NOVAL에 속하는 (값이 필요 없는) 버프의 경우 아무 값이나 넣어도 됩니다.
+        # BT.ACTIVE_RESIST의 경우
+        # "효과 저항 감소" 로직(기본 확률 증감)으로는 0,
+        # "효과 저항"      로직(독립시행)으로는 1을 입력하세요.
         self.value: NUM_T = value
         self.round: int = _round
         self.count: int = count
@@ -556,10 +561,16 @@ class Buff:
             result += f"{'대상' if self.data.type_-1 % 2 else '자신'}의 HP%가 " \
                       f"{'낮을' if self.data.type_-1 // 2 else '높을'}수록 {self.type} {simpl(self.value*100):+}%"
         else:
-            result += self.type
+            if self.type == BT.ACTIVE_RESIST:
+                if self.opr:
+                    result += "효과 저항"
+                else:
+                    result += "효과 적용 확률"
+            else:
+                result += self.type
             if self.type not in BT_NOVAL:
                 if self.opr:
-                    result += f' {simpl(self.value * 100):+}%'
+                    result += f' {simpl(self.value * 1 if self.type == BT.ACTIVE_RESIST else 100):+}%'
                 else:
                     result += f' {simpl(self.value):+}' + \
                         ('%' if self.type in {

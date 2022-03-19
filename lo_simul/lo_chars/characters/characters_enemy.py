@@ -106,7 +106,7 @@ class UnderWatcher1(Character):
         if tt == TR.ROUND_START:
             if self.find_buff(tag=G.UNDER_WATCHER_GENERATOR_B05):
                 self.give_buff(BT.DEF, 1, bv[0], _round=1, tag="UWB05_P1_DEF", desc=desc)
-                self.give_buff(BT.ACTIVE_RESIST, 0, bv[1], _round=1, tag="UWB05_P1_ACTIVE_RES", desc=desc)
+                self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=1, tag="UWB05_P1_ACTIVE_RES", desc=desc)
         elif tt == TR.ATTACK:
             self.remove_buff(tag="UWB05_P1")
 
@@ -161,7 +161,7 @@ class UnderWatcherGenerator1(Character):
             desc = "재충전 개시"
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, desc=desc)
-            self.give_buff(BT.ACTIVE_RESIST, 0, bv[0], _round=1, desc=desc)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], _round=1, desc=desc)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
@@ -353,7 +353,7 @@ class UnderWatcherGenerator2(Character):
             t.give_buff(BT.ATK, 1, bv[0], _round=99, max_stack=5, efft=BET.BUFF,
                         tag=G.UNDER_WATCHER_GENERATOR_TU2, desc=desc)
             t.give_buff(BT.IMMUNE_DMG, 0, bv[1], _round=9, efft=BET.BUFF, desc=desc)
-            t.give_buff(BT.ACTIVE_RESIST, 0, bv[2], _round=1, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.ACTIVE_RESIST, 1, bv[2], _round=1, efft=BET.BUFF, desc=desc)
 
     def _active2(self, 
                  targets: Dict['Character', NUM_T], 
@@ -370,7 +370,7 @@ class UnderWatcherGenerator2(Character):
         if tt == TR.HIT:
             desc = "에너지 코팅"
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=3, desc=desc)
-            self.give_buff(BT.ACTIVE_RESIST, 0, bv[1], _round=3, desc=desc)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=3, desc=desc)
             self.give_buff(BT.IMMUNE_DMG, 0, bv[2], _round=3, max_stack=1, tag="UWG2_P1", desc=desc)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -570,7 +570,7 @@ class TyrantChallenge1(Character):
         desc2 = "최후의 포효"
         if tt == TR.ROUND_START:
             self.give_buff(BT.DEF, 1, bv[0], _round=1, efft=BET.BUFF, desc=desc1)
-            self.give_buff(BT.ACTIVE_RESIST, 0, bv[1], _round=1, efft=BET.BUFF, desc=desc1)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=1, efft=BET.BUFF, desc=desc1)
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, efft=BET.BUFF, desc=desc1)
         elif tt == TR.ATTACK:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TARGET_PROTECT, efft=BET.BUFF), desc=desc1)
