@@ -161,6 +161,12 @@ class Datas:
         subject: 'Character' = None
         element: int = 0
 
+    class BattleLogInfo(NamedTuple):
+        # Game.buff_log에 전투 이벤트를 구분하기 위해 사용
+        bufftype: str
+        desc: str
+        random_status: tuple
+
 
 D = Datas
 

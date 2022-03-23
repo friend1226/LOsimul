@@ -156,6 +156,7 @@ class Trigger:
 
     AFTER_SKILL = "스킬 사용 후"
     AFTER_COUNTER = "반격 후"
+    ACT = "행동 시"
     DUMMY = "DUMMY"
 
 
@@ -255,7 +256,4 @@ TR = Trigger
 ET = EquipType
 BET = BuffEffectType
 G = Gimmick
-
-
-IMPACT_SKILLS = ((22, 2, 1), (51, 2, 1), (202, 2, 1))
 
