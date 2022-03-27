@@ -197,58 +197,15 @@ class Game:
                 if in_attack:
                     result[targc.getposxy()] = (BT.TARGET_PROTECT, targc)
                 # TODO : 지정 보호가 제대로 작동하는지 확인
-
-            """
-            # OLD CODE
-            
-            for i in range(9):
-                c = self.get_char(i, field=field)
-                if c is None:
-                    continue
-                if tarb := c.find_buff(BT.TARGET_PROTECT):
-                    for tb in tarb:
-                        if tarprot.get(pc := tb.data.target):
-                            tarprot[pc].add((c.getposxy(), tb.getID()))
-                        else:
-                            tarprot[pc] = {(c.getposxy(), tb.getID())}
-                if colb := c.find_buff(BT.COLUMN_PROTECT):
-                    colprot[c.getposy()].add((c, colb[-1].getID()))
-                if c.find_buff(BT.ROW_PROTECT):
-                    if (prevc := rowprot[c.getposx()]) is None or (prevc.getposy() < c.getposy() ^ field):
-                        rowprot[c.getposx()] = c
-
-            # ROW PROTECT
-            for i in range(3):
-                if rowprot[i]:
-                    for j in (range(rowprot[i].getposy()) if field == 0 else range(rowprot[i].getposy()+1, 3)):
-                        if result.get((i, j)) is not None:
-                            result[(i, j)] = (BT.ROW_PROTECT, rowprot[i])
-
-            # COLUMN PROTECT
-            for i in range(3):
-                if colprot[i]:
-                    colpc = max(colprot[i], key=lambda j: (j[0].hp, j[1]))[0]
-                    for j in range(3):
-                        if (foo := result.get((j, i)))is not None and foo[0] is None and foo[1] is not colpc:
-                            result[(j, i)] = (BT.COLUMN_PROTECT, colpc)
-            
-            # TARGET_PROTECT
-            targtemp = dict()
-            for tc in tarprot:
-                protargpool = set(map(lambda x: (self.get_char(x[0], field=field), x[1]),
-                                      filter(lambda xc: xc[0] in result and result[xc[0]][0] is None, tarprot[tc])))
-                if not len(protargpool):
-                    continue
-                protarg = min(protargpool, key=lambda j: (j[0].hp, -j[1]))[0]
-                if (prevp := targtemp.get(protarg)) is None or \
-                        prevp.hp > tc.hp or (prevp.hp == tc.hp and prevp.getposn() < tc.getposn()):
-                    targtemp[protarg] = tc
-            for tc in targtemp:
-                result[tc.getposxy()] = (None, tc)
-                result[targtemp[tc].getposxy()] = (BT.TARGET_PROTECT, tc)"""
         return result
-    
+
     def use_skill(self,
+                  subjc: 'Character',
+                  skill_no: int,
+                  objpos: Union[int, Pos]):
+        self._use_skill(subjc, skill_no, objpos)
+    
+    def _use_skill(self,
                   subjc: 'Character',
                   skill_no: int,
                   objpos: Union[int, Pos],
@@ -393,7 +350,7 @@ class Game:
                 countobjpos = coop
             else:
                 countobjpos = subjc.getposn()
-            self.use_skill(catkc, 1, countobjpos, catkr=catkr)
+            self._use_skill(catkc, 1, countobjpos, catkr=catkr)
             catkc.trigger(TR.AFTER_COUNTER)
 
         if ishit and (coopb := subjc.find_buff(BT.COOP_ATTACK)):
@@ -403,7 +360,7 @@ class Game:
                 cooptarg = random.choice(list(damages.keys()))
             else:
                 cooptarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
-            self.use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
+            self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
 
         if followers := subjc.find_buff(BT.FOLLOW_ATTACK):
             followc = max(map(lambda b: b.data.attacker, followers), key=lambda c: c.get_stats()[BT.ATK])
@@ -412,7 +369,7 @@ class Game:
             else:
                 followtarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
             if followc.attackable(followtarg, 1):
-                self.use_skill(followc, 1, followtarg.getposn(), follow=subjc)
+                self._use_skill(followc, 1, followtarg.getposn(), follow=subjc)
 
     def use_impact_skills(self):
         tempskills = []
@@ -433,10 +390,10 @@ class Game:
 
     def give_buff(self,
                   target: 'Character',
-                  _type: str,
+                  type_: str,
                   opr: int,
                   value: NUM_T,
-                  _round: int = MAX,
+                  round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
                   efft: int = BET.ETC,
@@ -450,10 +407,10 @@ class Game:
                   made_by: Optional['Character'] = None):
         """
         :param target: Character
-        :param _type: BT.type_name
+        :param type_: BT.type_name
         :param opr: "+" = 0, "*" = 1
         :param value: NUM_T
-        :param _round: int (=MAX)
+        :param round_: int (=MAX)
         :param count: int (=MAX)
         :param count_trig: Set[str]
         :param efft: BET.BUFF/DEBUFF/ETC (=ETC)
@@ -468,43 +425,46 @@ class Game:
         """
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
-        buff = Buff(_type, opr, value, _round, count, count_trig, efft, max_stack, removable, tag, data, desc,
+        buff = Buff(type_, opr, value, round_, count, count_trig, efft, max_stack, removable, tag, data, desc,
                     target, made_by)
         # 최대 중첩
-        if 0 < buff.max_stack <= target.stack_limited_buff_tags[buff.tag]:
-            target.remove_buff(tag=buff.tag, force=True, limit=1)
-        for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
-            if buff.issatisfy(**immune_buff.data):
-                print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
-                return
-        if (target.type_ != BT.ACTIVE_RESIST or not target.isenemy) and buff.efftype == BET.DEBUFF and not force:
-            if target.judge_active_resist(chance):
+        if 0 < max_stack <= target.stack_limited_buff_tags[tag]:
+            target.remove_buff(tag=tag, force=True, limit=1)
+        # 효과 저항 / 강화 해제 관련 메커니즘은 다음을 참고함
+        # https://arca.live/b/lastorigin/47046451
+        if efft != BET.ETC:
+            for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
+                if buff.issatisfy(**immune_buff.data):
+                    print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
+                    return None
+        if not force:
+            if target.judge_resist_buff(buff, chance):
                 print(f"[!@!] <{target}> - 버프 저항함: [{buff}]", file=self.stream)
-                return
-        if buff.type in BT.STATS_SET:
+                return None
+        if type_ == BT.REMOVE_BUFF:
+            if data is not None:
+                target.remove_buff(**data._asdict())
+        elif type_ in BT.STATS_SET:
             target.statBuffs.append(buff)
-        elif buff.type == BT.AP:
-            target.give_ap(buff.value)
-        elif buff.type == BT.FORCE_MOVE:
+        elif type_ == BT.AP:
+            target.give_ap(value)
+        elif type_ == BT.FORCE_MOVE:
             pass  # 밀기/당기기
-        elif buff.type in BT.ANIT_OS_SET:
+        elif type_ in BT.ANIT_OS_SET:
             target.antiOSBuffs.append(buff)
-        elif buff.type == BT.TAKEDMGINC:
+        elif type_ == BT.TAKEDMGINC:
             target.dmgTakeIncBuffs.append(buff)
-        elif buff.type == BT.TAKEDMGDEC:
+        elif type_ == BT.TAKEDMGDEC:
             target.dmgTakeDecBuffs.append(buff)
-        elif buff.type == BT.GIVEDMGINC:
+        elif type_ == BT.GIVEDMGINC:
             target.dmgGiveIncBuffs.append(buff)
-        elif buff.type == BT.GIVEDMGDEC:
+        elif type_ == BT.GIVEDMGDEC:
             target.dmgGiveDecBuffs.append(buff)
-        elif buff.type == BT.REMOVE_BUFF:
-            if buff.data is not None:
-                target.remove_buff(**buff.data._asdict())
         else:
             target.specialBuffs.append(buff)
         print(f"[!!!] <{target}> - 버프 추가됨: [{buff}]", file=self.stream)
-        if buff.max_stack > 0:
-            target.stack_limited_buff_tags[buff.tag] += 1
+        if max_stack > 0:
+            target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
         return buff
 
@@ -602,13 +562,13 @@ class Buff:
         return instance
 
     def __init__(self,
-                 _type: str,
+                 type_: str,
                  opr: int,
                  value: NUM_T,
-                 _round: int = MAX,
+                 round_: int = MAX,
                  count: int = MAX,
                  count_trig: Set[str] = None,
-                 efftype: int = BET.ETC,
+                 efft: int = BET.ETC,
                  max_stack: int = 0,
                  removable: bool = True,
                  tag: Optional[str] = None,
@@ -616,7 +576,7 @@ class Buff:
                  desc: Optional[str] = None,
                  owner: Optional['Character'] = None,
                  made_by: Optional['Character'] = None):
-        self.type: str = _type
+        self.type: str = type_
         self.opr: int = opr
         # 0 = '+', 1 = '*'
         # BT_NOVAL에 속하는 (값이 필요 없는) 버프의 경우 아무 값이나 넣어도 됩니다.
@@ -624,10 +584,10 @@ class Buff:
         # "효과 저항 감소" 로직(기본 확률 증감)으로는 0,
         # "효과 저항"      로직(독립시행)으로는 1을 입력하세요.
         self.value: NUM_T = value
-        self.round: int = _round
+        self.round: int = round_
         self.count: int = count
         self.count_triggers: Set[str] = set() if count_trig is None else count_trig
-        self.efftype: int = efftype
+        self.efftype: int = efft
         self.max_stack: int = max_stack
         self.removable: bool = removable
         self.tag: Optional[str] = tag
@@ -770,7 +730,9 @@ class Buff:
     def passive(self, tt, args=None):
         pass
     
-    def issatisfy(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, **kwargs):
+    def issatisfy(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, chance=100, **kwargs):
+        if self.owner.random() > chance:
+            return False
         if id_:
             if self.getID() != id_:
                 return False

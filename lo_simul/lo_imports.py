@@ -134,7 +134,7 @@ class Datas:
     class BuffCond(NamedTuple):
         # 버프 조건 정보;
         # 타입("버프" 또는 {"버프1", "버프2", ...}), 이로운/해로운/기타 효과(BET), 태그, 판별 함수(lambda b: ...),
-        # ID, 수치 부호(-1, 0, 또는 1), (제거 시) 개수 제한, (제거 시) 강제 제거 여부
+        # ID, 수치 부호(-1, 0, 또는 1), (제거 시) 개수 제한, (제거 시) 강제 제거 여부, 확률
         # 다음 버프에 사용됨 : IMMUNE_BUFF, REMOVE_BUFF
         type_: Union[str, Iterable] = None
         efft: int = None
@@ -144,6 +144,7 @@ class Datas:
         val_sign: int = None
         limit: int = MAX
         force: bool = False
+        chance: int = 100
 
     class DmgHPInfo(NamedTuple):
         # HP비례 데미지 정보; HP비례의 타깃과 비례 타입, 데미지 속성(E)

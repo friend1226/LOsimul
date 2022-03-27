@@ -87,7 +87,8 @@ class BuffType:
     GIMMICK = "기믹"
     RACON = "정찰"
     REMOVE_BUFF = "버프 제거"
-    IMMUNE_BUFF = "버프 무효"
+    REMOVE_BUFF_RESIST = "버프 제거 저항"
+    IMMUNE_BUFF = "버프 면역"
 
     WIDE_TAKEDMG = "광역 피해 분산"
     WIDE_GIVEDMG = "광역 피해 집중"

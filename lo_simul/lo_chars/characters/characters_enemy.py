@@ -50,7 +50,7 @@ class DummyEnemy(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -61,12 +61,12 @@ class DummyEnemy(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def extra_passive(self, tt, args=None):
         if tt == TR.IDLE:
-            self.give_buff(BT.RANGE, 0, 2, efft=0, _round=2)
+            self.give_buff(BT.RANGE, 0, 2, efft=0, round_=2)
 
 
 class UnderWatcher1(Character):
@@ -86,7 +86,7 @@ class UnderWatcher1(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="포착")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self, 
@@ -98,22 +98,22 @@ class UnderWatcher1(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="포착")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "특수 합금"
         if tt == TR.ROUND_START:
             if self.find_buff(tag=G.UNDER_WATCHER_GENERATOR_B05):
-                self.give_buff(BT.DEF, 1, bv[0], _round=1, tag="UWB05_P1_DEF", desc=desc)
-                self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=1, tag="UWB05_P1_ACTIVE_RES", desc=desc)
+                self.give_buff(BT.DEF, 1, bv[0], round_=1, tag="UWB05_P1_DEF", desc=desc)
+                self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=1, tag="UWB05_P1_ACTIVE_RES", desc=desc)
         elif tt == TR.ATTACK:
             self.remove_buff(tag="UWB05_P1")
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 4:
-                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, _round=1, efft=BET.BUFF)
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
@@ -123,8 +123,8 @@ class UnderWatcher1(Character):
     def extra_passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "해킹 (스카디)"
-            self.give_buff(BT.ATK, 1, d('.-5'), _round=3, desc=desc)
-            self.give_buff(BT.SPD, 1, d('.-25'), _round=3, desc=desc)
+            self.give_buff(BT.ATK, 1, d('.-5'), round_=3, desc=desc)
+            self.give_buff(BT.SPD, 1, d('.-25'), round_=3, desc=desc)
 
 
 class UnderWatcherGenerator1(Character):
@@ -142,7 +142,7 @@ class UnderWatcherGenerator1(Character):
                  wr: NUM_T,
                  element: int):
         for t in targets:
-            t.give_buff(BT.ATK, 1, bv[0], _round=15, max_stack=5, efft=BET.BUFF,
+            t.give_buff(BT.ATK, 1, bv[0], round_=15, max_stack=5, efft=BET.BUFF,
                         tag=G.UNDER_WATCHER_GENERATOR_B05, desc="충전")
 
     def _active2(self, 
@@ -153,15 +153,15 @@ class UnderWatcherGenerator1(Character):
                  element: int):
         desc = "에너지 실드"
         for t in targets:
-            t.give_buff(BT.BARRIER, 0, bv[0], _round=9, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.BARRIER, 0, bv[0], round_=9, efft=BET.BUFF, desc=desc)
             t.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.BUFF, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.hp / self.maxhp <= d('.5'):
             desc = "재충전 개시"
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
-            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, desc=desc)
-            self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], _round=1, desc=desc)
+            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, desc=desc)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], round_=1, desc=desc)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
@@ -169,14 +169,14 @@ class UnderWatcherGenerator1(Character):
             if self.find_buff(type_=BT.DEF, efft=BET.DEBUFF):
                 chance = 50
             if self.judge_active(chance):
-                self.give_buff(BT.INABILLITY_ACT, 0, 1, _round=2, efft=BET.DEBUFF, desc="제네레이터 쇼트")
+                self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF, desc="제네레이터 쇼트")
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
             desc = "제네레이터 파괴"
             for t in self.get_passive_targets(targets):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), desc=desc)
-                t.give_buff(BT.INABILLITY_ACT, 0, 1, _round=1, desc=desc)
+                t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=1, desc=desc)
 
 
 class UnderWatcherSensor1(Character):
@@ -195,9 +195,9 @@ class UnderWatcherSensor1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, _round=3)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, _round=3)
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, _round=3, max_stack=1,
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3, max_stack=1,
                             tag="UWS1_A1", desc="록 온")
 
     def _active2(self, 
@@ -208,9 +208,9 @@ class UnderWatcherSensor1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, _round=3)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, _round=3)
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, _round=3)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
@@ -218,18 +218,18 @@ class UnderWatcherSensor1(Character):
             ts = self.get_passive_targets(targets)
             if hprate >= d('.75'):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=1)
             if hprate >= d('.5') and self.judge_active(d('.5')):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1)
             if hprate >= d('.25') and self.judge_active(d('.2')):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, round_=1)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 3:
-                self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, _round=1)
+                self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, round_=1)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
@@ -252,7 +252,7 @@ class UnderWatcherArm1(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="포착")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self, 
@@ -264,19 +264,19 @@ class UnderWatcherArm1(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.type_[0] == CharType.FLY:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="대공 사격")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.HIT:
             if self.find_buff(type_=BT.ACC, efft=BET.BUFF):
-                self.give_buff(BT.ACC, 0, bv[0], _round=1, efft=BET.BUFF, desc="재 조준")
+                self.give_buff(BT.ACC, 0, bv[0], round_=1, efft=BET.BUFF, desc="재 조준")
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 5:
-                self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, _round=1)
-                self.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, _round=1)
+                self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, round_=1)
+                self.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
@@ -300,8 +300,8 @@ class UnderWatcher2(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc=desc)
-                    t.give_buff(BT.DEF, 1, bv[1], _round=5, desc=desc)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc=desc)
+                    t.give_buff(BT.DEF, 1, bv[1], round_=5, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self, 
@@ -313,7 +313,7 @@ class UnderWatcher2(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="포착")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -326,7 +326,7 @@ class UnderWatcher2(Character):
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_TU2] >= 4:
-                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, _round=1, efft=BET.BUFF)
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
@@ -350,10 +350,10 @@ class UnderWatcherGenerator2(Character):
                  element: int):
         desc = "충전"
         for t in targets:
-            t.give_buff(BT.ATK, 1, bv[0], _round=99, max_stack=5, efft=BET.BUFF,
+            t.give_buff(BT.ATK, 1, bv[0], round_=99, max_stack=5, efft=BET.BUFF,
                         tag=G.UNDER_WATCHER_GENERATOR_TU2, desc=desc)
-            t.give_buff(BT.IMMUNE_DMG, 0, bv[1], _round=9, efft=BET.BUFF, desc=desc)
-            t.give_buff(BT.ACTIVE_RESIST, 1, bv[2], _round=1, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.IMMUNE_DMG, 0, bv[1], round_=9, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.ACTIVE_RESIST, 1, bv[2], round_=1, efft=BET.BUFF, desc=desc)
 
     def _active2(self, 
                  targets: Dict['Character', NUM_T], 
@@ -363,15 +363,15 @@ class UnderWatcherGenerator2(Character):
                  element: int):
         desc = "에너지 실드"
         for t in targets:
-            t.give_buff(BT.BARRIER, 0, bv[0], _round=9, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.BARRIER, 0, bv[0], round_=9, efft=BET.BUFF, desc=desc)
             t.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.BUFF, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.HIT:
             desc = "에너지 코팅"
-            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=3, desc=desc)
-            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=3, desc=desc)
-            self.give_buff(BT.IMMUNE_DMG, 0, bv[2], _round=3, max_stack=1, tag="UWG2_P1", desc=desc)
+            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=3, desc=desc)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=3, desc=desc)
+            self.give_buff(BT.IMMUNE_DMG, 0, bv[2], round_=3, max_stack=1, tag="UWG2_P1", desc=desc)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
@@ -379,14 +379,14 @@ class UnderWatcherGenerator2(Character):
             if self.judge_active(75):
                 self.give_buff(BT.AP, 0, bv[0], desc=desc)
             if self.judge_active(4):
-                self.give_buff(BT.INABILLITY_ACT, 0, 1, _round=2, desc=desc)
+                self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, desc=desc)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
             desc = "제네레이터 파괴"
             for t in self.get_passive_targets(targets):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), desc=desc)
-                t.give_buff(BT.INABILLITY_ACT, 0, 1, _round=2, desc=desc)
+                t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, desc=desc)
 
 
 class UnderWatcherSensor2(Character):
@@ -406,9 +406,9 @@ class UnderWatcherSensor2(Character):
         desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, _round=9, desc=desc)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, _round=9, desc=desc)
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, _round=9, desc=desc)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.AP, 0, bv[2], efft=BET.DEBUFF, desc=desc)
                 if self.judge_active(25):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.DEBUFF, data=D.BuffCond(efft=BET.BUFF),
@@ -423,9 +423,9 @@ class UnderWatcherSensor2(Character):
         desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, _round=9, desc=desc)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, _round=9, desc=desc)
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, _round=9, desc=desc)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.AP, 0, bv[2], efft=BET.DEBUFF, desc=desc)
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.DEBUFF, data=D.BuffCond(efft=BET.BUFF), desc=desc)
 
@@ -435,24 +435,24 @@ class UnderWatcherSensor2(Character):
             ts = self.get_passive_targets(targets)
             if hprate >= d('.75'):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=1)
             if hprate >= d('.5') and self.judge_active(d('.5')):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1)
             if hprate >= d('.25') and self.judge_active(d('.2')):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, _round=1)
+                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, round_=1)
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_TU2] >= 3:
-                self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, _round=1)
-                self.give_buff(BT.EVA, 0, bv[1], efft=BET.BUFF, _round=1)
+                self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, round_=1)
+                self.give_buff(BT.EVA, 0, bv[1], efft=BET.BUFF, round_=1)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.hp / self.maxhp <= d('.5'):
-                self.give_buff(BT.EVA, 0, bv[0], efft=BET.BUFF, _round=9, max_stack=3,
+                self.give_buff(BT.EVA, 0, bv[0], efft=BET.BUFF, round_=9, max_stack=3,
                                tag="UWS2_P3", desc="반응 강화")
 
 
@@ -474,8 +474,8 @@ class UnderWatcherArm2(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc=desc, efft=BET.DEBUFF)
-                    t.give_buff(BT.DEF, 1, bv[1], _round=9, desc=desc, efft=BET.DEBUFF)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc=desc, efft=BET.DEBUFF)
+                    t.give_buff(BT.DEF, 1, bv[1], round_=9, desc=desc, efft=BET.DEBUFF)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self, 
@@ -487,20 +487,20 @@ class UnderWatcherArm2(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.type_[0] == CharType.FLY:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="대공 사격")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.HIT:
             if self.find_buff(type_=BT.ACC, efft=BET.BUFF):
-                self.give_buff(BT.ACC, 0, bv[0], _round=1, efft=BET.BUFF, desc="재 조준")
+                self.give_buff(BT.ACC, 0, bv[0], round_=1, efft=BET.BUFF, desc="재 조준")
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_TU2] >= 5:
-                self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, _round=1)
-                self.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, _round=1)
-                self.give_buff(BT.CRIT, 0, bv[2], efft=BET.BUFF, _round=1)
+                self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, round_=1)
+                self.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1)
+                self.give_buff(BT.CRIT, 0, bv[2], efft=BET.BUFF, round_=1)
 
     def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
@@ -524,8 +524,8 @@ class TyrantChallenge1(Character):
         desc = "타이런트 바이트"
         for t in targets:
             if targets[t] > 0:
-                self.give_buff(BT.GIVEDMGINC, 1, bv[0], _round=0, efft=BET.DEBUFF, data=D.DmgHPInfo(type_=4), desc=desc)
-                t.give_buff(BT.DEF, 1, bv[1], _round=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A1_DEF", desc=desc)
+                self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.DEBUFF, data=D.DmgHPInfo(type_=4), desc=desc)
+                t.give_buff(BT.DEF, 1, bv[1], round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A1_DEF", desc=desc)
                 if t.hp / t.maxhp >= d(.5):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF), desc="회심의 분쇄")
                 self.give_buff(BT.GIMMICK, 0, 1, max_stack=3, tag=G.Tyrant_Challenge_1, desc="포식자")
@@ -540,7 +540,7 @@ class TyrantChallenge1(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[min(self.stack_limited_buff_tags[G.Tyrant_Challenge_1], 2)],
-                            _round=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A2_FIRERES", desc="프라이멀 파이어")
+                            round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A2_FIRERES", desc="프라이멀 파이어")
                 self.remove_buff(tag=G.Tyrant_Challenge_1)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
@@ -548,11 +548,11 @@ class TyrantChallenge1(Character):
         if tt == TR.ROUND_START:
             hprate = self.hp / self.maxhp
             if hprate >= d('.6'):
-                self.give_buff(BT.GIMMICK, 0, 1, _round=1, tag="TyrantCh1_P1_HEAVY", desc="먹잇감 탐색 (중장형)")
+                self.give_buff(BT.GIMMICK, 0, 1, round_=1, tag="TyrantCh1_P1_HEAVY", desc="먹잇감 탐색 (중장형)")
             if hprate <= d('.5999'):
-                self.give_buff(BT.GIMMICK, 0, 1, _round=1, tag="TyrantCh1_P1_LIGHT", desc="먹잇감 탐색 (경장형)")
+                self.give_buff(BT.GIMMICK, 0, 1, round_=1, tag="TyrantCh1_P1_LIGHT", desc="먹잇감 탐색 (경장형)")
             if hprate <= d('.2999'):
-                self.give_buff(BT.GIMMICK, 0, 1, _round=1, tag="TyrantCh1_P1_FLY", desc="먹잇감 탐색 (기동형)")
+                self.give_buff(BT.GIMMICK, 0, 1, round_=1, tag="TyrantCh1_P1_FLY", desc="먹잇감 탐색 (기동형)")
             if len(self.game.get_chars(field=self.isenemy)) == 1:
                 desc = "먹잇감 독식"
                 self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=1, count=3, count_trig={TR.GET_HIT, },
@@ -569,12 +569,12 @@ class TyrantChallenge1(Character):
         desc1 = "원시의 본능"
         desc2 = "최후의 포효"
         if tt == TR.ROUND_START:
-            self.give_buff(BT.DEF, 1, bv[0], _round=1, efft=BET.BUFF, desc=desc1)
-            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], _round=1, efft=BET.BUFF, desc=desc1)
-            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, efft=BET.BUFF, desc=desc1)
+            self.give_buff(BT.DEF, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc1)
+            self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=1, efft=BET.BUFF, desc=desc1)
+            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc1)
         elif tt == TR.ATTACK:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TARGET_PROTECT, efft=BET.BUFF), desc=desc1)
-            self.give_buff(BT.MARKED, 0, 1, _round=2, efft=BET.BUFF, max_stack=1, tag="TyrantCh1_P2_MARKED", desc=desc1)
+            self.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.BUFF, max_stack=1, tag="TyrantCh1_P2_MARKED", desc=desc1)
         elif tt == TR.WAVE_START:
             self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, tag="TyrantCh1_P2_B.C.", desc=desc2)
         elif tt == TR.BATTLE_CONTINUED:
@@ -585,7 +585,7 @@ class TyrantChallenge1(Character):
         if tt == TR.WAVE_START:
            for t in self.get_passive_targets(targets, field=not self.isenemy):
                if self.judge_active(50):
-                   t.give_buff(BT.INABILLITY_SKILL, 0, 1, _round=2, efft=BET.DEBUFF, desc="폭군의 포효")
+                   t.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=2, efft=BET.DEBUFF, desc="폭군의 포효")
         elif tt == TR.DEAD:
             for t in self.get_passive_targets(targets, field=not self.isenemy):
                 t.give_buff(BT.INSTANT_DMG, 1, bv[0], data=D.FDmgInfo(self, E.FIRE), desc="최후의 포효")
@@ -606,7 +606,7 @@ class NightChickModifiedEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="직격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -617,15 +617,15 @@ class NightChickModifiedEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="직격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.MOVE:
             desc = "기동 사격"
-            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, _round=4, desc=desc)
-            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, _round=4, desc=desc)
-            self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, _round=4, desc=desc)
+            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=4, desc=desc)
+            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=4, desc=desc)
+            self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=4, desc=desc)
 
 
 class LegionEX1(Character):
@@ -643,7 +643,7 @@ class LegionEX1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.type_[0] == CT.FLY:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="대공 사격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -655,16 +655,16 @@ class LegionEX1(Character):
         for t in targets:
             if targets[t] > 0:
                 desc = "강화 점착탄"
-                t.give_buff(BT.ROOTED, 0, 1, _round=3, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ROOTED, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc)
                 if self.judge_active(75):
-                    t.give_buff(BT.EVA, 0, bv[0], _round=3, efft=BET.DEBUFF, desc=desc)
+                    t.give_buff(BT.EVA, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc)
                 if self.judge_active(75):
-                    t.give_buff(BT.SPD, 1, bv[1], _round=3, efft=BET.DEBUFF, desc=desc)
+                    t.give_buff(BT.SPD, 1, bv[1], round_=3, efft=BET.DEBUFF, desc=desc)
                 if self.judge_active(50):
-                    t.give_buff(BT.REMOVE_BUFF, 0, 1, _round=3, efft=BET.DEBUFF, desc=desc,
+                    t.give_buff(BT.REMOVE_BUFF, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc,
                                 data=D.BuffCond(type_=BT.EVA, efft=BET.BUFF))
                 if self.judge_active(50):
-                    t.give_buff(BT.REMOVE_BUFF, 0, 1, _round=3, efft=BET.DEBUFF, desc=desc,
+                    t.give_buff(BT.REMOVE_BUFF, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc,
                                 data=D.BuffCond(type_=BT.SPD, efft=BET.BUFF))
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
@@ -672,8 +672,8 @@ class LegionEX1(Character):
         if tt == TR.ALLY_DEAD:
             desc = "경계 태세"
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.SPD, 1, bv[0], _round=3, efft=BET.BUFF, desc=desc)
-                p.give_buff(BT.FOLLOW_ATTACK, 0, 1, _round=3, efft=BET.BUFF, desc=desc, data=D.FollowAttack(self))
+                p.give_buff(BT.SPD, 1, bv[0], round_=3, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.FOLLOW_ATTACK, 0, 1, round_=3, efft=BET.BUFF, desc=desc, data=D.FollowAttack(self))
 
 
 class Phalangites1(Character):
@@ -691,7 +691,7 @@ class Phalangites1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.type_[0] == CT.FLY:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="대공 사격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -700,13 +700,13 @@ class Phalangites1(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=3, efft=BET.BUFF)
-        self.give_buff(BT.COLUMN_PROTECT, 0, 1, _round=3, efft=BET.BUFF)
+        self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=3, efft=BET.BUFF)
+        self.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=3, efft=BET.BUFF)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, efft=BET.BUFF, desc="밀집 대형", tag="Phalagites1_P1", max_stack=1)
+                p.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, desc="밀집 대형", tag="Phalagites1_P1", max_stack=1)
 
 
 class NightChickSniper1(Character):
@@ -724,7 +724,7 @@ class NightChickSniper1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="정밀 사격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="정밀 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -733,13 +733,13 @@ class NightChickSniper1(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        self.give_buff(BT.EVA, 0, bv[0], _round=3, efft=BET.BUFF, tag="NightChickSP_N_A2_EVA")
-        self.give_buff(BT.CRIT, 0, bv[1], _round=3, efft=BET.BUFF, tag="NightChickSP_N_A2_CRIT")
-        self.give_buff(BT.TAKEDMGINC, 1, bv[2], _round=3, efft=BET.BUFF, tag="NightChickSP_N_A2_TAKEDMGINC")
+        self.give_buff(BT.EVA, 0, bv[0], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_EVA")
+        self.give_buff(BT.CRIT, 0, bv[1], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_CRIT")
+        self.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_TAKEDMGINC")
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(tag="NightChickSP_N_A2"):
-            self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], _round=1, efft=BET.BUFF, desc="대응 저격")
+            self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], round_=1, efft=BET.BUFF, desc="대응 저격")
 
 
 class NightChickEX3(Character):
@@ -757,7 +757,7 @@ class NightChickEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.EVA, 0, bv[0], _round=2, efft=BET.DEBUFF)
+                t.give_buff(BT.EVA, 0, bv[0], round_=2, efft=BET.DEBUFF)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -768,14 +768,14 @@ class NightChickEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.EVA, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="집중사격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="집중사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.IDLE:
-            self.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, _round=3)
-            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, _round=3)
-            self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, _round=3)
+            self.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=3)
+            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=3)
+            self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=3)
 
 
 class NightChickShielder3(Character):
@@ -793,7 +793,7 @@ class NightChickShielder3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.EVA, efft=BET.DEBUFF) and self.judge_active(50):
-                t.give_buff(BT.INABILLITY_ACT, 0, 1, _round=1, efft=BET.DEBUFF)
+                t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=1, efft=BET.DEBUFF)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -802,11 +802,11 @@ class NightChickShielder3(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        self.give_buff(BT.ROW_PROTECT, 0, 1, _round=3, efft=BET.BUFF)
+        self.give_buff(BT.ROW_PROTECT, 0, 1, round_=3, efft=BET.BUFF)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
-            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], _round=1, efft=BET.BUFF, max_stack=1, tag="NightChickSI_TU3_P1",
+            self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, max_stack=1, tag="NightChickSI_TU3_P1",
                            desc="강화 방패")
 
 
@@ -825,9 +825,9 @@ class NightChickDetector3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=2, efft=BET.DEBUFF)
-                t.give_buff(BT.EVA, 0, bv[1], _round=2, efft=BET.DEBUFF)
-                t.give_buff(BT.MARKED, 0, 1, _round=2, efft=BET.DEBUFF)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=2, efft=BET.DEBUFF)
+                t.give_buff(BT.EVA, 0, bv[1], round_=2, efft=BET.DEBUFF)
+                t.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.DEBUFF)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -838,22 +838,22 @@ class NightChickDetector3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.ACC, 0, bv[0], _round=2, efft=BET.DEBUFF)
-                t.give_buff(BT.AP, 0, bv[1], _round=2, efft=BET.DEBUFF)
+                t.give_buff(BT.ACC, 0, bv[0], round_=2, efft=BET.DEBUFF)
+                t.give_buff(BT.AP, 0, bv[1], round_=2, efft=BET.DEBUFF)
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
             desc = "레이더 공유"
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.AP, 0, 1, _round=2, efft=BET.BUFF, desc=desc)
-                p.give_buff(BT.ACC, 0, bv[0], _round=2, efft=BET.BUFF, desc=desc)
-                p.give_buff(BT.RANGE, 0, 1, _round=2, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.AP, 0, 1, round_=2, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.ACC, 0, bv[0], round_=2, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.RANGE, 0, 1, round_=2, efft=BET.BUFF, desc=desc)
         elif tt == TR.DEAD:
             desc = "레이더 재밍"
             for p in self.get_passive_targets(targets):
                 p.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.DEBUFF, desc=desc,
                             data=D.BuffCond(type_=BT.ACC, efft=BET.BUFF))
-                p.give_buff(BT.ACC, 0, -bv[0], _round=1, efft=BET.DEBUFF, desc=desc)
+                p.give_buff(BT.ACC, 0, -bv[0], round_=1, efft=BET.DEBUFF, desc=desc)
 
 
 class EliteCenturion1(Character):
@@ -871,7 +871,7 @@ class EliteCenturion1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=0, desc="직격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -882,23 +882,23 @@ class EliteCenturion1(Character):
                  element: int):
         for t in targets:
             desc = "일제 공격 표식"
-            t.give_buff(BT.TAKEDMGINC, 1, bv[0], _round=2, efft=BET.DEBUFF, desc=desc)
-            t.give_buff(BT.MARKED, 0, 1, _round=2, efft=BET.DEBUFF, desc=desc)
+            t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=2, efft=BET.DEBUFF, desc=desc)
+            t.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ALLY_DEAD:
             desc = "역습 태세"
-            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, _round=2, desc=desc, tag="CenturionEX_TU_P1_ATK")
-            self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, _round=2, desc=desc, tag="CenturionEX_TU_P1_CRIT")
-            self.give_buff(BT.COUNTER_ATTACK, 1, bv[2], efft=BET.BUFF, _round=2, desc=desc, tag="CenturionEX_TU_P1_CNT")
+            self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_ATK")
+            self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_CRIT")
+            self.give_buff(BT.COUNTER_ATTACK, 1, bv[2], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_CNT")
 
     def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(tag="CenturionEX_TU_P1"):
             desc = "부대 재 정비"
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.SPD, 1, bv[0], _round=1, efft=BET.BUFF, desc=desc)
-                p.give_buff(BT.ACC, 0, bv[1], _round=1, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.SPD, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.ACC, 0, bv[1], round_=1, efft=BET.BUFF, desc=desc)
 
 
 """

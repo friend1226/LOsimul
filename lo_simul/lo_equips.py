@@ -132,7 +132,7 @@ class VaccineChip(Chip):
         if tt == TR.ROUND_START:
             desc = "백신 처리"
             value = self.bfval[self.rarity][self.lvl]
-            self.owner.give_buff(BT.ACTIVE_RESIST, 0, value, _round=1, max_stack=1, tag=f'vaccine_{value}', desc=desc)
+            self.owner.give_buff(BT.ACTIVE_RESIST, 0, value, round_=1, max_stack=1, tag=f'vaccine_{value}', desc=desc)
             if random.random() * 100 <= self.chval[self.rarity][self.lvl]:
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
 
@@ -163,13 +163,13 @@ class StandardOS(OS):
                 lvl += 1
             desc = "표준형 전투 OS"
             self.owner.give_buff(BT.ATK, 1, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * lvl,
-                                 _round=1, efft=BET.BUFF, desc=desc)
+                                 round_=1, efft=BET.BUFF, desc=desc)
             self.owner.give_buff(BT.DEF, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * lvl,
-                                 _round=1, efft=BET.BUFF, desc=desc)
+                                 round_=1, efft=BET.BUFF, desc=desc)
             self.owner.give_buff(BT.ACC, 0, self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * lvl,
-                                 _round=1, efft=BET.BUFF, desc=desc)
+                                 round_=1, efft=BET.BUFF, desc=desc)
             self.owner.give_buff(BT.EVA, 0, self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * lvl,
-                                 _round=1, efft=BET.BUFF, desc=desc)
+                                 round_=1, efft=BET.BUFF, desc=desc)
 
 
 class OffenseOS(OS):
@@ -215,9 +215,9 @@ class DefenseOS(OS):
                 lvl += 1
             desc = "방어형 전투 OS"
             self.owner.give_buff(BT.DEF, 1,
-                                 self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * lvl, _round=1, desc=desc)
+                                 self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * lvl, round_=1, desc=desc)
             self.owner.give_buff(BT.TAKEDMGDEC, 1,
-                                 self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * lvl, _round=1, desc=desc)
+                                 self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * lvl, round_=1, desc=desc)
 
 
 class CounterOS(OS):
@@ -240,7 +240,7 @@ class CounterOS(OS):
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             if random.random() * 100 <= self.val[0][self.rarity][self.lvl]:
-                self.owner.give_buff(BT.COUNTER_ATTACK, 1, self.val[1][self.rarity][self.lvl], _round=1,
+                self.owner.give_buff(BT.COUNTER_ATTACK, 1, self.val[1][self.rarity][self.lvl], round_=1,
                                      count=1, count_trig={TR.AFTER_COUNTER}, desc="대응형 OS")
 
 
@@ -278,8 +278,8 @@ class PrecisionOS(OS):
         if tt == TR.ROUND_START:
             desc = "정밀형 전투 OS"
             self.owner.give_buff(BT.ATK, 1, self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * self.lvl,
-                                 _round=1, desc=desc)
-            self.owner.give_buff(BT.SPD, 1, d('-0.08'), _round=1, desc=desc)
+                                 round_=1, desc=desc)
+            self.owner.give_buff(BT.SPD, 1, d('-0.08'), round_=1, desc=desc)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF), desc=desc)
 
 
@@ -381,7 +381,7 @@ class Observation(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.RANGE, 0, 1, _round=1, desc=self.name)
+            self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=self.name)
             if random.random() * 100 <= self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl:
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
                                      desc=self.name)
@@ -510,9 +510,9 @@ class EnergyConverter(Gear):
             if self.owner.find_buff(type_=BT.BARRIER, efft=BET.BUFF):
                 desc = "에너지 전환"
                 self.owner.give_buff(BT.ATK, 1, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
-                                     _round=1, desc=desc)
+                                     round_=1, desc=desc)
                 self.owner.give_buff(BT.SPD, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
-                                     _round=1, desc=desc)
+                                     round_=1, desc=desc)
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.BARRIER, efft=BET.BUFF), desc=desc)
 
 
@@ -527,7 +527,7 @@ class Barrier(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.BARRIER, 0, self.val[self.rarity][self.lvl], _round=1, desc="방어막")
+            self.owner.give_buff(BT.BARRIER, 0, self.val[self.rarity][self.lvl], round_=1, desc="방어막")
 
 
 class ReconDrone(Gear):
@@ -605,9 +605,9 @@ class AdvRadar(Gear):
         if tt == TR.ROUND_START:
             if self.owner.getposy() == 0:
                 desc = "망원 조준 장치"
-                self.owner.give_buff(BT.ATK, 1, self.val[0][self.rarity][self.lvl], _round=1, desc=desc)
-                self.owner.give_buff(BT.ACC, 0, self.val[1][self.rarity][self.lvl], _round=1, desc=desc)
-                self.owner.give_buff(BT.CRIT, 0, self.val[2][self.rarity][self.lvl], _round=1, desc=desc)
+                self.owner.give_buff(BT.ATK, 1, self.val[0][self.rarity][self.lvl], round_=1, desc=desc)
+                self.owner.give_buff(BT.ACC, 0, self.val[1][self.rarity][self.lvl], round_=1, desc=desc)
+                self.owner.give_buff(BT.CRIT, 0, self.val[2][self.rarity][self.lvl], round_=1, desc=desc)
 
 
 class Stimulant(Gear):
@@ -702,7 +702,7 @@ class SuperAlloyArmor(Gear):
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.ACTIVE_RESIST, 1, d('0.15') + d('0.02') * self.lvl, _round=1, desc=self.name)
+            self.owner.give_buff(BT.ACTIVE_RESIST, 1, d('0.15') + d('0.02') * self.lvl, round_=1, desc=self.name)
             if random.random() * 100 <= self.val[self.lvl]:
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=self.name)
 
@@ -836,7 +836,7 @@ class CM67SpaceBooster(Gear):
         if tt == TR.ROUND_START:
             desc = "우주용 부스터"
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.EVA, efft=BET.DEBUFF), desc=desc)
-            self.owner.give_buff(BT.CRIT, 0, d('5') + d('1') * self.lvl, _round=1, desc=desc)
+            self.owner.give_buff(BT.CRIT, 0, d('5') + d('1') * self.lvl, round_=1, desc=desc)
 
 
 class MG80ModKit(Gear):
@@ -890,7 +890,7 @@ class SK14ModKit(Gear):
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.RANGE, 0, 1, _round=1, desc=self.name)
+            self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=self.name)
 
 
@@ -1004,11 +1004,11 @@ class AquaModule(Gear):
             v = self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl
             if self.rarity == R.SS and self.lvl == 10:
                 v += self.val[1][self.rarity][1]
-            self.owner.give_buff(BT.ATK, 1, v, _round=1, desc=self.name)
-            self.owner.give_buff(BT.DEF, 1, v, _round=1, desc=self.name)
-            self.owner.give_buff(BT.ACC, 1, v*100, _round=1, desc=self.name)
-            self.owner.give_buff(BT.EVA, 1, v*100, _round=1, desc=self.name)
-            self.owner.give_buff(BT.SPD, 1, v, _round=1, desc=self.name)
+            self.owner.give_buff(BT.ATK, 1, v, round_=1, desc=self.name)
+            self.owner.give_buff(BT.DEF, 1, v, round_=1, desc=self.name)
+            self.owner.give_buff(BT.ACC, 1, v * 100, round_=1, desc=self.name)
+            self.owner.give_buff(BT.EVA, 1, v * 100, round_=1, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, v, round_=1, desc=self.name)
 
 
 class Overclock(Gear):
@@ -1138,7 +1138,7 @@ class Interceptor(Gear):
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
             desc = "정밀형 관측 장비"
-            self.owner.give_buff(BT.RANGE, 0, 1, _round=1, desc=desc)
+            self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=desc)
             if random.random() * 100 <= 50 + 5 * self.lvl:
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=desc)
             if random.random() * 100 <= 50 + 5 * self.lvl:
@@ -1174,7 +1174,7 @@ class LightWeight(Chip):
 
     def passive(self, tt, args):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ATK, 1, d('-.08'), _round=1, removable=False, max_stack=1,
+            self.owner.give_buff(BT.ATK, 1, d('-.08'), round_=1, removable=False, max_stack=1,
                                  tag='LightWeight', desc="무장 경량칩")
 
 
@@ -1238,10 +1238,10 @@ class EnhancedCombatOS(OS):
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.ATK, 1, d('.04') + d('.008') * self.lvl, _round=1, desc=self.name)
-            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.005') * self.lvl, _round=1, desc=self.name)
-            self.owner.give_buff(BT.EVA, 0, d('10') + d('2') * self.lvl, _round=1, desc=self.name)
-            self.owner.give_buff(BT.SPD, 1, self.val[self.lvl], _round=1, desc=self.name)
+            self.owner.give_buff(BT.ATK, 1, d('.04') + d('.008') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.005') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.EVA, 0, d('10') + d('2') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, self.val[self.lvl], round_=1, desc=self.name)
 
 
 class VerminEliminator(Gear):
@@ -1258,7 +1258,7 @@ class VerminEliminator(Gear):
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.04') * self.lvl, _round=1, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.04') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF), desc=self.name)
 
 

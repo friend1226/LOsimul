@@ -326,22 +326,39 @@ class Character:
         else:
             return d('1')
 
-    def judge_active(self, chance: NUM_T):
+    def judge_active(self, chance: NUM_T = 100):
         chance = self.specialBuffs.getSUM().calc(BT.ACTIVE_RATE, chance)
         return self.random() <= chance
+        # True = 발동 성공
+        # False = 발동 실패
 
-    def judge_active_resist(self, base_chance=100):
-        chances = [0]
-        for b in self.specialBuffs.find(type_=BT.ACTIVE_RESIST):
-            if b.opr:  # 효과 저항 (독립시행)
-                chances.append(b.value)
-            else:      # 효과 저항 (기본 확률 증감)
-                base_chance -= b.value
-        for c in chances:
-            if self.random() > base_chance - c:
-                # base_chance가 작을 수록 저항 성공 확률이 올라감
-                return True
-        return False
+    def judge_resist_buff(self, buff, chance: NUM_T = 100, print_p=False):
+        total_p = chance
+        active_chances = []
+        if buff.efftype == BET.DEBUFF and (buff.type != BT.ACTIVE_RESIST or not self.isenemy):
+            for b in self.specialBuffs.find(type_=BT.ACTIVE_RESIST):
+                if b.opr:  # 효과 저항 (독립시행)
+                    active_chances.append(b.value)
+                else:      # 효과 저항 (기본 확률 증감)
+                    total_p -= b.value
+        remove_chances = []
+        if buff.type == BT.REMOVE_BUFF:
+            for b in self.specialBuffs.find(type_=BT.REMOVE_BUFF_RESIST):
+                if b.opr:
+                    remove_chances.append(b.value)
+                else:
+                    total_p -= b.value
+        if active_chances or remove_chances:
+            temp_p = 100
+            for c in active_chances:
+                temp_p *= min(1, (total_p - c) / 100)
+            for c in remove_chances:
+                temp_p *= min(1, (total_p - c) / 100)
+            total_p = temp_p
+        if print_p:
+            print(f"[...] {buff.type} ({buff.efftype}) / "
+                  f"버프 발동 확률 = {total_p}%", file=self.stream)
+        return self.random() > total_p
         # True = 저항 성공
         # False = 저항 실패
 
@@ -432,10 +449,10 @@ class Character:
         return dmg
 
     def give_buff(self,
-                  _type: str,
+                  type_: str,
                   opr: int,
                   value: NUM_T,
-                  _round: int = MAX,
+                  round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
                   efft: int = BET.ETC,
@@ -449,7 +466,7 @@ class Character:
                   made_by: Optional['Character'] = None):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
-        return self.game.give_buff(self, _type, opr, value, _round, count, count_trig, efft, max_stack,
+        return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack,
                                    removable, tag, data, desc, force, chance, made_by)
 
     def find_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None):
