@@ -7,6 +7,7 @@ list_split = ','
 list2d_split = '/'
 
 # TODO : 도움말 다듬기 & 추가
+import os
 with open(os.path.join(PATH, "GUI_README.md"), 'r', encoding='utf-8') as f:
     helptxt = f.read().strip()
 
@@ -294,7 +295,7 @@ class SelectCharacter(QDialog):
         frame = QFrame()
         layout = QHBoxLayout(frame)
         layout.setContentsMargins(0, 0, 0, 0)
-        available_equips = lo_chars.EquipPools.ALL_NAME_LIST[eqtype]
+        available_equips = EquipPools.ALL_NAME_LIST[eqtype]
         names = frame.names = QComboBox(frame)
         names.setMinimumWidth(130)
         names.addItem("없음")
@@ -315,9 +316,9 @@ class SelectCharacter(QDialog):
     def update_character_list(self):
         isenemy = self.selectors['field'].currentText()
         if isenemy == '아군':
-            characters = list(lo_chars.CharacterPools.ALLY.keys())
+            characters = list(CharacterPools.ALLY.keys())
         else:
-            characters = list(lo_chars.CharacterPools.ENEMY.keys())
+            characters = list(CharacterPools.ENEMY.keys())
         self.selectors['id'].clear()
         self.selectors['id'].addItems(characters)
         self.selectors['id'].setCurrentIndex(0)
@@ -325,11 +326,11 @@ class SelectCharacter(QDialog):
     def update_equip_form_and_rarity(self):
         if (nowch := self.selectors['id'].currentText()) == '':
             return
-        char_class = lo_chars.CharacterPools.ALL[nowch].get_info()
+        char_class = CharacterPools.ALL[nowch].get_info()
         base_rarity, equip_conditions = char_class[-2], char_class[-3]
         self.selectors['rarity'].clear()
         self.selectors['rarity'].addItem("없음")
-        self.selectors['rarity'].addItems(lo_chars.R.desc[base_rarity:-1])
+        self.selectors['rarity'].addItems(R.desc[base_rarity:-1])
         for i in range(len(equip_conditions)):
             initiating = self.selectors['equips'][i] is None
             if not initiating:
@@ -343,10 +344,10 @@ class SelectCharacter(QDialog):
         combtxt = comb.currentText()
         if combtxt == "없음":
             return
-        eq_class = lo_chars.EquipPools.ALL_NAME[combtxt]
+        eq_class = EquipPools.ALL_NAME[combtxt]
         rarity = comb.parent().rarity
         rarity.clear()
-        rarity.addItems(lo_chars.R.desc[eq_class.BASE_RARITY:-1])
+        rarity.addItems(R.desc[eq_class.BASE_RARITY:-1])
 
     def okclicked(self):
         self.accept()
@@ -457,7 +458,7 @@ class Trigger(QDialog):
         self.setWindowTitle("트리거 발동")
 
         self.trigbox = QComboBox()
-        self.trigbox.addItems(list(lo_chars.TRIGGERS_REV.keys()))
+        self.trigbox.addItems(list(TRIGGERS_REV.keys()))
         self.trigbox.setFixedWidth(200)
 
         self.selected_characters = set()

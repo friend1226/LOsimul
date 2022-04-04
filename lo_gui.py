@@ -1,29 +1,51 @@
-import sys
 from lo_simul import *
+import os
+import sys
 import lo_gui_subwindows
 import traceback
+import numpy as np
 import json
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QEventLoop, QCoreApplication, QObject, pyqtSignal, QEvent
 from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 
 
-class Stream(QObject):
-    sig = pyqtSignal(object, object)
+defsysstdout = sys.stdout
 
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.stdout_write = sys.stdout.write
-        self.stderr_write = sys.stderr.write
-        sys.stdout.write = self.write
-        sys.stderr.write = lambda x: self.write(x, "red")
 
-    def write(self, s, color="black"):
-        self.sig.emit(s, color)
+class Pipe:
+    def __init__(self, output, color='black'):
+        self.output = output
+        self.color = color
 
-    def __del__(self):
-        sys.stdout = self.stdout_write
-        sys.stderr = self.stderr_write
+    def write(self, s):
+        if isinstance(self.output, MyApp):
+            self.output.logging(s, self.color)
+        else:
+            self.output.write(s)
+
+    def flush(self):
+        if not isinstance(self.output, MyApp):
+            self.output.flush()
+
+
+class RedirectStream:
+    def __init__(self, stdout=None, stderr=None):
+        self.stdout = stdout or sys.stdout
+        self.stderr = stderr or sys.stderr
+
+    def __enter__(self):
+        self.sys_stdout = sys.stdout
+        self.sys_stderr = sys.stderr
+        self.sys_stdout.flush()
+        self.sys_stderr.flush()
+        sys.stdout, sys.stderr = self.stdout, self.stderr
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stdout.flush()
+        self.stderr.flush()
+        sys.stdout = self.sys_stdout
+        sys.stderr = self.sys_stderr
 
 
 class MyApp(QWidget):
@@ -38,6 +60,7 @@ class MyApp(QWidget):
         super().__init__(*args)
 
         self.game = lo_system.Game()
+        self.game.stream = Pipe(self)
 
         self.commands = {
             'add': self.add_,
@@ -75,7 +98,7 @@ class MyApp(QWidget):
             r.setWordWrap(True)
             r.font().setPointSize(12)
             return r
-        self.field_labels = lo_imports.np.array([
+        self.field_labels = np.array([
             [[get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()]],
@@ -103,9 +126,6 @@ class MyApp(QWidget):
         self.outputs.setAcceptRichText(True)
         self.log.setFontPointSize(10)
         self.outputs.setLineWrapMode(QTextEdit.WidgetWidth)
-
-        self.stream = Stream()
-        self.stream.sig.connect(self.logging)
 
         self.commandbox = QLineEdit(self)
         self.commandbox.returnPressed.connect(self.get_command)
@@ -265,7 +285,7 @@ class MyApp(QWidget):
                 temp = self.list_split.join(templ)
             elif isinstance(ws[k], QComboBox):
                 temp = ws[k].currentText()
-                if not temp.isnumeric() and temp not in lo_chars.CharacterPools.ALL:
+                if not temp.isnumeric() and temp not in CharacterPools.ALL:
                     temp = sub[temp]
             elif isinstance(ws[k], QSpinBox):
                 temp = str(ws[k].value())
@@ -318,7 +338,7 @@ class MyApp(QWidget):
         field = int(field)
         if id_.isnumeric():
             id_ = int(id_)
-        char_class = lo_chars.CharacterPools.ALL.get(id_)
+        char_class = CharacterPools.ALL.get(id_)
         if char_class is None:
             return f"[Error] ID가 {id_}인 캐릭터가 없습니다."
         pos = lo_imports.Pos(pos)
@@ -366,7 +386,7 @@ class MyApp(QWidget):
                 kwargs[k] = list(map(int, temp))
             else:
                 kwargs[k] = int(kwargs[k])
-        newchar: lo_chars.Character = char_class(self.game, pos, *pargs, **kwargs)
+        newchar: lo_char.Character = char_class(self.game, pos, *pargs, **kwargs)
         newchar.isenemy = [False, True, newchar.isenemy][field]
         self.game.put_char(newchar)
         return f"[Info] {newchar}가 생성되었습니다. (위치 {newchar.getpos()})"
@@ -432,7 +452,7 @@ class MyWindow(QMainWindow):
     def __init__(self, *args):
         super().__init__(*args)
 
-        wg = MyApp()
+        self.app = wg = MyApp()
         self.setCentralWidget(wg)
 
         def load_ally():
@@ -523,4 +543,8 @@ class MyWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyWindow()
-    sys.exit(app.exec_())
+    with RedirectStream(
+        stdout=Pipe(ex.app),
+        stderr=Pipe(ex.app, 'red')
+    ):
+        sys.exit(app.exec_())

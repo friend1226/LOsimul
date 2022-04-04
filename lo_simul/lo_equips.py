@@ -3,7 +3,7 @@ from .lo_enum import *
 from .lo_system import *
 
 if TYPE_CHECKING:
-    from lo_char_base import Character
+    from lo_simul import Character
 
 
 class Equip:

@@ -4,6 +4,13 @@ from .lo_system import *
 from .lo_equips import *
 
 
+class CharacterPools:
+    ALL_CODES: Dict[str, Type['Character']] = {}
+    ALLY: Dict[str, Union[Type['Character'], str]] = {}
+    ENEMY: Dict[str, Union[Type['Character'], str]] = {}
+    ALL: Dict[str, Type['Character']] = {}
+
+
 class Character:
     id_: int
     name: str
@@ -27,6 +34,17 @@ class Character:
     base_rarity: int = R.B
 
     extra_num: str = ''
+
+    equips: List[Optional[Equip]]
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__()
+        CharacterPools.ALL_CODES[cls.code] = cls
+        CharacterPools.ALL[cls.name] = cls
+        if cls.isenemy:
+            CharacterPools.ENEMY[cls.name] = cls
+        else:
+            CharacterPools.ALLY[cls.name] = cls
 
     def __init__(self, game: 'Game', pos: Union[int, tuple, Pos], rarity=None,
                  lvl=1, stat_lvl=None, skill_lvl=None, equips=None,
@@ -333,28 +351,46 @@ class Character:
         # False = 발동 실패
 
     def judge_resist_buff(self, buff, chance: NUM_T = 100, print_p=False):
-        total_p = chance
+        active_p = 0
         active_chances = []
         if buff.efftype == BET.DEBUFF and (buff.type != BT.ACTIVE_RESIST or not self.isenemy):
             for b in self.specialBuffs.find(type_=BT.ACTIVE_RESIST):
                 if b.opr:  # 효과 저항 (독립시행)
                     active_chances.append(b.value)
                 else:      # 효과 저항 (기본 확률 증감)
-                    total_p -= b.value
+                    active_p -= b.value
+        remove_p = 0
+        remove_flag = False
         remove_chances = []
         if buff.type == BT.REMOVE_BUFF:
             for b in self.specialBuffs.find(type_=BT.REMOVE_BUFF_RESIST):
                 if b.opr:
                     remove_chances.append(b.value)
                 else:
-                    total_p -= b.value
-        if active_chances or remove_chances:
-            temp_p = 100
+                    remove_p -= b.value
+                    remove_flag = True
+
+        def m(p):
+            if p > 1:
+                return 1
+            elif p < 0:
+                return 0
+            else:
+                return p
+        total_p = 100
+        if remove_chances:
             for c in active_chances:
-                temp_p *= min(1, (total_p - c) / 100)
+                total_p *= m((chance + active_p + c) / 100)
             for c in remove_chances:
-                temp_p *= min(1, (total_p - c) / 100)
-            total_p = temp_p
+                total_p *= m((chance + active_p + remove_p + c) / 100)
+        else:
+            if active_chances:
+                for c in active_chances:
+                    total_p *= m((chance + active_p + c) / 100)
+                if remove_flag:
+                    total_p *= m((chance + active_p + remove_p) / 100)
+            else:
+                total_p *= m((chance + active_p + remove_p) / 100)
         if print_p:
             print(f"[...] {buff.type} ({buff.efftype}) / "
                   f"버프 발동 확률 = {total_p}%", file=self.stream)
@@ -455,7 +491,7 @@ class Character:
                   round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
-                  efft: int = BET.ETC,
+                  efft: int = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
                   tag: Optional[str] = None,
@@ -476,7 +512,7 @@ class Character:
         return result
 
     def remove_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, limit=MAX, force=False,
-                    log=True):
+                    log=True, **kwargs):
         result = BuffList()
         for bl in self.buff_iter:
             result += bl.remove(type_, efft, tag, func, id_, val_sign, limit-len(result), force)
@@ -589,7 +625,7 @@ class Character:
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        pass
+        return {}
 
     def _active2(self,
                  targets: Dict['Character', NUM_T],
@@ -597,7 +633,7 @@ class Character:
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        pass
+        return {}
 
     def _factive1(self,
                   targets: Dict['Character', NUM_T],
@@ -630,8 +666,8 @@ class Character:
                             aoe: List[Union[Tuple[int, int], int, 'Pos']],
                             field: Union[NUM_T, bool] = None
                             ) -> List['Character']:
-        temp = self.game.get_chars(aoe, self.isenemy if field is None else field)
-        return sorted(temp.values(), key=lambda c: c.getposn())
+        return sorted(self.game.get_chars(aoe, self.isenemy if field is None else field).values(),
+                      key=lambda c: c.getposn())
 
     def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
@@ -690,4 +726,3 @@ class Character:
     def idle(self):
         self.give_ap(-1)
         self.trigger(TR.IDLE)
-

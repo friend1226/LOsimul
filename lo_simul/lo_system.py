@@ -1,8 +1,11 @@
 from .lo_enum import *
 from .lo_imports import *
 
+import heapq as h
+import bisect as bs
+
 if TYPE_CHECKING:
-    from .lo_char_base import Character
+    from .lo_char import Character
 
 
 class Game:
@@ -55,19 +58,20 @@ class Game:
         self.__character_types[fi][type(c)] += 1
 
     def put_from_file(self, filename, field):
-        from .lo_chars import pool
+        from .lo_char import CharacterPools
         with open(filename, 'r', encoding='utf-8') as f_:
             temp_ = json.load(f_)
             for i in range(9):
                 if (cha := self.get_char(i, field=field)) is not None:
-                    self.remove_char(cha)
+                    self.remove_char(cha, field=field)
             for i, cinf in enumerate(temp_):
                 if len(cinf) > 0:
-                    self.put_char(pool.CharacterPools.ALL_CODES[cinf['code']](
+                    self.put_char(CharacterPools.ALL_CODES[cinf['code']](
                         self,
                         i,
                         **cinf["args"]
                     ), field=field)
+        del CharacterPools
     
     def get_char(self, x, y=None, field=0) -> Optional['Character']:
         try:
@@ -76,8 +80,8 @@ class Game:
             return None
         return self.__field[field][p.x()][p.y()]
     
-    def remove_char(self, c, msg=False):
-        ce = int(c.isenemy)
+    def remove_char(self, c, field=None, msg=False):
+        ce = int(c.isenemy) if field is None else field
         cp = c.getpos()
         target = self.__field[ce][cp.x()][cp.y()]
         if target == c:
@@ -206,13 +210,13 @@ class Game:
         self._use_skill(subjc, skill_no, objpos)
     
     def _use_skill(self,
-                  subjc: 'Character',
-                  skill_no: int,
-                  objpos: Union[int, Pos],
-                  catkr: Optional[NUM_T] = None,
-                  follow: Optional['Character'] = None,
-                  coop: Optional[int] = None,
-                  impact: int = 0):
+                   subjc: 'Character',
+                   skill_no: int,
+                   objpos: Union[int, Pos],
+                   catkr: Optional[NUM_T] = None,
+                   follow: Optional['Character'] = None,
+                   coop: Optional[int] = None,
+                   impact: int = 0):
         if self.enemy_all_down:
             return
         if catkr is not None:
@@ -236,7 +240,7 @@ class Game:
             print(f"[-@-] <{subjc}> - 대기.", file=self.stream)
             return
         elif impact == 0:
-            impact_turn = subjc.get_skill(skill_no-1, True)['impact']
+            impact_turn = subjc.get_skill(skill_no-1, True)['impact'][subjc.skillvl[(skill_no-1) % 5]]
             if impact_turn >= 0:
                 self.__impacts.append([impact_turn,
                                        (subjc, skill_no, objpos, catkr, follow, coop, impact_turn)])
@@ -248,7 +252,7 @@ class Game:
         if not (catkr or follow or coop or impact):
             subjc.give_ap(-subjc.get_skill_cost(skill_no))
         skill_idx = skill_no - 1
-        skillvl_val = subjc.skillvl[skill_idx%5]
+        skillvl_val = subjc.skillvl[skill_idx % 5]
         fn = int(subjc.isenemy)
         isatk = bool(subjc.get_skill(skill_idx)['isattack'] & (1 << skillvl_val))
         tf = fn ^ isatk
@@ -396,7 +400,7 @@ class Game:
                   round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
-                  efft: int = BET.ETC,
+                  efft: int = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
                   tag: Optional[str] = None,
@@ -432,7 +436,7 @@ class Game:
             target.remove_buff(tag=tag, force=True, limit=1)
         # 효과 저항 / 강화 해제 관련 메커니즘은 다음을 참고함
         # https://arca.live/b/lastorigin/47046451
-        if efft != BET.ETC:
+        if efft != BET.NORMAL:
             for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
                 if buff.issatisfy(**immune_buff.data):
                     print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
@@ -462,7 +466,7 @@ class Game:
             target.dmgGiveDecBuffs.append(buff)
         else:
             target.specialBuffs.append(buff)
-        print(f"[!!!] <{target}> - 버프 추가됨: [{buff}]", file=self.stream)
+        print(f"[!+!] <{target}> - 버프 추가됨: [{buff}]", file=self.stream)
         if max_stack > 0:
             target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
@@ -568,14 +572,15 @@ class Buff:
                  round_: int = MAX,
                  count: int = MAX,
                  count_trig: Set[str] = None,
-                 efft: int = BET.ETC,
+                 efft: int = BET.NORMAL,
                  max_stack: int = 0,
                  removable: bool = True,
                  tag: Optional[str] = None,
                  data: Optional[Data] = None,
                  desc: Optional[str] = None,
                  owner: Optional['Character'] = None,
-                 made_by: Optional['Character'] = None):
+                 made_by: Optional['Character'] = None,
+                 game: Optional[Game] = None):
         self.type: str = type_
         self.opr: int = opr
         # 0 = '+', 1 = '*'
@@ -595,7 +600,16 @@ class Buff:
         self.desc: Optional[str] = desc
         self.owner = owner
         self.made_by = made_by
+        self.game = game
         self.expired = False
+
+        self.random = None
+        if self.owner:
+            self.random = self.owner.random
+        elif self.game:
+            def custom_random(self, r=100, offset=0):
+                return self.game.random.uniform(offset, offset + r)
+            self.random = custom_random
 
         if self.type == BT.IMMUNE_DMG:
             self.count_triggers.add(TR.GET_HIT)
@@ -731,7 +745,7 @@ class Buff:
         pass
     
     def issatisfy(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, chance=100, **kwargs):
-        if self.owner.random() > chance:
+        if self.random and self.random() > chance:
             return False
         if id_:
             if self.getID() != id_:
@@ -848,7 +862,7 @@ class BuffList:
             if except_condition(b):
                 self.buffs.append(b)
                 continue
-            if (immunedmg_activated and b.type == BT.IMMUNE_DMG and  tt == TR.GET_HIT) or \
+            if (immunedmg_activated and b.type == BT.IMMUNE_DMG and tt == TR.GET_HIT) or \
                     (battlecontinue_activated and b.type == BT.BATTLE_CONTINUATION and tt == TR.BATTLE_CONTINUED):
                 continue
             b.trigger(tt, args)
@@ -937,4 +951,3 @@ class BuffSUM:
         else:
             raise ValueError(f"잘못된 타입 : {type(other)}")
         return r
-
