@@ -132,7 +132,7 @@ class VaccineChip(Chip):
         if tt == TR.ROUND_START:
             desc = "백신 처리"
             value = self.bfval[self.rarity][self.lvl]
-            self.owner.give_buff(BT.ACTIVE_RESIST, 0, value, round_=1, max_stack=1, tag=f'vaccine_{value}', desc=desc)
+            self.owner.give_buff(BT.ACTIVE_RESIST, 1, value, round_=1, max_stack=1, tag=f'vaccine_{value}', desc=desc)
             if random.random() * 100 <= self.chval[self.rarity][self.lvl]:
                 self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
 
