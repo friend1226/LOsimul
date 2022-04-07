@@ -436,15 +436,15 @@ class Game:
             target.remove_buff(tag=tag, force=True, limit=1)
         # 효과 저항 / 강화 해제 관련 메커니즘은 다음을 참고함
         # https://arca.live/b/lastorigin/47046451
-        if efft != BET.NORMAL:
-            for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
-                if buff.issatisfy(**immune_buff.data):
-                    print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
-                    return None
         if not force:
-            if target.judge_resist_buff(buff, chance):
-                print(f"[!@!] <{target}> - 버프 저항함: [{buff}]", file=self.stream)
-                return None
+            if efft != BET.NORMAL:
+                for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
+                    if buff.issatisfy(**immune_buff.data):
+                        print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
+                        return None
+                if target.judge_resist_buff(buff, chance):
+                    print(f"[!@!] <{target}> - 버프 저항함: [{buff}]", file=self.stream)
+                    return None
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
                 target.remove_buff(**data._asdict())
