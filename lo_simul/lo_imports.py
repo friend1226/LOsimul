@@ -110,6 +110,8 @@ class Pos:
                     temp = Pos(int(x), grid=grid)
                     self._x = temp.x()
                     self._y = temp.y()
+                else:
+                    raise ValueError(f"숫자가 아님 : {x}")
             else:
                 if x < 0 or x >= grid[0] * grid[1]:
                     raise ValueError(f"범위를 벗어난 값 : {x} {grid}")

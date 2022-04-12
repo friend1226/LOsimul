@@ -1,10 +1,12 @@
-class Rarity:
+from enum import IntEnum
+
+
+class Rarity(IntEnum):
     B = 0
     A = 1
     S = 2
     SS = 3
     SSS = 4
-    desc = ['B', 'A', 'S', 'SS', 'SSS']
 
 
 class CharType:
@@ -217,7 +219,7 @@ class BuffEffectType:
     BUFF = 0
     DEBUFF = 1
     NORMAL = 2
-    desc = ['이로운 효과', '해로운 효과', '일반 효과']
+    desc = ['강화 효과', '해로운 효과', '일반 효과']
 
 
 class Gimmick:

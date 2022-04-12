@@ -46,7 +46,7 @@ class Character:
         else:
             CharacterPools.ALLY[cls.name] = cls
 
-    def __init__(self, game: 'Game', pos: Union[int, tuple, Pos], rarity=None,
+    def __init__(self, game: 'Game', pos: Union[int, tuple, Pos, str], rarity=None,
                  lvl=1, stat_lvl=None, skill_lvl=None, equips=None,
                  link=0, full_link_bonus_no=None, affection=0, pledge=False, current_hp=0):
         self.game = game
@@ -122,7 +122,7 @@ class Character:
             elif isinstance(e, Sequence):  # (name, rarity, lvl)
                 e = self.equips[ei] = EquipPools.ALL_NAME[e[0]](e[1], e[2], self)
             if e.EQUIP_TYPE != self.equip_condition[ei]:
-                print(f'[-@-] <!> 경고: 장비 슬롯에 맞지 않는 장비입니다 = {ei+1}번 장비 {e}', file=self.stream)
+                print(f'[wre] <!> 경고: 장비 슬롯에 맞지 않는 장비입니다 = {ei+1}번 장비 {e}', file=self.stream)
             self.baseBuffs += e.buff
 
         if self.affection == 200 or self.pledge:
@@ -392,7 +392,7 @@ class Character:
             else:
                 total_p *= m((chance + active_p + remove_p) / 100)
         if print_p:
-            print(f"[...] {buff.type} ({buff.efftype}) / "
+            print(f"[tmp] {buff.type} ({buff.efftype}) / "
                   f"버프 발동 확률 = {total_p}%", file=self.stream)
         return self.random() > total_p
         # True = 저항 성공
@@ -445,7 +445,7 @@ class Character:
         # 피해 최소화
         if minib := self.find_buff(type_=BT.MINIMIZE_DMG):
             if minib[-1].value >= damage:
-                print(f"[X@X] <{self}>의 피해 최소화 발동.", file=self.stream)
+                print(f"[amd] <{self}>의 피해 최소화 발동.", file=self.stream)
                 damage = 1
 
         # 광역 피해 분산/집중
@@ -462,25 +462,25 @@ class Character:
     def give_damage(self, dmg, direct=False):
         if not direct:
             if self.find_buff(type_=BT.IMMUNE_DMG):
-                print(f"[X@X] <{self}> - 피해 무효 발동.", file=self.stream)
+                print(f"[adi] <{self}> - 피해 무효 발동.", file=self.stream)
                 self.game.battle_log.append((self, -2))
                 return -2
             for b in self.find_buff(type_=BT.BARRIER, func=lambda b: not b.expired):
                 if dmg > b.value:
-                    print(f"[X@X] <{self}> - 방어막 {{ {b.value} }} 흡수됨.", file=self.stream)
+                    print(f"[bar] <{self}> - 방어막 {{ {b.value} }} 흡수됨.", file=self.stream)
                     self.game.battle_log.append((self, -1, b.value, b))
                     dmg -= b.value
                     b.value = 0
                     b.expired = True
                 else:
-                    print(f"[X@X] <{self}> - 방어막 {{ {dmg} }} 흡수됨.", file=self.stream)
+                    print(f"[bar] <{self}> - 방어막 {{ {dmg} }} 흡수됨.", file=self.stream)
                     self.game.battle_log.append((self, -1, dmg, b))
                     b.value -= dmg
                     return -1
         dmg = d(dmg).quantize(d(1))
         self.hp -= dmg
         if direct:
-            print(f"[XXX] <{self}> - {{ {dmg} }} 피해를 입음.", file=self.stream)
+            print(f"[dmg] <{self}> - {{ {dmg} }} 피해를 입음.", file=self.stream)
         self.game.battle_log.append((self, dmg))
         return dmg
 
@@ -518,7 +518,7 @@ class Character:
             result += bl.remove(type_, efft, tag, func, id_, val_sign, limit-len(result), force)
         for b in result:
             if log:
-                print(f"[-@-] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
+                print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
             if self.stack_limited_buff_tags[b.tag] > 0:
                 self.stack_limited_buff_tags[b.tag] -= 1
         return result
@@ -538,7 +538,7 @@ class Character:
                 else:
                     self.give_damage(b.value * element_rate, True)
                 self.dead_judge_process()
-            print(f"[-@-] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
+            print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
         return result
 
     def dead_judge_process(self,
@@ -573,7 +573,7 @@ class Character:
 
     def trigger(self, trigtype=TR.DUMMY, args=None, print_msg=False):
         if trigtype != TR.DUMMY and print_msg:
-            print(f"[-] <{self}> - <{trigtype}> 트리거 작동함.", file=self.stream)
+            print(f"[trg] <{self}> - <{trigtype}> 트리거 작동함.", file=self.stream)
         if (trigtype == TR.ALLY_DEAD or trigtype == TR.ALLY_KILLED) and args == self:
             return
         for eq in self.equips:
@@ -697,13 +697,13 @@ class Character:
                     self.hp = bcb.value
                 self.remove_buff(id_=bcb.getID(), force=True)
                 self.trigger(TR.BATTLE_CONTINUED)
-                print(f"[!@!] <{self}> - 전투속행 발동!", file=self.stream)
+                print(f"[bcn] <{self}> - 전투속행 발동!", file=self.stream)
 
     def base_passive_after(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.give_ap(self.get_spd())
         elif tt == TR.INCAPABLE:
-            self.game.remove_char(self, True)
+            self.game.remove_char(self, msg=True)
         elif tt == TR.IDLE:
             if idleb := self.find_buff(tag='Maria_p1_ForceIDLE'):
                 self.remove_buff(id_=idleb[-1].getID(), force=True)

@@ -1,7 +1,7 @@
 from lo_simul import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QPixmap, QTextCursor
+from PyQt5.QtGui import QFont, QPixmap, QTextCursor, QColor
 
 list_split = ','
 list2d_split = '/'
@@ -330,7 +330,7 @@ class SelectCharacter(QDialog):
         base_rarity, equip_conditions = char_class[-2], char_class[-3]
         self.selectors['rarity'].clear()
         self.selectors['rarity'].addItem("없음")
-        self.selectors['rarity'].addItems(R.desc[base_rarity:-1])
+        self.selectors['rarity'].addItems(list(map(lambda en: en.name, list(R)[base_rarity:-1])))
         for i in range(len(equip_conditions)):
             initiating = self.selectors['equips'][i] is None
             if not initiating:
@@ -347,7 +347,7 @@ class SelectCharacter(QDialog):
         eq_class = EquipPools.ALL_NAME[combtxt]
         rarity = comb.parent().rarity
         rarity.clear()
-        rarity.addItems(R.desc[eq_class.BASE_RARITY:-1])
+        rarity.addItems(list(map(lambda en: en.name, list(R)[eq_class.BASE_RARITY:-1])))
 
     def okclicked(self):
         self.accept()
@@ -828,7 +828,7 @@ class CharacterInfo(QDialog):
             else:
                 efl.addWidget(QLabel(e.nick))
                 efl.addWidget(QLabel(f"({e.name})"))
-                efl.addWidget(QLabel(f"[{R.desc[e.rarity]}] Lv.{e.lvl}"))
+                efl.addWidget(QLabel(f"[{list(R)[e.rarity].name}] Lv.{e.lvl}"))
                 efl.children()
             for i in range(efl.count()):
                 efl.itemAt(i).setAlignment(Qt.AlignCenter)
@@ -843,8 +843,11 @@ class CharacterInfo(QDialog):
         bltextbox.setAcceptRichText(True)
         bltextbox.setFont(QFont("consolas", pointSize=7))
         bltextbox.setLineWrapMode(QTextEdit.WidgetWidth)
-        allbufflist = sum(self.character.buff_iter[1:], BuffList())
-        bltextbox.setText(str(allbufflist))
+        buffcolors = ['green', 'red', 'black']
+        for bl in self.character.buff_iter[1:]:
+            for b in bl:
+                bltextbox.setTextColor(QColor(buffcolors[b.efftype]))
+                bltextbox.insertPlainText(str(b)+'\n')
         blayout.addWidget(bltextbox)
         buffgroupbox.setLayout(blayout)
 

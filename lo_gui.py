@@ -5,12 +5,14 @@ import lo_gui_subwindows
 import traceback
 import numpy as np
 import json
+import re
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QEventLoop, QCoreApplication, QObject, pyqtSignal, QEvent
 from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 
 
 defsysstdout = sys.stdout
+lo_simul_output_pattern = re.compile(r"\[(...)] (.*)")
 
 
 class Pipe:
@@ -18,9 +20,26 @@ class Pipe:
         self.output = output
         self.color = color
 
-    def write(self, s):
+    def write(self, s: AnyStr):
         if isinstance(self.output, MyApp):
-            self.output.logging(s, self.color)
+            if m := lo_simul_output_pattern.match(s):
+                tag, content = m.groups()
+                color = self.color
+                if tag in "wre dmg bim brs".split():
+                    color = 'red'
+                if tag in "rmv".split():
+                    color = 'darkRed'
+                if tag in "brm".split():
+                    color = 'gray'
+                if tag in "amd adi bar bad".split():
+                    color = 'green'
+                if tag in "trg acc acf aco aci act imp wst wed rst".split():
+                    color = 'blue'
+                if tag in "mov idl tmp".split():
+                    color = 'black'
+                self.output.logging(content, color)
+            else:
+                self.output.logging(s, self.color)
         else:
             self.output.write(s)
 
@@ -63,13 +82,7 @@ class MyApp(QWidget):
         self.game.stream = Pipe(self)
 
         self.commands = {
-            'add': self.add_,
-            'remove': self.remove_,
             'exit': self.exit_,
-            'trigger': self.trigger,
-            'skill': self.skill,
-            'help': self.help_,
-            'test': self.test_
         }
 
         vbox = QVBoxLayout()
@@ -207,21 +220,32 @@ class MyApp(QWidget):
         target = self.game.get_char(p[1], field=p[0])
         if target is None:
             return
-        if leftclick:
-            if self.game.enemy_all_down:
-                return
-            win = lo_gui_subwindows.UseSkill(target, self)
-            res = win.show_window()
-            if not res:
-                return
-            subjfield, subjcpos = p
-            skill_no = win.skill_no
-            objpos = win.objpos
-            objfield = win.objfield
-            self.run_command('skill', list(map(str, (subjfield, subjcpos, skill_no, objpos))))
-        else:
-            win = lo_gui_subwindows.CharacterInfo(target, self)
-            win.show_window()
+        try:
+            if leftclick:
+                if self.game.enemy_all_down:
+                    return
+                win = lo_gui_subwindows.UseSkill(target, self)
+                res = win.show_window()
+                if not res:
+                    return
+                subjfield, subjcpos = p
+                skill_no = win.skill_no
+                objpos = win.objpos
+                objfield = win.objfield
+                subjc = self.game.get_char(lo_imports.Pos(subjcpos), field=subjfield)
+                self.game.use_skill(
+                    subjc=subjc,
+                    skill_no=skill_no,
+                    objpos=lo_imports.Pos(objpos)
+                )
+                self.print(f"[Info] 스킬 사용 완료. ({subjc}(이)가 {objpos}번 위치에 {skill_no}번 스킬 사용)")
+            else:
+                win = lo_gui_subwindows.CharacterInfo(target, self)
+                win.show_window()
+        except Exception as ex:
+            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
+        finally:
+            self.update_field_labels()
 
     def show_act_order(self):
         win = lo_gui_subwindows.ShowActOrder(self, self.game)
@@ -236,8 +260,9 @@ class MyApp(QWidget):
                         f"{c}\n" + ('--- / ---' if c is None else f'{c.hp}/{c.maxhp}')
                     )
 
-    def print(self, s):
+    def print(self, s, color='black'):
         self.outputs.moveCursor(QTextCursor.End)
+        self.outputs.setTextColor(QColor(color))
         self.outputs.insertPlainText(str(s)+'\n')
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
 
@@ -253,54 +278,32 @@ class MyApp(QWidget):
         if not res:
             return
         ws = win.selectors
-        sub = {
-            '아군': '0',
-            '적군': '1',
-            'B': '0',
-            'A': '1',
-            'S': '2',
-            'SS': '3',
-            '없음': 'None',
-            '서약함': '1',
-            '서약 안 함': '0'
-        }
-        cmd = [sub[ws['field'].currentText()],
-               ws['pos'].currentText(),
-               ws['id'].currentText()]
-        for k in win.args:
-            if k == 'field' or k == 'pos' or k == 'id':
-                continue
-            if isinstance(ws[k], list):
-                templ = []
-                for x in ws[k]:
-                    if isinstance(x, QComboBox):
-                        temps = x.currentText()
-                        if not temps.isnumeric():
-                            temps = sub[temps]
-                    elif isinstance(x, QSpinBox):
-                        temps = str(x.value())
-                    else:
-                        continue
-                    templ.append(temps)
-                temp = self.list_split.join(templ)
-            elif isinstance(ws[k], QComboBox):
-                temp = ws[k].currentText()
-                if not temp.isnumeric() and temp not in CharacterPools.ALL:
-                    temp = sub[temp]
-            elif isinstance(ws[k], QSpinBox):
-                temp = str(ws[k].value())
-            else:
-                continue
-            cmd.append(k+'='+temp)
-        eql = []
-        for frm in ws['equips']:
-            name = frm.names.currentText()
-            if name == "없음":
-                eql.append('None')
-            else:
-                eql.append(self.list_split.join([name, frm.rarity.currentText(), frm.lvl.currentText()]))
-        cmd.append('equips='+self.list2d_split.join(eql))
-        self.run_command('add', cmd)
+        try:
+            char_class = CharacterPools.ALL.get(ws['id'].currentText())
+            flbn = ws['full_link_bonus_no'].currentText()
+            rarity = ws['rarity'].currentText()
+            newchar = char_class(
+                self.game,
+                ws['pos'].currentText(),
+                {i.name: i.value for i in R}[rarity] if rarity != "없음" else None,
+                int(ws['lvl'].value()),
+                [int(spbox.value()) for spbox in ws['stat_lvl']],
+                [int(spbox.value()) for spbox in ws['skill_lvl']],
+                [None if frame.names.currentText()
+                 else (frame.names.currentText(), R[frame.rarity.currentTxt()].value, int(frame.lvl.currentText()))
+                 for frame in ws['equips']],
+                int(ws['link'].value()),
+                int(flbn) if flbn != "없음" else None,
+                int(ws['affection'].value()),
+                ws['pledge'] == '서약함',
+                int(ws['current_hp'].value())
+            )
+            self.game.put_char(newchar)
+            self.print(f"[Info] {newchar}가 생성되었습니다. (위치 {newchar.getpos()})")
+        except Exception as ex:
+            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
+        finally:
+            self.update_field_labels()
 
     def char_remove_clicked(self):
         win = lo_gui_subwindows.RemoveCharacter(self)
@@ -308,22 +311,36 @@ class MyApp(QWidget):
         if not res:
             return
         target = win.selected_character
-        self.run_command('remove', ['1' if target.isenemy else '0', str(target.getposn())])
+        try:
+            self.game.remove_char(target)
+            self.print(f"[Info] {target}가 제거되었습니다.")
+        except ValueError:
+            self.print(f"[Error] 해당 위치에 캐릭터가 없습니다.")
+        except Exception as ex:
+            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
+        finally:
+            self.update_field_labels()
 
     def trigger_clicked(self):
         win = lo_gui_subwindows.Trigger(self)
         res = win.show_window()
         if not res:
             return
-        trig = lo_enum.TRIGGERS_REV[win.trigbox.currentText()]
+        trig = win.trigbox.currentText()
         targets = win.selected_characters
-        allys, enemys = [], []
-        for t in targets:
-            if t.isenemy:
-                enemys.append(t.getposn())
-            else:
-                allys.append(t.getposn())
-        self.run_command('trigger', [trig, sorted(allys), sorted(enemys)])
+        try:
+            allys, enemys = [], []
+            for t in targets:
+                if t.isenemy:
+                    enemys.append(t.getposn())
+                else:
+                    allys.append(t.getposn())
+            self.game.trigger(trig, sorted(allys), sorted(enemys))
+            self.print(f"[Info] <{trig}> 트리거 완료.")
+        except Exception as ex:
+            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
+        finally:
+            self.update_field_labels()
 
     def help_(self, *args):
         win = lo_gui_subwindows.HelpWindow(self)
@@ -331,100 +348,6 @@ class MyApp(QWidget):
 
     def test_(self, *args):
         print(self.game.get_act_order_str().strip())
-
-    def add_(self, field, pos, id_, *args):
-        if field != '-1' and field != '0' and field != '1':
-            return f"[Error] field는 -1, 0, 1 중 하나여야 합니다. (현재{field=})"
-        field = int(field)
-        if id_.isnumeric():
-            id_ = int(id_)
-        char_class = CharacterPools.ALL.get(id_)
-        if char_class is None:
-            return f"[Error] ID가 {id_}인 캐릭터가 없습니다."
-        pos = lo_imports.Pos(pos)
-        pargs_t = []
-        kwargs = dict()
-        argname = {'rarity', 'lvl', 'stat_lvl', 'skill_lvl', 'equips', 'link',
-                   'full_link_bonus_no', 'affection', 'pledge', 'current_hp'}
-        kwstart = False
-        for idx in range(len(args)):
-            temp = args[idx]
-            if len(kv := temp.split(self.kv_split)) > 1:
-                if kv[0] not in argname:
-                    return f"[Error] 매개변수 이름이 잘못되었습니다. : {kv[0]}"
-                kwstart = True
-                if kwargs.get(kv[0]):
-                    return f"[Error] 매개변수 이름이 중복되었습니다. : {kv[0]}"
-                kwargs[kv[0]] = kv[1]
-            elif kwstart:
-                return f"[Error] 키워드 인자(keyword argument) 뒤에 " \
-                       f"인자(positional argument)가 있어서는 안 됩니다."
-            else:
-                pargs_t.append(temp)
-        pargs = []
-
-        def conv(eqp):
-            if eqp == "None":
-                return None
-            eql = eqp.split(self.list_split)
-            return eql[0].replace('_', ' '), getattr(lo_enum.R, eql[1]), int(eql[2])
-        for a in pargs_t:
-            if a == 'None':
-                pargs.append(None)
-            elif len(temp := a.split(self.list2d_split)) > 1:
-                pargs.append(list(map(conv, temp)))
-            elif len(temp := a.split(self.list_split)) > 1:
-                pargs.append(list(map(int, temp)))
-            else:
-                pargs.append(int(a))
-        for k in kwargs:
-            if kwargs[k] == 'None':
-                kwargs[k] = None
-            elif len(temp := kwargs[k].split(self.list2d_split)) > 1:
-                kwargs[k] = list(map(conv, temp))
-            elif len(temp := kwargs[k].split(self.list_split)) > 1:
-                kwargs[k] = list(map(int, temp))
-            else:
-                kwargs[k] = int(kwargs[k])
-        newchar: lo_char.Character = char_class(self.game, pos, *pargs, **kwargs)
-        newchar.isenemy = [False, True, newchar.isenemy][field]
-        self.game.put_char(newchar)
-        return f"[Info] {newchar}가 생성되었습니다. (위치 {newchar.getpos()})"
-
-    def remove_(self, field, pos, *args):
-        if field != '-1' and field != '0' and field != '1':
-            return f"[Error] field는 -1, 0, 1 중 하나여야 합니다. (현재 = {field})"
-        field = int(field)
-        if c := self.game.get_char(lo_imports.Pos(pos), field=field):
-            self.game.remove_char(c)
-            return f"[Info] {c}가 제거되었습니다."
-        else:
-            return f"[Error] 해당 위치에 캐릭터가 없습니다."
-
-    def trigger(self, trig, *args):
-        try:
-            tt = getattr(lo_enum.Trigger, trig)
-        except AttributeError:
-            self.print(f"[Error] 잘못된 트리거 타입입니다. : {trig}")
-        else:
-            self.game.trigger(tt, *args)
-            return f"[Info] <{tt}> 트리거 완료."
-
-    def skill(self, field, pos, skill_no, objpos, *args):
-        if field != '-1' and field != '0' and field != '1':
-            return f"[Error] field는 -1, 0, 1 중 하나여야 합니다. (주어진 값 = {field})"
-        field = int(field)
-        if not (skill_no.isnumeric() and 0 < int(skill_no) < 5):
-            return f"[Error] skill_no는 1~4의 정수 중 하나여야 합니다. (주어진 값 = {field})"
-        skill_no = int(skill_no)
-        subjc = self.game.get_char(lo_imports.Pos(pos), field=field)
-        self.game.use_skill(
-            subjc=subjc,
-            skill_no=skill_no,
-            objpos=lo_imports.Pos(objpos)
-        )
-        return f"[Info] 스킬 사용 완료. " \
-               f"({subjc}(이)가 {objpos}번 위치에 {skill_no}번 스킬 사용)"
 
     def exit_(self, *args):
         QCoreApplication.instance().quit()
@@ -439,13 +362,16 @@ class MyApp(QWidget):
             if cmd == "eval":
                 self.print(eval(' '.join(args)))
             else:
-                return_str = self.commands[cmd](*args)
-                if cmd != "help" and cmd != "test":
-                    self.print(return_str)
+                if cmd in self.commands:
+                    return_str = self.commands[cmd](*args)
+                    if cmd != "help" and cmd != "test":
+                        self.print(return_str)
             self.update_field_labels()
-            self.commandbox.setText("")
         except Exception as ex:
-            traceback.print_exception(type(ex), ex, ex.__traceback__)
+            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
+        finally:
+            self.commandbox.setText("")
+            self.update_field_labels()
 
 
 class MyWindow(QMainWindow):

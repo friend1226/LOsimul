@@ -32,7 +32,7 @@ class Equip:
         pass
 
     def __repr__(self):
-        return self.nick + '[' + R.desc[self.rarity] + ']'
+        return self.nick + '[' + list(R)[self.rarity].name + ']'
 
 
 class Chip(Equip):

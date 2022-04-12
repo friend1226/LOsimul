@@ -89,7 +89,7 @@ class Game:
             self.__characters.remove(c)
             self.__character_types[ce][type(c)] -= 1
             if msg:
-                print(f"[-@-] <{c}> - 전장에서 제거됨", file=self.stream)
+                print(f"[rmv] <{c}> - 전장에서 제거됨", file=self.stream)
         else:
             raise ValueError(f"{c}라는 캐릭터가 없음")
     
@@ -220,31 +220,31 @@ class Game:
         if self.enemy_all_down:
             return
         if catkr is not None:
-            print(f"[>>>] ~~~ <{subjc}> 행동 ~~~ (반격)", file=self.stream)
+            print(f"[acc] ~~~ <{subjc}> 행동 ~~~ (반격)", file=self.stream)
         elif follow is not None:
-            print(f"[>>>] ~~~ <{subjc}> 행동 ~~~ (지원공격)", file=self.stream)
+            print(f"[acf] ~~~ <{subjc}> 행동 ~~~ (지원공격)", file=self.stream)
         elif coop is not None:
-            print(f"[>>>] ~~~ <{subjc}> 행동 ~~~ (협동공격)", file=self.stream)
+            print(f"[aco] ~~~ <{subjc}> 행동 ~~~ (협동공격)", file=self.stream)
         elif impact != 0:
-            print(f"[>>>] ~~~ <{subjc}> 행동 ~~~ (착탄)", file=self.stream)
+            print(f"[aci] ~~~ <{subjc}> 행동 ~~~ (착탄)", file=self.stream)
         else:
             self.battle_log.append(D.BattleLogInfo(TR.ACT, f"{self.wave}-{self.round}-{subjc}행동",
                                                    self.random.getstate()))
-            print(f"[>>>] ~~~ <{subjc}> 행동 ~~~", file=self.stream)
+            print(f"[act] ~~~ <{subjc}> 행동 ~~~", file=self.stream)
         if skill_no == 3:
             subjc.move(objpos)
-            print(f"[-@-] <{subjc}> - {objpos}번 위치로 이동함.", file=self.stream)
+            print(f"[mov] <{subjc}> - {objpos}번 위치로 이동함.", file=self.stream)
             return
         elif skill_no == 4:
             subjc.idle()
-            print(f"[-@-] <{subjc}> - 대기.", file=self.stream)
+            print(f"[idl] <{subjc}> - 대기.", file=self.stream)
             return
         elif impact == 0:
             impact_turn = subjc.get_skill(skill_no-1, True)['impact'][subjc.skillvl[(skill_no-1) % 5]]
             if impact_turn >= 0:
                 self.__impacts.append([impact_turn,
                                        (subjc, skill_no, objpos, catkr, follow, coop, impact_turn)])
-                print(f"[-@-] <{subjc}> - {impact_turn}턴 이후 착탄 예약됨.", file=self.stream)
+                print(f"[imp] <{subjc}> - {impact_turn}턴 이후 착탄 예약됨.", file=self.stream)
                 return
         if catkr is not None:
             skill_no = 1
@@ -324,16 +324,16 @@ class Game:
             # -1 = 방어막
             # -2 = 피해 무효
             if catkr is None:
-                print(f"[XXX] <{t}> - <{subjc}>의 공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             elif follow is not None:
-                print(f"[XXX] <{t}> - <{subjc}>의 지원공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 지원공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             elif coop is not None:
-                print(f"[XXX] <{t}> - <{subjc}>의 협동공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 협동공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             else:
-                print(f"[XXX] <{t}> - <{subjc}>의 반격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 반격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
         
         for t in damages:
@@ -440,10 +440,11 @@ class Game:
             if efft != BET.NORMAL:
                 for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
                     if buff.issatisfy(**immune_buff.data):
-                        print(f"[!@!] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
+                        print(f"[bim] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
                         return None
                 if target.judge_resist_buff(buff, chance):
-                    print(f"[!@!] <{target}> - 버프 저항함: [{buff}]", file=self.stream)
+                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
                     return None
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
@@ -466,7 +467,8 @@ class Game:
             target.dmgGiveDecBuffs.append(buff)
         else:
             target.specialBuffs.append(buff)
-        print(f"[!+!] <{target}> - 버프 추가됨: [{buff}]", file=self.stream)
+        print(f"[bad] <{target}> - 버프 추가됨: [{buff}]" + ("" if chance == 100 else f" ({chance}% 확률)"),
+              file=self.stream)
         if max_stack > 0:
             target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
@@ -478,7 +480,7 @@ class Game:
         self.battle_log.append(D.BattleLogInfo(TR.WAVE_START, f"{self.wave}웨이브시작", self.random.getstate()))
         self.wave += 1
         self.round = 0
-        print(f"[@!@] ============= {self.wave} 웨이브 시작 ================================================",
+        print(f"[wst] ============= {self.wave} 웨이브 시작 ================================================",
               file=self.stream)
         self.trigger(TR.WAVE_START)
         self.round_start()
@@ -487,7 +489,7 @@ class Game:
         if len(self.__characters) == 0:
             return
         self.battle_log.append(D.BattleLogInfo(TR.WAVE_END, f"{self.wave}웨이브종료", self.random.getstate()))
-        print(f"[@!@] ============= {self.wave} 웨이브 종료 ================================================",
+        print(f"[wed] ============= {self.wave} 웨이브 종료 ================================================",
               file=self.stream)
         self.trigger(TR.WAVE_END)
         self.round = 0
@@ -506,7 +508,7 @@ class Game:
                 for c in characters:
                     c[0].give_ap(c[0].get_spd())
         self.round += 1
-        print(f"[@@@] ============= {self.wave}-{self.round} 라운드 시작 "
+        print(f"[rst] ============= {self.wave}-{self.round} 라운드 시작 "
               f"================================================",
               file=self.stream)
 
@@ -668,7 +670,7 @@ class Buff:
                 result += self.type
             if self.type not in BT_NOVAL:
                 if self.opr:
-                    result += f' {simpl(self.value * 1 if self.type == BT.ACTIVE_RESIST else 100):+}%'
+                    result += f' {simpl(self.value * (1 if self.type == BT.ACTIVE_RESIST else 100)):+}%'
                 else:
                     result += f' {simpl(self.value):+}' + \
                         ('%' if self.type in {
@@ -697,7 +699,7 @@ class Buff:
 
     def __repr__(self):
         result = f"<Buff no.{self.__id:04d} desc={self.desc} " + self.type
-        result += f' {simpl(self.value):+} '
+        result += f'{"*" if self.opr else "+"}{simpl(self.value)} '
         if self.round > 99:
             result += '(99+라운드, '
         else:
