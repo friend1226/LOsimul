@@ -499,9 +499,16 @@ class Character:
                   desc: Optional[str] = None,
                   force: bool = False,
                   chance: NUM_T = 100,
+                  active_chance: NUM_T = 100,
                   made_by: Optional['Character'] = None):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
+        if isinstance(made_by, Character):
+            if not made_by.judge_active(active_chance):
+                return None
+        else:
+            if self.random() > active_chance:
+                return None
         return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack,
                                    removable, tag, data, desc, force, chance, made_by)
 

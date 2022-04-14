@@ -71,10 +71,8 @@ def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List
 def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     desc = "강운"
     if tt == TR.ATTACK:
-        if self.judge_active(self.skillvl[4]+1):
-            self.give_buff(BT.ATK, 0, 1, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, },
-                           max_stack=1, tag="Rhea_P3_ATK", desc=desc)
+        self.give_buff(BT.ATK, 0, 1, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, },
+                       max_stack=1, tag="Rhea_P3_ATK", desc=desc, active_chance=self.skillvl[4]+1)
     elif tt == TR.GET_ATTACKED:
-        if self.judge_active(self.skillvl[4]+1):
-            self.give_buff(BT.MINIMIZE_DMG, 0, 999999, efft=BET.BUFF, count=1, count_trig={TR.GET_HIT, },
-                           max_stack=1, tag="Rhea_P3_MINIMIZEDMG", desc=desc)
+        self.give_buff(BT.MINIMIZE_DMG, 0, 999999, efft=BET.BUFF, count=1, count_trig={TR.GET_HIT, },
+                       max_stack=1, tag="Rhea_P3_MINIMIZEDMG", desc=desc, active_chance=self.skillvl[4]+1)
