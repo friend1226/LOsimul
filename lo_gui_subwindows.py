@@ -326,11 +326,12 @@ class SelectCharacter(QDialog):
     def update_equip_form_and_rarity(self):
         if (nowch := self.selectors['id'].currentText()) == '':
             return
-        char_class = CharacterPools.ALL[nowch].get_info()
-        base_rarity, equip_conditions = char_class[-2], char_class[-3]
+        char_info = CharacterPools.ALL[nowch].get_info()
+        base_rarity, promotion, equip_conditions = char_info[-3], char_info[-2], char_info[-4]
         self.selectors['rarity'].clear()
-        self.selectors['rarity'].addItem("없음")
-        self.selectors['rarity'].addItems(list(map(lambda en: en.name, list(R)[base_rarity:-1])))
+        self.selectors['rarity'].addItems(list(map(lambda en: en.name, list(R)[base_rarity:promotion+1])))
+        if self.selectors['rarity'].count() == 0:
+            self.selectors['rarity'].addItem("없음")
         for i in range(len(equip_conditions)):
             initiating = self.selectors['equips'][i] is None
             if not initiating:
@@ -347,7 +348,7 @@ class SelectCharacter(QDialog):
         eq_class = EquipPools.ALL_NAME[combtxt]
         rarity = comb.parent().rarity
         rarity.clear()
-        rarity.addItems(list(map(lambda en: en.name, list(R)[eq_class.BASE_RARITY:-1])))
+        rarity.addItems(list(map(lambda en: en.name, list(R)[eq_class.BASE_RARITY:eq_class.PROMOTION+1])))
 
     def okclicked(self):
         self.accept()

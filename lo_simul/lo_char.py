@@ -32,6 +32,7 @@ class Character:
     full_link_bonuses: list
     equip_condition: tuple = (0, 0, 1, 2)
     base_rarity: int = R.B
+    promotion: int = base_rarity
 
     extra_num: str = ''
 
@@ -69,7 +70,8 @@ class Character:
         self.affection = affection
         self.pledge = pledge
         if self.code in UNITDATA:
-            self.type_, self.isags, lbl, flbl, self.equip_condition, self.base_rarity, self.icon_name = self.get_info()
+            self.type_, self.isags, lbl, flbl, self.equip_condition, self.base_rarity, self.promotion, self.icon_name\
+                = self.get_info()
             self.link_bonus = BuffList(*[Buff(*bi, removable=False) for bi in lbl])
             self.full_link_bonuses = [Buff(*bi, removable=False) if bi else None for bi in flbl]
             if self.rarity is None or self.rarity < self.base_rarity:
@@ -86,6 +88,9 @@ class Character:
         else:
             if self.rarity is None:
                 self.rarity = self.base_rarity
+        if self.base_rarity > self.promotion:
+            raise ValueError(f"승급 가능한 최대 등급이 태생 등급보다 낮습니다. "
+                             f"(태생 {list(R)[self.base_rarity].name}급 > 최대 {list(R)[self.promotion].name}승급)")
 
         self.getOrigStatFuncs = {
             BT.HP: self.get_orig_hp,
@@ -148,7 +153,7 @@ class Character:
     def get_info(cls):
         if cls.code not in UNITDATA:
             return cls.type_, cls.isags, cls.link_bonus, cls.full_link_bonuses, \
-                   cls.equip_condition, cls.base_rarity, cls.icon_name
+                   cls.equip_condition, cls.base_rarity, cls.promotion, cls.icon_name
         info = UNITDATA[cls.code][0]
         type_ = info[:2]
         isags = info[2]
@@ -160,8 +165,9 @@ class Character:
             full_link_bonuses.append((b[0], b[1], d(b[2])))
         equip_condition = info[5]
         base_rarity = info[6]
-        icon_name = info[7]
-        return type_, isags, link_bonus, full_link_bonuses, equip_condition, base_rarity, icon_name
+        promotable = info[7]
+        icon_name = info[8]
+        return type_, isags, link_bonus, full_link_bonuses, equip_condition, base_rarity, promotable, icon_name
 
     @classmethod
     def get_icon_filename(cls):

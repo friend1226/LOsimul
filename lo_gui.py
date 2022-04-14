@@ -1,4 +1,5 @@
 from lo_simul import *
+from lo_simul import __version__ as ver
 import os
 import sys
 import lo_gui_subwindows
@@ -173,16 +174,6 @@ class MyApp(QWidget):
         vbox.addWidget(self.outputs)
         vbox.addWidget(self.commandbox)
         self.setLayout(vbox)
-
-        # print('='*25)
-        # self.setWindowTitle('LO simulator v.0b')
-        # screen = QApplication.primaryScreen()
-        # print(f"Screen : {screen.name()}")
-        # size = screen.size()
-        # print(f"Size : {size.width()} x {size.height()}")
-        # rect = screen.availableGeometry()
-        # print(f"Available : {rect.width()} x {rect.height()}")
-        # print('='*25)
 
     def load_from_json(self, field):
         """
@@ -460,7 +451,7 @@ class MyWindow(QMainWindow):
         helpaction.triggered.connect(wg.help_)
         helpmenu.addAction(helpaction)
 
-        self.setWindowTitle("LO simulator v.0b")
+        self.setWindowTitle(f"LastOrigin Battle Simulator (V.{ver})")
         self.setGeometry(50, 50, 600, 700)
         self.setMinimumWidth(600)
         self.show()

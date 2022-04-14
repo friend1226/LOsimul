@@ -10,14 +10,17 @@ class Equip:
     EQUIP_TYPE: str
     nick: str = "???"
     name: str = "-"
-    BASE_RARITY: int
+    BASE_RARITY: int = R.B
+    PROMOTION: int = R.SS
     owner: 'Character'
 
     def __init__(self, rarity: int = -1, lvl: int = 0, owner=None):
         if not isinstance(lvl, NUMBER) or lvl != lvl // 1:
             raise ValueError(f"잘못된 레벨 값 : {lvl}")
-        if rarity == -1:
+        if rarity < self.BASE_RARITY:
             self.rarity = self.BASE_RARITY
+        elif rarity > self.PROMOTION:
+            self.rarity = self.PROMOTION
         else:
             self.rarity = rarity
         self.lvl = lvl
@@ -48,7 +51,6 @@ class Gear(Equip):
 
 
 class ATKChip(Chip):
-    BASE_RARITY = R.B
     nick = "공칩"
     name = "출력 강화 회로"
     val = [(20, 2), (30, 3), (40, 4), (50, 5)]
@@ -59,7 +61,6 @@ class ATKChip(Chip):
 
 
 class ACCChip(Chip):
-    BASE_RARITY = R.B
     nick = "적칩"
     name = "연산 강화 회로"
     val = [(15, d('1.5')), (20, 2), (25, d('2.5')), (35, d('3.5'))]
@@ -70,7 +71,6 @@ class ACCChip(Chip):
 
 
 class DEFChip(Chip):
-    BASE_RARITY = R.B
     nick = "방칩"
     name = "내 충격 회로"
     val = [(16, d('3.2')), (24, d('4.4')), (30, d('6')), (36, d('7.2'))]
@@ -81,7 +81,6 @@ class DEFChip(Chip):
 
 
 class EVAChip(Chip):
-    BASE_RARITY = R.B
     nick = "회칩"
     name = "반응 강화 회로"
     val = [(6, d('.3')), (8, d('.4')), (10, d('.5')), (15, d('.75'))]
@@ -92,7 +91,6 @@ class EVAChip(Chip):
 
 
 class CRITChip(Chip):
-    BASE_RARITY = R.B
     nick = "치칩"
     name = "분석 회로"
     val = [(d('4'), d('0.2')), (d('5'), d('0.25')), (d('6'), d('0.3')), (d('8'), d('0.4'))]
@@ -105,7 +103,6 @@ class CRITChip(Chip):
 
 
 class HPChip(Chip):
-    BASE_RARITY = R.B
     nick = "체칩"
     name = "회로 내구 강화"
     val = [(80, 16), (120, 24), (160, 32), (200, 40)]
@@ -116,7 +113,6 @@ class HPChip(Chip):
 
 
 class VaccineChip(Chip):
-    BASE_RARITY = R.B
     nick = "백신칩"
     name = "백신 처리"
     bfval = [(5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25),
@@ -138,7 +134,6 @@ class VaccineChip(Chip):
 
 
 class SPDChip(Chip):
-    BASE_RARITY = R.B
     nick = "행칩"
     name = "회로 최적화"
     val = [(d('.1'), d('.005')), (d('.12'), d('.006')), (d('.14'), d('.007')), (d('.15'), d('.0075'))]
@@ -149,7 +144,6 @@ class SPDChip(Chip):
 
 
 class StandardOS(OS):
-    BASE_RARITY = R.B
     nick = "표준OS"
     name = "표준형 전투 시스템"
     val = [(((d('.2'), d('.003')), (d('.026'), d('.003')), (d('.035'), d('.003')), (d('.047'), d('.003'))),
@@ -173,7 +167,6 @@ class StandardOS(OS):
 
 
 class OffenseOS(OS):
-    BASE_RARITY = R.B
     nick = "돌격OS"
     name = "돌격형 전투 시스템"
     val = [((d('0.1'), d('0.105'), d('0.11'), d('0.115'), d('0.12'),
@@ -202,7 +195,6 @@ class OffenseOS(OS):
 
 
 class DefenseOS(OS):
-    BASE_RARITY = R.B
     nick = "방어OS"
     name = "방어형 전투 시스템"
     val = [((d('.1'), d('.01')), (d('.12'), d('.01')), (d('.15'), d('.01')), (d('.19'), d('.01'))),
@@ -221,7 +213,6 @@ class DefenseOS(OS):
 
 
 class CounterOS(OS):
-    BASE_RARITY = R.B
     nick = "반격OS"
     name = "대응형 전투 시스템"
     val = [((30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60),
@@ -245,7 +236,6 @@ class CounterOS(OS):
 
 
 class AssaultOS(OS):
-    BASE_RARITY = R.B
     nick = "사감OS"
     name = "강습형 전투 시스템"
     val = [(d('.05'), d('.005')), (d('.06'), d('.005')), (d('.075'), d('.005')), (d('.095'), d('.005'))]
@@ -261,7 +251,6 @@ class AssaultOS(OS):
 
 
 class PrecisionOS(OS):
-    BASE_RARITY = R.B
     nick = "행깎OS"
     name = "정밀형 전투 시스템"
     val = [((d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))),
@@ -284,7 +273,6 @@ class PrecisionOS(OS):
 
 
 class AntiFlyOS(OS):
-    BASE_RARITY = R.B
     nick = "대기동OS"
     name = "대 기동 전투 시스템"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
@@ -302,7 +290,6 @@ class AntiFlyOS(OS):
 
 
 class AntiLightOS(OS):
-    BASE_RARITY = R.B
     nick = "대경장OS"
     name = "대 경장 전투 시스템"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
@@ -320,7 +307,6 @@ class AntiLightOS(OS):
 
 
 class AntiHeavyOS(OS):
-    BASE_RARITY = R.B
     nick = "대중장OS"
     name = "대 중장 전투 시스템"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
@@ -338,7 +324,6 @@ class AntiHeavyOS(OS):
 
 
 class EXPOS(OS):
-    BASE_RARITY = R.B
     nick = "경험치OS"
     name = "고속 학습 시스템"
     val = [(d('.05'), d('.01')), (d('.07'), d('.01')), (d('.1'), d('.01')), (d('.14'), d('.01'))]
@@ -353,7 +338,6 @@ class EXPOS(OS):
 
 
 class APpack(Gear):
-    BASE_RARITY = R.B
     nick = "에너지팩"
     name = "보조 에너지 팩"
     val = [(d('.1'), d('.05')), (d('.2'), d('.05')), (d('.35'), d('.05')), (d('.55'), d('.05'))]
@@ -368,7 +352,6 @@ class APpack(Gear):
 
 
 class Observation(Gear):
-    BASE_RARITY = R.B
     nick = "관측 장비"
     name = nick
     val = [((10, 2), (15, 3), (20, 4), (30, 6)),
@@ -388,7 +371,6 @@ class Observation(Gear):
 
 
 class SpaceArmor(Gear):
-    BASE_RARITY = R.B
     nick = "공간 장갑"
     name = nick
     val = [((120, 24), (160, 32), (200, 60), (240, 48)),
@@ -418,7 +400,6 @@ class SpaceArmor(Gear):
 
 
 class SubBooster(Gear):
-    BASE_RARITY = R.B
     nick = "보조 부스터 유닛"
     name = nick
     val = [((d('8'), d('8.4'), d('8.8'), d('9.2'), d('9.6'),
@@ -445,7 +426,6 @@ class SubBooster(Gear):
 
 
 class UltraScope(Equip):
-    BASE_RARITY = R.B
     nick = "스코프"
     name = "초정밀 조준기"
     val = [((d('4'), d('.4')), (d('6'), d('.6')), (d('8'), d('.8')), (d('10'), d('1'))),
@@ -469,7 +449,6 @@ class UltraScope(Equip):
 
 
 class ArmorPierce(Gear):
-    BASE_RARITY = R.B
     nick = "송곳"
     name = "대 장갑 장비"
     val = [((d('2'), d('.4')), (d('3'), d('.5')), (d('4'), d('.8')), (d('5'), d('1'))),
@@ -493,7 +472,6 @@ class ArmorPierce(Gear):
 
 
 class EnergyConverter(Gear):
-    BASE_RARITY = R.B
     nick = "에너지 전환기"
     name = nick
     val = [(d('0.03'), d('0.035'), d('0.04'), d('0.045'), d('0.05'),
@@ -517,7 +495,6 @@ class EnergyConverter(Gear):
 
 
 class Barrier(Gear):
-    BASE_RARITY = R.B
     nick = "방어막"
     name = "방어 역장"
     val = [(60, 75, 90, 105, 120, 135, 150, 165, 180, 200, 210),
@@ -531,7 +508,6 @@ class Barrier(Gear):
 
 
 class ReconDrone(Gear):
-    BASE_RARITY = R.B
     nick = "드론"
     name = "소형 정찰 드론"
     val = [(((d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))),
@@ -549,7 +525,6 @@ class ReconDrone(Gear):
 
 
 class ExamKit(Gear):
-    BASE_RARITY = R.B
     nick = "중화기용 조준기"
     name = nick
     val = [((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('20'), d('2'))),
@@ -573,7 +548,6 @@ class ExamKit(Gear):
 
 
 class AdvRadar(Gear):
-    BASE_RARITY = R.B
     nick = "망원 조준 장치"
     name = nick
     val = [((d('0.01'), d('0.012'), d('0.014'), d('0.016'), d('0.018'),
@@ -611,7 +585,6 @@ class AdvRadar(Gear):
 
 
 class Stimulant(Gear):
-    BASE_RARITY = R.B
     nick = "전투 자극제"
     name = nick
     val = [((d('.025'), d('.005')), (d('.035'), d('.005')), (d('.05'), d('.005')), (d('.07'), d('.005'))),
@@ -628,7 +601,6 @@ class Stimulant(Gear):
 
 
 class Hologram(Gear):
-    BASE_RARITY = R.B
     nick = "홀로그램"
     name = "더미 홀로그램"
     val = [(d('5'), d('.5')), (d('7'), d('.7')), (d('9'), d('.9')), (d('12'), d('.12'))]
@@ -726,7 +698,6 @@ class DragonSlayer(Gear):
 
 
 class FireSpray(Gear):
-    BASE_RARITY = R.B
     nick = "화깡"
     name = "내열 코팅"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
@@ -739,7 +710,6 @@ class FireSpray(Gear):
 
 
 class IceSpray(Gear):
-    BASE_RARITY = R.B
     nick = "냉깡"
     name = "내한 코팅"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
@@ -752,7 +722,6 @@ class IceSpray(Gear):
 
 
 class ElectricSpray(Gear):
-    BASE_RARITY = R.B
     nick = "전깡"
     name = "내전 코팅"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
@@ -924,7 +893,6 @@ class Bombard(Gear):
 
 
 class SpATKChip(Chip):
-    BASE_RARITY = R.B
     nick = "적깎칩"
     name = "출력 증폭 회로"
     val = [(40, 4), (45, d('4.5')), (55, d('5.5')), (65, d('6.5')), (-30, -3)]
@@ -956,7 +924,6 @@ class EyesOfBeholderD(Gear):
 
 
 class ATKCRIChip(Chip):
-    BASE_RARITY = R.B
     nick = "공치칩"
     name = "출력 안정 회로"
     val = [[(12, d('2.4')), (16, d('3.2')), (22, d('4.4')), (28, d('5.6'))],
@@ -971,7 +938,6 @@ class ATKCRIChip(Chip):
 
 
 class ExpChip(Chip):
-    BASE_RARITY = R.B
     nick = "경험칩"
     name = "전투 기록 회로"
     val = [[2, d('.2'), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)],
@@ -987,7 +953,6 @@ class ExpChip(Chip):
 
 
 class AquaModule(Gear):
-    BASE_RARITY = R.B
     nick = "아쿠아 모듈"
     name = nick
     val = [[(d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))],
@@ -1012,7 +977,6 @@ class AquaModule(Gear):
 
 
 class Overclock(Gear):
-    BASE_RARITY = R.B
     nick = "글카"
     name = "출력 제한 해제 장치"
     val = [[(d('.15'), d('.005')), (d('.165'), d('.005')), (d('.18'), d('.005')), (d('.195'), d('.005'))],
@@ -1033,7 +997,6 @@ class Overclock(Gear):
 
 
 class HManeuver(OS):
-    BASE_RARITY = R.B
     nick = "고기동OS"
     name = "고기동 메뉴버 시스템"
     val = [[(d('5'), d('1')), (d('8'), d('1.6')), (d('10'), d('2')), (d('15'), d('3'))],
@@ -1057,7 +1020,6 @@ class HManeuver(OS):
 
 
 class EXAM(OS):
-    BASE_RARITY = R.B
     nick = "정찰OS"
     name = "전황 분석 시스템"
     val = [[(d('.05'), d('.005')), (d('.065'), d('.005')), (d('.08'), d('.005')), (d('.095'), d('.005'))],
@@ -1158,7 +1120,6 @@ class ATKSPDChip(Chip):
 
 
 class LightWeight(Chip):
-    BASE_RARITY = R.B
     nick = "경량칩"
     name = "경량화 회로"
     val = [((d('10'), d('1')), (d('12'), d('1.2')), (d('15'), d('1.5')), (d('20'), d('2'))),
@@ -1285,7 +1246,6 @@ class QMObserver(Equip):
 
 
 class ATKChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "공베칩"
     name = "출력 강화 회로 베타"
     val = [(d('24'), d('2.4')), (d('36'), d('3.6')), (d('48'), d('4.8')), (d('60'), d('6'))]
@@ -1298,7 +1258,6 @@ class ATKChipBETA(Chip):
 
 
 class ACCChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "적베칩"
     name = "연산 강화 회로 베타"
     val = [(d('18'), d('1.8')), (d('24'), d('2.4')), (d('30'), d('3')), (d('42'), d('4.2'))]
@@ -1311,7 +1270,6 @@ class ACCChipBETA(Chip):
 
 
 class DEFChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "방베칩"
     name = "내 충격 강화 회로 베타"
     val = [(d('30'), d('3')), (d('43'), d('4.3')), (d('54'), d('5.4')), (d('65'), d('6.5'))]
@@ -1324,7 +1282,6 @@ class DEFChipBETA(Chip):
 
 
 class EVAChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "회베칩"
     name = "반응 강화 회로 베타"
     val = [(d('72'), d('.36')), (d('9.6'), d('.48')), (d('12'), d('.6')), (d('18'), d('.9'))]
@@ -1337,7 +1294,6 @@ class EVAChipBETA(Chip):
 
 
 class CRITChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "치베칩"
     name = "분석 회로 베타"
     val = [((d('4.8'), d('.24')), (d('6'), d('.3')), (d('7.2'), d('.36')), (d('9.6'), d('.48'))),
@@ -1352,7 +1308,6 @@ class CRITChipBETA(Chip):
 
 
 class HPChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "체베칩"
     name = "회로 내구 강화 베타"
     val = [(d('96'), d('19.2')), (d('144'), d('28.8')), (d('192'), d('38.6')), (d('240'), d('48'))]
@@ -1365,7 +1320,6 @@ class HPChipBETA(Chip):
 
 
 class SPDChipBETA(Chip):
-    BASE_RARITY = R.B
     nick = "행베칩"
     name = "회로 최적화 베타"
     val = [(d('.12'), d('.006')), (d('.144'), d('.0072')), (d('.168'), d('.0084')), (d('.18'), d('.009'))]
@@ -1378,7 +1332,6 @@ class SPDChipBETA(Chip):
 
 
 class AWThruster(Gear):
-    BASE_RARITY = R.B
     nick = "공중화기용 추력기"
     name = nick
     val = [((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('20'), d('2'))),
