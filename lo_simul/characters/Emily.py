@@ -58,9 +58,9 @@ def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List
 def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.ATTACK:
         if self.find_buff(type_=BT.FOLLOW_ATTACK, efft=BET.BUFF):
-            self.give_buff(BT.AP, 0, bv[0], desc="급속 충전")
+            self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="급속 충전")
         if self.find_buff(type_=BT.TARGET_PROTECT):
-            self.give_buff(BT.AP, 0, bv[0], desc="급속 충전")
+            self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="급속 충전")
 
 def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt in {TR.ROUND_START, TR.ATTACK, TR.GET_ATTACKED} and self.hp / self.maxhp <= d('.33'):

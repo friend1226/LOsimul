@@ -50,6 +50,3 @@ def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List
     if tt == TR.ROUND_START:
         if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 3:
             self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, round_=1)
-
-def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
-    pass

@@ -36,24 +36,24 @@ def _active2(self,
 def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.ROUND_START:
         desc = "강화 근력"
-        self.give_buff(BT.SPD, 1, bv[0], round_=1, efft=0, desc=desc)
-        self.give_buff(BT.TAKEDMGDEC, 1, bv[1], round_=1, efft=0, desc=desc)
+        self.give_buff(BT.SPD, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
+        self.give_buff(BT.TAKEDMGDEC, 1, bv[1], round_=1, efft=BET.BUFF, desc=desc)
         if self.stack_limited_buff_tags[G.LABIATA] == 3:
             desc = "초" + desc
-            self.give_buff(BT.SPD, 1, bv[0] * d(.5), round_=1, efft=0, desc=desc)
-            self.give_buff(BT.TAKEDMGDEC, 1, bv[1] * d(.5), round_=1, efft=0, desc=desc)
+            self.give_buff(BT.SPD, 1, bv[0] * d(.5), round_=1, efft=BET.BUFF, desc=desc)
+            self.give_buff(BT.TAKEDMGDEC, 1, bv[1] * d(.5), round_=1, efft=BET.BUFF, desc=desc)
 
 def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.ROUND_START:
-        self.give_buff(BT.DEFPEN, 1, bv[0], round_=1, efft=0, desc="P.G 활성화")
+        self.give_buff(BT.DEFPEN, 1, bv[0], round_=1, efft=BET.BUFF, desc="P.G 활성화")
         if self.stack_limited_buff_tags[G.LABIATA] == 2:
-            self.give_buff(BT.DEFPEN, 1, bv[0], round_=1, efft=0, desc="P.G 출력 강화")
-            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=0, desc="P.G 출력 강화")
+            self.give_buff(BT.DEFPEN, 1, bv[0], round_=1, efft=BET.BUFF, desc="P.G 출력 강화")
+            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF, desc="P.G 출력 강화")
 
 def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.ROUND_START:
         for t in self.get_passive_targets(targets):
             desc = "든든한 큰언니"
-            t.give_buff(BT.CRIT, 0, bv[0], round_=1, efft=0, desc=desc)
-            t.give_buff(BT.ATK, 1, bv[1], round_=1, efft=0, desc=desc)
-            t.give_buff(BT.ACC, 0, bv[2], round_=1, efft=0, desc=desc)
+            t.give_buff(BT.CRIT, 0, bv[0], round_=1, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.ATK, 1, bv[1], round_=1, efft=BET.BUFF, desc=desc)
+            t.give_buff(BT.ACC, 0, bv[2], round_=1, efft=BET.BUFF, desc=desc)

@@ -15,7 +15,7 @@ def _active1(self,
     desc = "타이런트 바이트"
     for t in targets:
         if targets[t] > 0:
-            self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.DEBUFF, data=D.DmgHPInfo(type_=4), desc=desc)
+            self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.BUFF, data=D.DmgHPInfo(type_=4), desc=desc)
             t.give_buff(BT.DEF, 1, bv[1], round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A1_DEF", desc=desc)
             if t.hp / t.maxhp >= d(.5):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF),

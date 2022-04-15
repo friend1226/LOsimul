@@ -509,12 +509,6 @@ class Character:
                   made_by: Optional['Character'] = None):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
-        if isinstance(made_by, Character):
-            if not made_by.judge_active(active_chance):
-                return None
-        else:
-            if self.random() > active_chance:
-                return None
         return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack,
                                    removable, tag, data, desc, force, chance, made_by)
 
@@ -575,9 +569,9 @@ class Character:
                         c.trigger(TR.ALLY_KILLED, self)
                 if attacker is not None:
                     if attacker_follow is None:
-                        attacker.trigger(TR.KILL, attacker_skill_no)
+                        attacker.trigger(TR.KILL, [attacker_skill_no])
                     else:
-                        attacker_follow.trigger(TR.KILL, attacker_skill_no)
+                        attacker_follow.trigger(TR.KILL, [attacker_skill_no])
         elif hit_value > 0 and damage_value > 0:
             self.trigger(TR.GET_HIT,
                          D.FDmgInfo(subject=attacker, element=attacker.get_skill_element(attacker_skill_no)))
@@ -664,16 +658,21 @@ class Character:
                   element: int):
         return self._active2(targets, atk_rate, bv, wr, element)
 
-    def get_passive_funcs(self):
-        return [self._passive1, self._passive2, self._passive3]
+    def get_passive_slot(self):
+        return [0, 0, 0]
+
+    def get_passive_active_chance(self, skill_no: int):
+        return 100
 
     def passive(self, trigtype, args=None):
-        tempf = self.get_passive_funcs()
+        passiveslot = self.get_passive_slot()
         for i in range(3):
             if self.rarity > i:
+                if not self.judge_active(self.get_passive_active_chance(i + 2)):
+                    continue
                 buff_values = self.get_skill_buff_value(i + 3)
                 aoe = self.get_aoe(self.pos, i + 3)
-                tempf[i](trigtype, args, aoe, buff_values)
+                getattr(self, '_'+('f' if passiveslot[i] else '')+f'passive{i+1}')(trigtype, args, aoe, buff_values)
 
     def get_passive_targets(self,
                             aoe: List[Union[Tuple[int, int], int, 'Pos']],

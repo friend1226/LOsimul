@@ -738,8 +738,8 @@ class Buff:
         if tt == TR.ROUND_END:
             self.round -= 1
         elif self.tag == G.PHOSPHIDE and tt == TR.GET_HIT and args.element == E.FIRE:
-            self.owner.give_buff(BT.INSTANT_DMG, 0, d('.5'), data=D.FDmgInfo(subject=args.attack),
-                                 desc=G.PHOSPHIDE_DESC)
+            self.owner.give_buff(BT.INSTANT_DMG, 0, d('.5'), efft=BET.DEBUFF,
+                                 data=D.FDmgInfo(subject=args.attack), desc=G.PHOSPHIDE_DESC)
         if tt in self.count_triggers:
             self.count -= 1
 

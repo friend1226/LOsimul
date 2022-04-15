@@ -37,11 +37,11 @@ def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List
 
 def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.GET_HIT:
-        chance = 10
-        if self.find_buff(type_=BT.DEF, efft=BET.DEBUFF):
-            chance = 50
         self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF,
-                       chance=chance, desc="제네레이터 쇼트")
+                       chance=10, desc="제네레이터 쇼트")
+        if self.find_buff(type_=BT.DEF, efft=BET.DEBUFF):
+            self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF,
+                           chance=50, desc="제네레이터 쇼트")
 
 def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.DEAD:

@@ -34,9 +34,9 @@ def _active2(self,
 def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.HIT:
         desc = "에너지 코팅"
-        self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=3, desc=desc)
-        self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=3, desc=desc)
-        self.give_buff(BT.IMMUNE_DMG, 0, bv[2], round_=3, max_stack=1, tag="UWG2_P1", desc=desc)
+        self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=3, efft=BET.BUFF, desc=desc)
+        self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=3, efft=BET.BUFF, desc=desc)
+        self.give_buff(BT.IMMUNE_DMG, 0, bv[2], round_=3, efft=BET.BUFF, max_stack=1, tag="UWG2_P1", desc=desc)
 
 def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     if tt == TR.GET_HIT:

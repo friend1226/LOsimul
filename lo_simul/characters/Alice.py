@@ -45,7 +45,7 @@ def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List
     if tt == TR.ATTACK:
         self.give_buff(BT.SPD, 1, bv[0], efft=BET.BUFF, max_stack=3, tag="Alice_P2", desc=desc)
     elif tt == TR.KILL:
-        self.give_buff(BT.AP, 0, self.get_skill_cost(args), efft=BET.BUFF, desc=desc, chance=10)
+        self.give_buff(BT.AP, 0, self.get_skill_cost(args[0]), efft=BET.BUFF, desc=desc, chance=10)
 
 def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
     desc = "학살 본능"
