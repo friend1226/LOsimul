@@ -505,7 +505,6 @@ class Character:
                   desc: Optional[str] = None,
                   force: bool = False,
                   chance: NUM_T = 100,
-                  active_chance: NUM_T = 100,
                   made_by: Optional['Character'] = None):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)

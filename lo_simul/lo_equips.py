@@ -338,7 +338,7 @@ class EXPOS(OS):
 
 
 class APpack(Gear):
-    nick = "에너지팩"
+    nick = "에팩"
     name = "보조 에너지 팩"
     val = [(d('.1'), d('.05')), (d('.2'), d('.05')), (d('.35'), d('.05')), (d('.55'), d('.05'))]
 
@@ -1086,6 +1086,39 @@ class ASN6G(Gear):
             self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
 
 
+class HornOfBADK(Gear):
+    BASE_RARITY = R.SS
+    nick = "뽀끄루전장"
+    name = "뽀끄루 대마왕의 뿔"
+    dval = [(0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15), (0, 1, 2, 3, 4, 5, 7, 10, 13, 16, 20)]
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START and not self.owner.isags:
+            desc = "뽀끄루...뽀끄루..."
+            self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, round_=1, desc=desc)
+            self.owner.give_buff(BT.ACC, 0, d('5') + self.dval[1][self.lvl], round_=1, desc=desc)
+            self.owner.give_buff(BT.CRIT, 0, d('2.5') + d('.5') * self.dval[0][self.lvl], round_=1, desc=desc)
+            self.owner.give_buff(BT.DEFPEN, 1, d('.1') + d('.01') * self.dval[0][self.lvl], round_=1, desc=desc)
+            self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc="뽀끄루...?", chance=10)
+
+
+class MoonCake(Gear):
+    BASE_RARITY = R.SS
+    nick = "송편"
+    name = "달의 마력이 담긴 송편"
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            desc = "달의 가호"
+            self.owner.give_buff(BT.ATK, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=33)
+            self.owner.give_buff(BT.ACC, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc, chance=33)
+            self.owner.give_buff(BT.EVA, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc, chance=25)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=15)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, round_=1, desc=desc,
+                                 data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF),
+                                 chance=10+2*self.lvl+(self.lvl == 10)*3)
+
+
 class Interceptor(Gear):
     BASE_RARITY = R.SS
     nick = "개량형 관측 장비"
@@ -1117,6 +1150,54 @@ class ATKSPDChip(Chip):
             Buff(BT.ATK, 0, d('30') + d('6') * self.lvl, removable=False),
             Buff(BT.SPD, 0, d('.05') + d('.005') * self.lvl, removable=False)
         )
+
+
+class FortuneOrb(Chip):
+    BASE_RARITY = R.SS
+    nick = "수정구"
+    name = "운명의 수정구"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 5 + self.lvl, removable=False),
+            Buff(BT.EVA, 0, 5 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.RACON, 0, 1, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
+
+
+class ElectroGenerator(Chip):
+    BASE_RARITY = R.SS
+    nick = "영전에팩"
+    name = "고출력 제너레이터"
+    dval = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 25 + 5 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.AP, 0, d('.44') + d('.2') * self.dval[self.lvl], desc=self.name)
+
+
+class Recycler(Chip):
+    BASE_RARITY = R.SS
+    nick = "쓰레기통"
+    name = "리사이클 모듈"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 150 + 15 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.AP, 0, d('.3') + d('.05') * self.lvl, desc=self.name)
 
 
 class LightWeight(Chip):
