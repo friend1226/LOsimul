@@ -6,8 +6,8 @@ from .lo_equips import *
 
 class CharacterPools:
     ALL_CODES: Dict[str, Type['Character']] = {}
-    ALLY: Dict[str, Union[Type['Character'], str]] = {}
-    ENEMY: Dict[str, Union[Type['Character'], str]] = {}
+    ALLY: Dict[str, Type['Character']] = {}
+    ENEMY: Dict[str, Type['Character']] = {}
     ALL: Dict[str, Type['Character']] = {}
 
 
@@ -42,6 +42,7 @@ class Character:
         super().__init_subclass__()
         CharacterPools.ALL_CODES[cls.code] = cls
         CharacterPools.ALL[cls.name] = cls
+        CharacterPools.ALL[cls.__name__] = cls
         if cls.isenemy:
             CharacterPools.ENEMY[cls.name] = cls
         else:
@@ -120,12 +121,15 @@ class Character:
             self.baseBuffs.append(self.full_link_bonuses[self.flinkbNO])
         for ei in range(len(self.equips)):
             e = self.equips[ei]
-            if e is None:
-                continue
-            elif isinstance(e, Equip):
+            if isinstance(e, Sequence):  # (name, rarity, lvl)
+                if e[0] in EquipPools.ALL_NAME:
+                    e = self.equips[ei] = EquipPools.ALL_NAME[e[0]](e[1], e[2], self)
+                else:
+                    e = None
+            if isinstance(e, Equip):
                 e.owner = self
-            elif isinstance(e, Sequence):  # (name, rarity, lvl)
-                e = self.equips[ei] = EquipPools.ALL_NAME[e[0]](e[1], e[2], self)
+            else:
+                continue
             if e.EQUIP_TYPE != self.equip_condition[ei]:
                 print(f'[wre] <!> 경고: 장비 슬롯에 맞지 않는 장비입니다 = {ei+1}번 장비 {e}', file=self.stream)
             self.baseBuffs += e.buff

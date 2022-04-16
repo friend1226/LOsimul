@@ -280,8 +280,10 @@ class MyApp(QWidget):
                 int(ws['lvl'].value()),
                 [int(spbox.value()) for spbox in ws['stat_lvl']],
                 [int(spbox.value()) for spbox in ws['skill_lvl']],
-                [None if frame.names.currentText()
-                 else (frame.names.currentText(), R[frame.rarity.currentTxt()].value, int(frame.lvl.currentText()))
+                [None if frame.names.currentText() == "없음"
+                 else (frame.names.currentText(),
+                       R[frame.rarity.currentText()].value if frame.rarity.currentText() else -1,
+                       int(frame.lvl.currentText()))
                  for frame in ws['equips']],
                 int(ws['link'].value()),
                 int(flbn) if flbn != "없음" else None,

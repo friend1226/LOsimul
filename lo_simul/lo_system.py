@@ -446,6 +446,11 @@ class Game:
                     print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
                           ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
                     return None
+            else:
+                if target.random() > chance:
+                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                    return None
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
                 target.remove_buff(**data._asdict())

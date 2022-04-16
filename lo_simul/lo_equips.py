@@ -1152,7 +1152,7 @@ class ATKSPDChip(Chip):
         )
 
 
-class FortuneOrb(Chip):
+class FortuneOrb(Gear):
     BASE_RARITY = R.SS
     nick = "수정구"
     name = "운명의 수정구"
@@ -1169,7 +1169,7 @@ class FortuneOrb(Chip):
             self.owner.give_buff(BT.SPD, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
 
 
-class ElectroGenerator(Chip):
+class ElectroGenerator(Gear):
     BASE_RARITY = R.SS
     nick = "영전에팩"
     name = "고출력 제너레이터"
@@ -1185,7 +1185,7 @@ class ElectroGenerator(Chip):
             self.owner.give_buff(BT.AP, 0, d('.44') + d('.2') * self.dval[self.lvl], desc=self.name)
 
 
-class Recycler(Chip):
+class Recycler(Gear):
     BASE_RARITY = R.SS
     nick = "쓰레기통"
     name = "리사이클 모듈"

@@ -18,9 +18,11 @@ for char_filename in os.listdir(path):
             continue
         name = char_filename.partition(".")[0]
         module = importlib.import_module(f'.characters.{name}', 'lo_simul')
-        variables = {item: vars(module)[item] for item in dir(module) if not (item.startswith('__') or item in lo_variables)}
+        variables = {item: vars(module)[item] for item in dir(module)
+                     if not (item.startswith('__') or item in lo_variables)}
         klass = type(name, (Character,), variables)
         globals()[name] = klass
+        # TODO: 그냥 모듈 안에 클래스로 만들어서 type checking에도 쓰이게끔 할 것
     except Exception as e:
         print(e)
 
