@@ -260,3 +260,5 @@ TR = Trigger
 ET = EquipType
 BET = BuffEffectType
 G = Gimmick
+
+del IntEnum
