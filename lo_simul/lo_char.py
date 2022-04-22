@@ -421,8 +421,9 @@ class Character:
         hprate = [1, self.hp / self.maxhp, obj.hp / obj.maxhp, 1 - self.hp / self.maxhp, 1 - obj.hp / obj.maxhp]
         # 적 받피감 (체력 비례 포함) (합연산)
         dmgdectemp = 0
-        for b in obj.dmgTakeDecBuffs:
-            dmgdectemp += damage - b.calc(damage, hprate[0 if b.data is None else b.data.type_] * -1)
+        if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):
+            for b in obj.dmgTakeDecBuffs:
+                dmgdectemp += damage - b.calc(damage, hprate[0 if b.data is None else b.data.type_] * -1)
         # 자신 주는 피해 증가/감소 (체력 비례 포함) (합연산)
         dmginctemp = 0
         for b in self.dmgGiveDecBuffs:
@@ -472,24 +473,25 @@ class Character:
         
         return simpl(damage)
 
-    def give_damage(self, dmg, direct=False):
+    def give_damage(self, dmg, direct=False, ignore_barrier=False):
         if not direct:
             if self.find_buff(type_=BT.IMMUNE_DMG):
                 print(f"[adi] <{self}> - 피해 무효 발동.", file=self.stream)
                 self.game.battle_log.append((self, -2))
                 return -2
-            for b in self.find_buff(type_=BT.BARRIER, func=lambda b: not b.expired):
-                if dmg > b.value:
-                    print(f"[bar] <{self}> - 방어막 {{ {b.value} }} 흡수됨.", file=self.stream)
-                    self.game.battle_log.append((self, -1, b.value, b))
-                    dmg -= b.value
-                    b.value = 0
-                    b.expired = True
-                else:
-                    print(f"[bar] <{self}> - 방어막 {{ {dmg} }} 흡수됨.", file=self.stream)
-                    self.game.battle_log.append((self, -1, dmg, b))
-                    b.value -= dmg
-                    return -1
+            if not ignore_barrier:
+                for b in self.find_buff(type_=BT.BARRIER, func=lambda b: not b.expired):
+                    if dmg > b.value:
+                        print(f"[bar] <{self}> - 방어막 {{ {b.value} }} 흡수됨.", file=self.stream)
+                        self.game.battle_log.append((self, -1, b.value, b))
+                        dmg -= b.value
+                        b.value = 0
+                        b.expired = True
+                    else:
+                        print(f"[bar] <{self}> - 방어막 {{ {dmg} }} 흡수됨.", file=self.stream)
+                        self.game.battle_log.append((self, -1, dmg, b))
+                        b.value -= dmg
+                        return -1
         dmg = d(dmg).quantize(d(1))
         self.hp -= dmg
         if direct:

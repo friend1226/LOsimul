@@ -320,7 +320,8 @@ class Game:
                 for t in targ_atkr
             }
         for t in damages:
-            damages[t] = t.give_damage(damages[t])
+            damages[t] = t.give_damage(damages[t],
+                                       ignore_barrier=bool(subjc.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC)))
             # -1 = 방어막
             # -2 = 피해 무효
             if catkr is None:
