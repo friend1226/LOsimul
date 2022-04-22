@@ -8,7 +8,7 @@ class DummyAlly(Character):
     group = None
     isenemy = False
     
-    stats = ('50', '20', '20', '2', '0', '0', '3', '0', '75', '0', '0', '0', '0')
+    stats = [('50', '20', '20', '2', '0', '0', '3', '0', '75', '0', '0', '0', '0'), None, None, None]
     skills = [[
         {
             'apcost': (None, 4),
@@ -19,6 +19,7 @@ class DummyAlly(Character):
             'isgrid': 0,
             'isignoreprot': 0,
             'element': (None, 0),
+            'impact': (None, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
             'aoe': ((0, True, ((0, 0, 1),)),),
             'buff': ('.2',)
         },
@@ -31,6 +32,7 @@ class DummyAlly(Character):
             'isgrid': 0,
             'isignoreprot': 0,
             'element': ((0, True, ((0, 0, 1),)),),
+            'impact': (None, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1),
             'aoe': (None, 0),
             'buff': ('.2',)
         },

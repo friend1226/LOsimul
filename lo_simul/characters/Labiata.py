@@ -15,7 +15,7 @@ class Labiata(Character):
                  bv: Sequence[NUM_T], 
                  wr: NUM_T,
                  element: int):
-        if any(targets[t] for t in targets):
+        if any(targets.values()):
             self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=G.LABIATA)
         for t in targets:
             if targets[t] > 1:

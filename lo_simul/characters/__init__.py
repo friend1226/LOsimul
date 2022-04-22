@@ -1,54 +1,58 @@
-__all__ = [
-    "Alice",
-    "Constantia",
-    "DummyAlly",
-    "DummyEnemy",
-    "EliteCenturion1",
-    "Ellie",
-    "Emily",
-    "Fotia",
-    "Goltarion",
-    "Labiata",
-    "LegionEX1",
-    "Lise",
-    "NightChickDetector3",
-    "NightChickEX3",
-    "NightChickModifiedEX3",
-    "NightChickShielder3",
-    "NightChickSniper1",
-    "Phalangites1",
-    "Rhea",
-    "Titania",
-    "TyrantChallenge1",
-    "UnderWatcher1",
-    "UnderWatcher2",
-    "UnderWatcherArm1",
-    "UnderWatcherArm2",
-    "UnderWatcherGenerator1",
-    "UnderWatcherGenerator2",
-    "UnderWatcherSensor1",
-    "UnderWatcherSensor2",
-    "Vanilla",
-]
+EDIT = 0
 
-import os
-import importlib
-
-path = os.path.join(os.path.split(__file__)[0], '.')
-for char_filename in os.listdir(path):
-    try:
-        if not os.path.isfile(os.path.join(path, char_filename)):
+if EDIT:
+    import os
+    codes = []
+    for filename in os.listdir(os.path.split(__file__)[0]):
+        name = filename.rpartition('.')[0]
+        if name == '' or name.startswith('__'):
             continue
-        name = char_filename.partition(".")[0]
-        module = importlib.import_module(f'.{name}', 'lo_simul.characters')
-        globals()[name] = getattr(module, name)
-    except Exception as e:
-        print(e)
+        codes.append(f"    from .{name} import {name}\n")
+    with open(__file__, 'r', encoding='utf-8') as f:
+        origcodes = f.readlines()
+    index = 0
+    while True:
+        if origcodes[index].startswith('if __name__'):
+            break
+        index += 1
+    del origcodes[index+1:]
+    origcodes.extend(codes)
+    origcodes[0] = "EDIT = 0\n"
+    with open(__file__, 'w', encoding='utf-8') as f:
+        f.writelines(origcodes)
+    del os
 
-    # TODO: 작업은 파일을 나눠서 하고, 배포할 때 코드를 한데 모아서 배포하면 어떨까?
+del EDIT
 
-try:
-    del char_filename, name, module
-except:
-    pass
-del os, importlib, path
+if __name__ != "__main__":
+    from .Alice import Alice
+    from .Constantia import Constantia
+    from .DummyAlly import DummyAlly
+    from .DummyEnemy import DummyEnemy
+    from .EliteCenturion1 import EliteCenturion1
+    from .Ellie import Ellie
+    from .Emily import Emily
+    from .Fotia import Fotia
+    from .Goltarion import Goltarion
+    from .Labiata import Labiata
+    from .LegionEX1 import LegionEX1
+    from .Lise import Lise
+    from .NightChickDetector3 import NightChickDetector3
+    from .NightChickEX3 import NightChickEX3
+    from .NightChickModifiedEX3 import NightChickModifiedEX3
+    from .NightChickShielder3 import NightChickShielder3
+    from .NightChickSniper1 import NightChickSniper1
+    from .Peregrinus import Peregrinus
+    from .Phalangites1 import Phalangites1
+    from .Rhea import Rhea
+    from .Titania import Titania
+    from .TyrantChallenge1 import TyrantChallenge1
+    from .UnderWatcher1 import UnderWatcher1
+    from .UnderWatcher2 import UnderWatcher2
+    from .UnderWatcherArm1 import UnderWatcherArm1
+    from .UnderWatcherArm2 import UnderWatcherArm2
+    from .UnderWatcherGenerator1 import UnderWatcherGenerator1
+    from .UnderWatcherGenerator2 import UnderWatcherGenerator2
+    from .UnderWatcherSensor1 import UnderWatcherSensor1
+    from .UnderWatcherSensor2 import UnderWatcherSensor2
+    from .Vanilla import Vanilla

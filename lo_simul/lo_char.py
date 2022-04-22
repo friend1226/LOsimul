@@ -77,7 +77,7 @@ class Character:
             self.full_link_bonuses = [Buff(*bi, removable=False) if bi else None for bi in flbl]
             if self.rarity is None or self.rarity < self.base_rarity:
                 self.rarity = self.base_rarity
-            self.stats = UNITDATA[self.code][1][self.rarity]
+            self.stats = UNITDATA[self.code][1]
             self.skills = tuple(map(
                 lambda data: tuple(map(
                     lambda eata: MappingProxyType(eata) if eata else None, data
@@ -92,6 +92,8 @@ class Character:
         if self.base_rarity > self.promotion:
             raise ValueError(f"승급 가능한 최대 등급이 태생 등급보다 낮습니다. "
                              f"(태생 {list(R)[self.base_rarity].name}급 > 최대 {list(R)[self.promotion].name}승급)")
+        if self.rarity >= len(self.stats) or self.stats[self.rarity] is None:
+            raise ValueError(f"해당 등급의 스탯이 존재하지 않습니다.")
 
         self.getOrigStatFuncs = {
             BT.HP: self.get_orig_hp,
@@ -230,28 +232,28 @@ class Character:
         return self.skills[no // 5][no % 5]
 
     def get_orig_hp(self):
-        return simpl(d(self.stats[0]) + d(self.stats[1])*(self.lvl-1) + self.statlvl[0]*d('8'))
+        return simpl(d(self.stats[self.rarity][0]) + d(self.stats[self.rarity][1])*(self.lvl-1) + self.statlvl[0]*d('8'))
 
     def get_orig_atk(self):
-        return simpl(d(self.stats[2]) + d(self.stats[3])*(self.lvl-1) + self.statlvl[1]*d('1.5'))
+        return simpl(d(self.stats[self.rarity][2]) + d(self.stats[self.rarity][3])*(self.lvl-1) + self.statlvl[1]*d('1.5'))
 
     def get_orig_def(self):
-        return simpl(d(self.stats[4]) + d(self.stats[5])*(self.lvl-1) + self.statlvl[2]*d('1.25'))
+        return simpl(d(self.stats[self.rarity][4]) + d(self.stats[self.rarity][5])*(self.lvl-1) + self.statlvl[2]*d('1.25'))
 
     def get_orig_acc(self):
-        return simpl(d(self.stats[8]) + self.statlvl[3]*d('1.5'))
+        return simpl(d(self.stats[self.rarity][8]) + self.statlvl[3]*d('1.5'))
 
     def get_orig_eva(self):
-        return simpl(d(self.stats[9]) + self.statlvl[4]*d('0.4'))
+        return simpl(d(self.stats[self.rarity][9]) + self.statlvl[4]*d('0.4'))
 
     def get_orig_crit(self):
-        return simpl(d(self.stats[7]) + self.statlvl[5]*d('0.4'))
+        return simpl(d(self.stats[self.rarity][7]) + self.statlvl[5]*d('0.4'))
 
     def get_orig_spd(self):
-        return d(self.stats[6])
+        return d(self.stats[self.rarity][6])
 
     def get_orig_res(self):
-        return tuple(map(d, self.stats[10:]))
+        return tuple(map(d, self.stats[self.rarity][10:]))
 
     def get_orig_stats(self) -> Dict[str, d]:
         return {i: self.getOrigStatFuncs[i]() for i in BT.STATS}
@@ -311,11 +313,12 @@ class Character:
                     r.append(x)
         return r
 
-    def get_skill_atk_rate(self, skill_no):
-        return self.find_buff(BT.SKILL_RATE).getSUM().calc(
-            BT.SKILL_RATE, 
-            d(self.get_skill(skill_no-1)['atkrate'][self.skillvl[(skill_no-1) % 5]])
-        )
+    def get_skill_atk_rate(self, skill_no=None, value=None):
+        if skill_no is not None:
+            value = d(self.get_skill(skill_no-1)['atkrate'][self.skillvl[(skill_no-1) % 5]])
+        if value is None:
+            return 0
+        return self.find_buff(BT.SKILL_RATE).getSUM().calc(BT.SKILL_RATE, value)
 
     def get_skill_buff_value(self, skill_no):
         skill_no -= 1
@@ -411,7 +414,7 @@ class Character:
     def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
-        damage = self.get_stats()[BT.ATK] * rate[0]
+        damage = self.get_stats()[BT.ATK] * self.get_skill_atk_rate(value=rate[0])
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
             damage = antiosb.getSUM().calc(objtype, damage)
@@ -661,21 +664,26 @@ class Character:
                   element: int):
         return self._active2(targets, atk_rate, bv, wr, element)
 
-    def get_passive_slot(self):
-        return [0, 0, 0]
-
     def get_passive_active_chance(self, skill_no: int):
         return 100
 
     def passive(self, trigtype, args=None):
-        passiveslot = self.get_passive_slot()
+        passives = {
+            2: self._passive1,
+            3: self._passive2,
+            4: self._passive3,
+            7: self._fpassive1,
+            8: self._fpassive2,
+            9: self._fpassive3,
+        }
         for i in range(3):
             if self.rarity > i:
-                if not self.judge_active(self.get_passive_active_chance(i + 2)):
+                skn = self.skill_no_convert(i + 2)
+                if not self.judge_active(self.get_passive_active_chance(skn)):
                     continue
-                buff_values = self.get_skill_buff_value(i + 3)
-                aoe = self.get_aoe(self.pos, i + 3)
-                getattr(self, '_'+('f' if passiveslot[i] else '')+f'passive{i+1}')(trigtype, args, aoe, buff_values)
+                buff_values = self.get_skill_buff_value(skn+1)
+                aoe = self.get_aoe(self.pos, skn+1)
+                passives[skn](trigtype, args, aoe, buff_values)
 
     def get_passive_targets(self,
                             aoe: List[Union[Tuple[int, int], int, 'Pos']],

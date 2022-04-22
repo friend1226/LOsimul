@@ -297,7 +297,7 @@ class Game:
             for t in targ_atkr:
                 targ_hits[t] = 1
 
-        atkr = subjc.get_skill_atk_rate(skill_no)
+        atkr = d(subjc.get_skill(skill_idx)['atkrate'][skillvl_val])
         for t in targ_atkr:
             targ_atkr[t] *= atkr
         damages: Dict['Character', NUM_T]
@@ -344,7 +344,7 @@ class Game:
         if catkr or follow:
             return
 
-        subjc.trigger(TR.AFTER_SKILL)
+        subjc.trigger(TR.AFTER_SKILL, [skill_no])
             
         counters = {t: t.find_buff(BT.COUNTER_ATTACK) for t in damages if t.attackable(subjc, 1) and t.hp > 0}
         if any(counters.values()):
@@ -451,6 +451,8 @@ class Game:
                     print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
                           ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
                     return None
+        print(f"[bad] <{target}> - 버프 추가됨: [{buff}]" + ("" if chance == 100 else f" ({chance}% 확률)"),
+              file=self.stream)
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
                 target.remove_buff(**data._asdict())
@@ -472,8 +474,6 @@ class Game:
             target.dmgGiveDecBuffs.append(buff)
         else:
             target.specialBuffs.append(buff)
-        print(f"[bad] <{target}> - 버프 추가됨: [{buff}]" + ("" if chance == 100 else f" ({chance}% 확률)"),
-              file=self.stream)
         if max_stack > 0:
             target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
@@ -677,7 +677,7 @@ class Buff:
                 if self.opr:
                     result += f' {simpl(self.value * (1 if self.type == BT.ACTIVE_RESIST else 100)):+}%'
                 else:
-                    result += f' {simpl(self.value):+}' + \
+                    result += f' {simpl(self.value * (100 if self.type == BT.SKILL_RATE else 1)):+}' + \
                         ('%' if self.type in {
                             BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE, *BT.ELEMENT_RES, BT.SKILL_RATE
                         } else '')

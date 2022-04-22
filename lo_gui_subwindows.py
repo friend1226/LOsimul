@@ -699,20 +699,14 @@ class UseSkill(QDialog):
         return func
 
     def okclicked(self):
-        if self.objpos == -1:
+        if self.objpos == -1 or self.objfield == -1:
             QMessageBox.information(
                 self,
                 self.parentWidget().windowTitle(),
                 "스킬을 사용할 위치를 정해주세요.\n"
                 "창을 나가고 싶으면 대신 '취소' 버튼을 클릭하세요."
             )
-        if self.objfield == -1:
-            QMessageBox.information(
-                self,
-                self.parentWidget().windowTitle(),
-                "스킬을 사용할 위치를 정해주세요.\n"
-                "창을 나가고 싶으면 대신 '취소' 버튼을 클릭하세요."
-            )
+            return
         if self.skill_no == -1:
             QMessageBox.information(
                 self,
@@ -720,6 +714,7 @@ class UseSkill(QDialog):
                 "사용할 스킬을 정해주세요.\n"
                 "창을 나가고 싶으면 대신 '취소' 버튼을 클릭하세요."
             )
+            return
         self.accept()
 
     def cancelclicked(self):

@@ -235,6 +235,9 @@ class Gimmick:
 
     LABIATA = "플라즈마 제너레이터"
     EMILY = "리미터 해제"
+    PEREGRINUS_FALCON = "팔콘 폼"
+    PEREGRINUS_HUMAN = "휴먼 폼"
+    PEREGRINUS_READY = "모드 전환 준비"
 
     UNDER_WATCHER_GENERATOR_B05 = "충전_1"
     UNDER_WATCHER_GENERATOR_TU2 = "충전_2"
