@@ -1209,9 +1209,9 @@ class LightWeight(Chip):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ACC, 0, self.val[0][self.rarity][0] * self.val[0][self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.EVA, 0, self.val[1][self.rarity][0] * self.val[1][self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.SPD, 0, self.val[2][self.rarity][0] * self.val[2][self.rarity][1] * self.lvl, removable=False)
+            Buff(BT.ACC, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False),
+            Buff(BT.EVA, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl, removable=False),
+            Buff(BT.SPD, 0, self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * self.lvl, removable=False)
         )
 
     def passive(self, tt, args):
@@ -1220,28 +1220,43 @@ class LightWeight(Chip):
                                  tag='LightWeight', desc="무장 경량칩")
 
 
-class GrandCruChocolate(Gear):
+class CriAccCHIP(Chip):
     BASE_RARITY = R.SS
-    nick = "초코"
-    name = "그랑크뤼 초콜릿"
-
-    val = [d('.5'), d('.6'), d('.7'), d('.8'), d('.9'),
-           d('1'), d('1.2'), d('1.4'), d('1.6'), d('1.8'), d('2')]
+    nick = "치적칩"
+    name = "개량형 분석 회로"
+    dval = [(0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60),
+            (0, 1, 2, 4, 7, 11, 14, 20, 28, 36, 50)]
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ATK, 0, d('50') + d('5') * self.lvl, removable=False),
-            Buff(BT.EVA, 0, d('5') + d('1') * self.lvl, removable=False)
+            Buff(BT.CRIT, 0, d('5') + d('.25') * self.dval[0][self.lvl], removable=False),
+            Buff(BT.ACC, 0, d('10') + d('.5') * self.dval[1][self.lvl], removable=False),
+        )
+
+
+class Nitro3000(Gear):
+    BASE_RARITY = R.SS
+    nick = "부스터"
+    name = "니트로 EX 3000"
+
+    val = [1, d('.9'), d('.8'), d('.7'), d('.6'), d('.5'), d('.4'), d('.3'), d('.2'), d('.1'), d('.03')]
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ELEMENT_RES[E.ICE], 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.EVA, 0, d('10') + d('2') * self.lvl, removable=False),
+            Buff(BT.SPD, 0, d('.1') + d('.02') * self.lvl, removable=False),
         )
 
     def passive(self, tt, args):
-        if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.AP, 0, self.val[self.lvl], desc="녹아내릴 듯한 달콤함")
+        if tt == TR.ROUND_START and not self.owner.isags:
+            self.owner.give_buff(BT.ACC, 0, -100, round_=1, efft=BET.DEBUFF, desc="속이 안 좋아...",
+                                 chance=self.val[self.lvl])
 
 
 class MiniPerralut(Gear):
     BASE_RARITY = R.SS
-    nick = "페로"
+    nick = "미니 페로"
     name = "미니 페로"
 
     def init_buff(self):
@@ -1255,9 +1270,26 @@ class MiniPerralut(Gear):
             self.owner.give_buff(BT.AP, 0, d('0.05') * (1 + self.lvl), desc="애옹? 애옹!")
 
 
+class MiniHachiko(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 하치코"
+    name = "미니 하치코"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, d('150') + d('30') * self.lvl, removable=False),
+            Buff(BT.DEF, 0, d('30') + d('3') * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, 100 + 50 * self.lvl, desc="민트 미트파이 드세여!",
+                                 max_stack=1, tag="MiniHachiko_BC")
+
+
 class MiniLilith(Gear):
     BASE_RARITY = R.SS
-    nick = "리리스"
+    nick = "미니 리리스"
     name = "미니 블랙 리리스"
 
     def init_buff(self):
@@ -1284,6 +1316,57 @@ class EnhancedCombatOS(OS):
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.005') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.EVA, 0, d('10') + d('2') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.SPD, 1, self.val[self.lvl], round_=1, desc=self.name)
+
+
+class GrandCruChocolate(Gear):
+    BASE_RARITY = R.SS
+    nick = "초코"
+    name = "그랑크뤼 초콜릿"
+    val = [d('.5'), d('.6'), d('.7'), d('.8'), d('.9'),
+           d('1'), d('1.2'), d('1.4'), d('1.6'), d('1.8'), d('2')]
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, d('50') + d('5') * self.lvl, removable=False),
+            Buff(BT.EVA, 0, d('5') + d('1') * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.AP, 0, self.val[self.lvl], desc="녹아내릴 듯한 달콤함")
+
+
+class ATKControl(Chip):
+    nick = "치씹칩"
+    name = "출력 제어 회로"
+
+    val = [(d('20'), d('4')), (d('30'), d('6')), (d('40'), d('8')), (d('50'), d('10'))]
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, -12, removable=False)
+        )
+
+
+class ExoSkeleton(Gear):
+    nick = "보조 외골격"
+    name = "보조 외골격"
+    val = [((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
+           ((d('.02'), d('.002')), (d('.03'), d('.003')), (d('.04'), d('.004')), (d('.05'), d('.005'))),
+           ((d('0'), d('.005')), (d('.015'), d('.005')), (d('.03'), d('.005')), (d('.05'), d('.005'))),]
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.EVA, 0, self.val[0][self.rarity][0] * self.val[0][self.rarity][1] * self.lvl, removable=False),
+            Buff(BT.SPD, 0, self.val[1][self.rarity][0] * self.val[1][self.rarity][1] * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.TAKEDMGDEC, 1,
+                                 max(d('.0025'), self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl),
+                                 round_=1, desc=self.name)
 
 
 class VerminEliminator(Gear):
@@ -1327,89 +1410,143 @@ class QMObserver(Equip):
 
 
 class ATKChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "공베칩"
     name = "출력 강화 회로 베타"
-    val = [(d('24'), d('2.4')), (d('36'), d('3.6')), (d('48'), d('4.8')), (d('60'), d('6'))]
+    val = [(d('24'), d('2.4')), (d('36'), d('3.6')), (d('48'), d('4.8')), (d('60'), d('6')),
+           (70, 75, 80, 85, 90, 100, 107, 114, 121, 128, 135)]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.ATK, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.EVA, 0, d('-6') + d('-.6') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.ATK, 0, d(self.val[self.rarity][self.lvl]), removable=False),
+                Buff(BT.EVA, 0, d('-11') + (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.ATK, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.EVA, 0, d('-6') + d('-.6') * self.lvl, removable=False)
+            )
 
 
 class ACCChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "적베칩"
     name = "연산 강화 회로 베타"
-    val = [(d('18'), d('1.8')), (d('24'), d('2.4')), (d('30'), d('3')), (d('42'), d('4.2'))]
+    val = [(d('18'), d('1.8')), (d('24'), d('2.4')), (d('30'), d('3')), (d('42'), d('4.2')),
+           (45, 49, 53, 57, 61, 65, 70, 75, 80, 85, 90)]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.ACC, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.DEF, 0, d('-27') + d('-2.7') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.ACC, 0, d(self.val[self.rarity][self.lvl]), removable=False),
+                Buff(BT.DEF, 0, d('-49') + d('4') * (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.ACC, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.DEF, 0, d('-27') + d('-2.7') * self.lvl, removable=False)
+            )
 
 
 class DEFChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "방베칩"
     name = "내 충격 강화 회로 베타"
-    val = [(d('30'), d('3')), (d('43'), d('4.3')), (d('54'), d('5.4')), (d('65'), d('6.5'))]
+    val = [(d('30'), d('3')), (d('43'), d('4.3')), (d('54'), d('5.4')), (d('65'), d('6.5')), (d('100'), d('10'))]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.DEF, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.DEF, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.ATK, 0, d('-35') + d('3') * (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.DEF, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
+            )
 
 
 class EVAChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "회베칩"
     name = "반응 강화 회로 베타"
-    val = [(d('72'), d('.36')), (d('9.6'), d('.48')), (d('12'), d('.6')), (d('18'), d('.9'))]
+    val = [(d('72'), d('.36')), (d('9.6'), d('.48')), (d('12'), d('.6')), (d('18'), d('.9')), (d('20'), d('1'))]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.EVA, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.EVA, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.ATK, 0, d('-35') + d('3') * (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.EVA, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
+            )
 
 
 class CRITChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "치베칩"
     name = "분석 회로 베타"
     val = [((d('4.8'), d('.24')), (d('6'), d('.3')), (d('7.2'), d('.36')), (d('9.6'), d('.48'))),
            (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.CRIT, 0, 
-                 self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.val[1][self.lvl], removable=False), 
-            Buff(BT.DEF, 0, d('-27') + d('-2.7') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.CRIT, 0, d('12') + d('2.4') * self.lvl, removable=False),
+                Buff(BT.DEF, 0, d('-55') + d('5') * (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.CRIT, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.val[1][self.lvl],
+                     removable=False),
+                Buff(BT.DEF, 0, d('-27') + d('-2.7') * self.lvl, removable=False)
+            )
 
 
 class HPChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "체베칩"
     name = "회로 내구 강화 베타"
-    val = [(d('96'), d('19.2')), (d('144'), d('28.8')), (d('192'), d('38.6')), (d('240'), d('48'))]
+    val = [(d('96'), d('19.2')), (d('144'), d('28.8')), (d('192'), d('38.6')), (d('240'), d('48')), (d('300'), d('15'))]
+    dval = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.HP, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.HP, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.dval[self.lvl],
+                     removable=False),
+                Buff(BT.ATK, 0, d('-35') + d('3') * (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.HP, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.ATK, 0, d('-25') + d('-2.5') * self.lvl, removable=False)
+            )
 
 
 class SPDChipBETA(Chip):
+    PROMOTION = R.SSS
     nick = "행베칩"
     name = "회로 최적화 베타"
-    val = [(d('.12'), d('.006')), (d('.144'), d('.0072')), (d('.168'), d('.0084')), (d('.18'), d('.009'))]
+    val = [(d('.12'), d('.006')), (d('.144'), d('.0072')), (d('.168'), d('.0084')), (d('.18'), d('.009')),
+           (d('.19'), d('.01'))]
 
     def init_buff(self):
-        self.buff = BuffList(
-            Buff(BT.SPD, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
-            Buff(BT.EVA, 0, d('-6') + d('-.6') * self.lvl, removable=False)
-        )
+        if self.rarity == R.SSS:
+            self.buff = BuffList(
+                Buff(BT.SPD, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.EVA, 0, d('-11') + (self.lvl == 0), removable=False)
+            )
+        else:
+            self.buff = BuffList(
+                Buff(BT.SPD, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
+                Buff(BT.EVA, 0, d('-6') + d('-.6') * self.lvl, removable=False)
+            )
 
 
 class AWThruster(Gear):

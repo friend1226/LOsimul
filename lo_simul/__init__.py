@@ -21,4 +21,4 @@ except NameError:
     pass
 del traceback, path, classes, errors, modloader
 
-__version__ = "0b.20220422"
+__version__ = "0b.20220427"
