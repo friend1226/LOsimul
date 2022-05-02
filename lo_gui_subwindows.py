@@ -520,9 +520,9 @@ class CreateCharacter(QDialog):
                 self.flbbox.setCurrentIndex(0)
             else:
                 self.flbbox.setCurrentIndex(flbno + 1)
-            self.affectionbox.setValue(args("affection", 0))
-            self.pledgebox.setChecked(args("pledge", False))
-            self.remainhpbox.setValue(args("current_hp", 0))
+            self.affectionbox.setValue(args.get("affection", 0))
+            self.pledgebox.setChecked(args.get("pledge", False))
+            self.remainhpbox.setValue(args.get("current_hp", 0))
 
     def save_to_file(self):
         fname = QFileDialog.getSaveFileName(
