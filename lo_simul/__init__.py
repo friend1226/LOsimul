@@ -14,11 +14,10 @@ classes, errors = modloader.load()
 for fn in errors:
     with open(os.path.join(path, fn.rpartition('.')[0]+'.log'), 'w', encoding='utf-8') as f:
         f.writelines(traceback.format_exception(type(errors[fn]), errors[fn], errors[fn].__traceback__))
-EquipPools.update()
 try:
     del fn
 except NameError:
     pass
 del traceback, path, classes, errors, modloader
 
-__version__ = "0b.20220427"
+__version__ = "0b.20220502"

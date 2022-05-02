@@ -652,12 +652,8 @@ class Buff:
         else:
             raise TypeError(f"잘못된 타입 : {type(other)}")
 
-    def __str__(self):
+    def simpl_str(self):
         result = ''
-        if self.tag in GIMMICKS:
-            result += f"[{self.desc if self.desc else self.tag}] : "
-        elif self.desc:
-            result += f"{self.desc} : "
         if isinstance(self.data, D.FDmgInfo):
             if self.data.element == 0 and self.type == BT.INSTANT_DMG:
                 result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
@@ -689,6 +685,15 @@ class Buff:
             elif self.type == BT.COOP_ATTACK:
                 result += f" ({self.data.attacker if self.data else None} - " \
                           f"{self.data.skill_no if self.data else None}번 스킬)"
+        return result
+
+    def __str__(self):
+        result = ''
+        if self.tag in GIMMICKS:
+            result += f"[{self.desc if self.desc else self.tag}] : "
+        elif self.desc:
+            result += f"{self.desc} : "
+        result += self.simpl_str()
         result += ' '
         if self.round > 99:
             result += '(99+라운드, '

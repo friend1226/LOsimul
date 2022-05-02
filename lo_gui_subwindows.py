@@ -1,10 +1,11 @@
 from lo_simul import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QPixmap, QTextCursor, QColor
+from PyQt5.QtGui import QFont, QPixmap, QTextCursor, QColor, QFontMetrics, QIcon
 
 list_split = ','
 list2d_split = '/'
+ICON_HEIGHT = 128
 
 # TODO : 도움말 다듬기 & 추가
 import os
@@ -144,310 +145,515 @@ class ShowActOrder(QDialog):
         super().show()
 
 
-class SelectCharacter(QDialog):
-    args = {
-        'field': ('아군', '적군'),
-        'pos': ('0', '1', '2', '3', '4', '5', '6', '7', '8'),
-        'id': tuple(),
-        'rarity': ('B', 'A', 'S', 'SS'),
-        'lvl': tuple(),
-        'stat_lvl': tuple(),
-        'skill_lvl': tuple(),
-        'link': tuple(),
-        'full_link_bonus_no': ('없음', '0', '1', '2', '3', '4'),
-        'affection': tuple(),
-        'pledge': ('서약 안 함', '서약함'),
-        'current_hp': tuple()
-    }
-
-    def __init__(self, parent, *args, **kwargs):
+class SelectFunction(QDialog):
+    def __init__(self, field, pos, parent, *args, **kwargs):
         super().__init__(parent=parent, *args, **kwargs)
-        self.setWindowTitle("캐릭터 생성")
-        self.selectors = {a: QComboBox() for a in self.args}
-        for a in self.args:
-            self.selectors[a].addItems(list(map(str, self.args[a])))
-
-        scroll_area = QScrollArea(self)
-
-        self.selectors['equips'] = [None, None, None, None]
-        self.selectors['field'].currentTextChanged.connect(self.update_character_list)
-        self.update_character_list()
-        self.selectors['id'].currentTextChanged.connect(self.update_equip_form_and_rarity)
-        self.selectors['id'].setCurrentIndex(0)
-        self.update_equip_form_and_rarity()
-
-        lvspin = self.selectors['lvl'] = QSpinBox()
-        lvspin.setMinimum(1)
-        lvspin.setMaximum(1000)
-        lvspin.setSingleStep(1)
-        lvspin.setValue(lvspin.minimum())
-        lvspin.setAccelerated(True)
-        stspin = self.selectors['stat_lvl'] = [QSpinBox() for _ in range(6)]
-        for s in stspin:
-            s.setMinimum(0)
-            s.setMaximum(360)
-            s.setSingleStep(1)
-            s.setValue(s.minimum())
-            s.setAccelerated(True)
-        skspin = self.selectors['skill_lvl'] = [QSpinBox() for _ in range(5)]
-        for s in skspin:
-            s.setMinimum(1)
-            s.setMaximum(10)
-            s.setSingleStep(1)
-            s.setValue(s.minimum())
-            s.setAccelerated(True)
-        lkspin = self.selectors['link'] = QSpinBox()
-        lkspin.setMinimum(0)
-        lkspin.setMaximum(500)
-        lkspin.setSingleStep(1)
-        lkspin.setValue(lkspin.minimum())
-        lkspin.setAccelerated(True)
-        afspin = self.selectors['affection'] = QSpinBox()
-        afspin.setMinimum(0)
-        afspin.setMaximum(200)
-        afspin.setSingleStep(1)
-        afspin.setValue(afspin.minimum())
-        afspin.setAccelerated(True)
-        chspin = self.selectors['current_hp'] = QSpinBox()
-        chspin.setMinimum(0)
-        chspin.setSingleStep(1)
-        chspin.setValue(chspin.minimum())
-        chspin.setAccelerated(True)
-
-        scroll_widget = QWidget(scroll_area)
-        glayout = QGridLayout()
-        self.scroll_glayout = glayout
-        def ql(s_):
-            q = QLabel(s_)
-            q.setFixedWidth(150)
-            q.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
-            return q
-
-        posframe = QFrame()
-        poslayout = QHBoxLayout(posframe)
-        poslayout.setContentsMargins(0, 0, 0, 0)
-        poslayout.addWidget(self.selectors['field'])
-        poslayout.addWidget(self.selectors['pos'])
-        posqlabel = QLabel("번 그리드")
-        posqlabel.setFixedWidth(60)
-        posqlabel.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
-        poslayout.addWidget(posqlabel)
-        posframe.setLayout(poslayout)
-
-        statdoc = ['체럭', '공격력', '방어력', '적중', '회피', '치명률']
-        glayout.addWidget(ql("위치 = "), 0, 0)
-        glayout.addWidget(posframe, 0, 1)
-        glayout.addWidget(ql("ID = "), 1, 0)
-        glayout.addWidget(self.selectors['id'], 1, 1)
-        glayout.addWidget(ql("희귀도 = "), 2, 0)
-        glayout.addWidget(self.selectors['rarity'], 2, 1)
-        glayout.addWidget(ql("레벨 = "), 3, 0)
-        glayout.addWidget(self.selectors['lvl'], 3, 1)
-        for i in range(6):
-            glayout.addWidget(ql(f"{statdoc[i]} 스탯 레벨 = "), 4+i, 0)
-            glayout.addWidget(self.selectors['stat_lvl'][i], 4+i, 1)
-        for i in range(5):
-            glayout.addWidget(ql(f"스킬 {i}번 레벨 = "), 10+i, 0)
-            glayout.addWidget(self.selectors['skill_lvl'][i], 10+i, 1)
-        glayout.addWidget(ql("장비1 = "), 15, 0)
-        glayout.addWidget(self.selectors['equips'][0], 15, 1)
-        glayout.addWidget(ql("장비2 = "), 16, 0)
-        glayout.addWidget(self.selectors['equips'][1], 16, 1)
-        glayout.addWidget(ql("장비3 = "), 17, 0)
-        glayout.addWidget(self.selectors['equips'][2], 17, 1)
-        glayout.addWidget(ql("장비4 = "), 18, 0)
-        glayout.addWidget(self.selectors['equips'][3], 18, 1)
-        glayout.addWidget(ql("링크 = "), 19, 0)
-        glayout.addWidget(self.selectors['link'], 19, 1)
-        glayout.addWidget(ql("풀링크보너스 = "), 20, 0)
-        glayout.addWidget(self.selectors['full_link_bonus_no'], 20, 1)
-        glayout.addWidget(ql("호감도 = "), 21, 0)
-        glayout.addWidget(self.selectors['affection'], 21, 1)
-        glayout.addWidget(ql("서약 여부 = "), 22, 0)
-        glayout.addWidget(self.selectors['pledge'], 22, 1)
-        glayout.addWidget(ql("현재 HP (100%이면 0) = "), 23, 0)
-        glayout.addWidget(self.selectors['current_hp'], 23, 1)
-        scroll_widget.setLayout(glayout)
-
-        scroll_area.setWidget(scroll_widget)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setMinimumWidth(450)
-
-        okbutton = QPushButton("확인")
-        okbutton.clicked.connect(self.okclicked)
-        cancelbutton = QPushButton("취소")
-        cancelbutton.clicked.connect(self.cancelclicked)
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(okbutton)
-        hlayout.addWidget(cancelbutton)
-        buttons = QWidget(self)
-        buttons.setFixedHeight(50)
-        buttons.setLayout(hlayout)
-
+        self.setWindowTitle("기능 선택")
+        self.setFixedSize(300, 400)
+        self.selected_button_code = 0
         layout = QVBoxLayout()
-        layout.addWidget(scroll_area)
-        layout.addWidget(buttons)
-
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        addbutton = QPushButton("캐릭터 추가")
+        removebutton = QPushButton("캐릭터 제거")
+        movebutton = QPushButton("캐릭터 이동")
+        infobutton = QPushButton("캐릭터 정보 보기")
+        cancelbutton = QPushButton("취소")
+        addbutton.setIcon(QIcon(os.path.join(PATH, 'images', 'add_button.png')))
+        removebutton.setIcon(QIcon(os.path.join(PATH, 'images', 'remove_button.png')))
+        layout.addWidget(addbutton)
+        layout.addWidget(removebutton)
+        layout.addWidget(movebutton)
+        layout.addWidget(infobutton)
+        layout.addWidget(cancelbutton)
+        if parent.game.get_char(pos, field=field):
+            addbutton.setDisabled(True)
+        else:
+            removebutton.setDisabled(True)
+            movebutton.setDisabled(True)
+            infobutton.setDisabled(True)
+        button_codes = {
+            addbutton: 1,
+            removebutton: 2,
+            movebutton: 3,
+            infobutton: 4,
+            cancelbutton: 0,
+        }
+        for btn, btnc in button_codes.items():
+            btn.setFixedSize(300, 80)
+            btn.clicked.connect(self.clicked(btnc))
         self.setLayout(layout)
 
-    def gen_equip_frame(self, eqtype: int):
-        frame = QFrame()
-        layout = QHBoxLayout(frame)
-        layout.setContentsMargins(0, 0, 0, 0)
-        available_equips = EquipPools.ALL_NAME_LIST[eqtype]
-        names = frame.names = QComboBox(frame)
-        names.setMinimumWidth(130)
-        names.addItem("없음")
-        names.addItems(list(available_equips.keys()))
-        rarity = frame.rarity = QComboBox(frame)
-        rarity.setFixedWidth(50)
-        rarity.addItems(['B', 'A', 'S', 'SS', 'SSS'])
-        lvl = frame.lvl = QComboBox(frame)
-        lvl.setFixedWidth(50)
-        lvl.addItems(list(map(str, range(11))))
-        layout.addWidget(names)
-        layout.addWidget(rarity)
-        layout.addWidget(lvl)
-        frame.setLayout(layout)
-        names.currentTextChanged.connect(lambda: self.update_equip_rarity(names))
-        return frame
-
-    def update_character_list(self):
-        isenemy = self.selectors['field'].currentText()
-        if isenemy == '아군':
-            characters = list(CharacterPools.ALLY.keys())
-        else:
-            characters = list(CharacterPools.ENEMY.keys())
-        self.selectors['id'].clear()
-        self.selectors['id'].addItems(characters)
-        self.selectors['id'].setCurrentIndex(0)
-
-    def update_equip_form_and_rarity(self):
-        if (nowch := self.selectors['id'].currentText()) == '':
-            return
-        char_info = CharacterPools.ALL[nowch].get_info()
-        base_rarity, promotion, equip_conditions = char_info[-3], char_info[-2], char_info[-4]
-        self.selectors['rarity'].clear()
-        self.selectors['rarity'].addItems(list(map(lambda en: en.name, list(R)[base_rarity:promotion+1])))
-        if self.selectors['rarity'].count() == 0:
-            self.selectors['rarity'].addItem("없음")
-        for i in range(len(equip_conditions)):
-            initiating = self.selectors['equips'][i] is None
-            if not initiating:
-                self.scroll_glayout.removeWidget(self.selectors['equips'][i])
-                self.selectors['equips'][i].deleteLater()
-            self.selectors['equips'][i] = self.gen_equip_frame(equip_conditions[i])
-            if not initiating:
-                self.scroll_glayout.addWidget(self.selectors['equips'][i], 15+i, 1)
-
-    def update_equip_rarity(self, comb: QComboBox):
-        combtxt = comb.currentText()
-        if combtxt == "없음":
-            return
-        eq_class = EquipPools.ALL_NAME[combtxt]
-        rarity = comb.parent().rarity
-        rarity.clear()
-        rarity.addItems(list(map(lambda en: en.name, list(R)[eq_class.BASE_RARITY:eq_class.PROMOTION+1])))
-
-    def okclicked(self):
-        self.accept()
-
-    def cancelclicked(self):
-        self.reject()
+    def clicked(self, button_code):
+        def foo():
+            if button_code:
+                self.selected_button_code = button_code
+                self.accept()
+            else:
+                self.reject()
+        return foo
 
     def show_window(self):
         return super().exec_()
 
 
-class RemoveCharacter(QDialog):
-    def __init__(self, parent, *args, **kwargs):
+class CreateCharacter(QDialog):
+    rarity_list = ['B', 'A', 'S', 'SS', 'SSS']
+
+    def __init__(self, field, pos, parent, *args, **kwargs):
         super().__init__(parent=parent, *args, **kwargs)
-        self.setWindowTitle("캐릭터 제거")
+        self.field = field
+        self.pos = pos
+        if tempchar := parent.game.get_char(pos, field=field):
+            raise ValueError(f"캐릭터가 존재함 : {'적군' if field else '아군'} {pos}번 위치에 {tempchar}")
+        self.setWindowTitle(f"{'적군' if field else '아군'} {pos}번 위치에 캐릭터 생성")
 
-        field = QFrame()
-        flayout = QHBoxLayout()
-        aff = QFrame(field)
-        aff.setFrameShadow(QFrame.Sunken)
-        blank = QFrame(field)
-        blank.setFixedWidth(30)
-        eff = QFrame(field)
-        eff.setFrameShadow(QFrame.Sunken)
-        flayout.addWidget(aff)
-        flayout.addWidget(blank)
-        flayout.addWidget(eff)
-        field.setLayout(flayout)
-        affg = QGridLayout(aff)
-        effg = QGridLayout(eff)
-        aff.setLayout(affg)
-        eff.setLayout(effg)
-        for i in range(3):
-            for j in range(3):
-                ac = self.parentWidget().game.get_char(i, j)
-                ec = self.parentWidget().game.get_char(i, j, 1)
-                if ac is None:
-                    abtn = QPushButton(f"None")
-                else:
-                    abtn = QPushButton(f"{ac.name}{ac.getposxy()}")
-                if ec is None:
-                    ebtn = QPushButton(f"None")
-                else:
-                    ebtn = QPushButton(f"{ec.name}{ec.getposxy()}")
-                abtn.character = ac
-                ebtn.character = ec
-                abtn.clicked.connect(self.make_func(abtn))
-                ebtn.clicked.connect(self.make_func(ebtn))
-                affg.addWidget(abtn, i, j)
-                effg.addWidget(ebtn, i, j)
+        def makeframe(layout, *widgets):
+            frame = QFrame()
+            flayout = layout()
+            flayout.setContentsMargins(0, 0, 0, 0)
+            for w in widgets:
+                flayout.addWidget(w)
+            frame.setLayout(flayout)
+            return frame
 
-        okbutton = QPushButton("확인")
-        okbutton.clicked.connect(self.okclicked)
+        def set_avaliable_minimum_width(label):
+            label.setFixedWidth(QFontMetrics(label.font()).width(label.text()))
+
+        glayout = QGridLayout()
+        self.setStyleSheet("""
+        QGroupBox {
+            border: 1px solid gray;
+            margin-top: 0.5em;
+        }
+        
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 3px 0 3px;
+        }
+        """)
+
+        klasslabel = QLabel("캐릭터 : ")
+        set_avaliable_minimum_width(klasslabel)
+        self.klassbox = klasscombobox = QComboBox()
+        klasscombobox.setEditable(True)
+        klasscombobox.addItems((CharacterPools.ENEMY if field else CharacterPools.ALLY).keys())
+        klassframe = makeframe(QHBoxLayout, klasslabel, klasscombobox)
+
+        infobox = QGroupBox("정보")
+        infolayout = QGridLayout()
+
+        self.iconlabel = iconlabel = QLabel("<font color='red'>???</font>")
+        iconlabel.setMinimumHeight(ICON_HEIGHT)
+        iconlabel.setAlignment(Qt.AlignCenter)
+
+        raritylabel = QLabel("등급")
+        set_avaliable_minimum_width(raritylabel)
+        self.raritybox = raritycombobox = QComboBox()
+        raritycombobox.setEditable(True)
+        raritycombobox.lineEdit().setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        raritycombobox.lineEdit().setReadOnly(True)
+        rarityframe = makeframe(QHBoxLayout, raritycombobox, raritylabel)
+
+        levellabel = QLabel("레벨")
+        set_avaliable_minimum_width(levellabel)
+        self.levelbox = levelspinbox = QSpinBox()
+        levelspinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        levelspinbox.setMinimum(1)
+        levelspinbox.setMaximum(999)
+        levelspinbox.setSingleStep(1)
+        levelspinbox.setValue(levelspinbox.minimum())
+        levelspinbox.setAccelerated(True)
+        levelframe = makeframe(QHBoxLayout, levelspinbox, levellabel)
+
+        rlframe = makeframe(QHBoxLayout, rarityframe, levelframe)
+        rlframe.layout().setSpacing(30)
+
+        linklabel1 = QLabel("코어 링크")
+        set_avaliable_minimum_width(linklabel1)
+        self.linkbox = linkspinbox = QSpinBox()
+        linkspinbox.setMinimum(0)
+        linkspinbox.setMaximum(500)
+        linkspinbox.setSingleStep(5)
+        linkspinbox.setValue(linkspinbox.minimum())
+        linkspinbox.setAccelerated(True)
+        linklabel2 = QLabel("%")
+        set_avaliable_minimum_width(linklabel2)
+        linkframe = makeframe(QVBoxLayout, makeframe(QHBoxLayout, linkspinbox, linklabel2))
+        linkframe.layout().insertWidget(0, linklabel1, alignment=Qt.AlignCenter)
+
+        flblabel = QLabel("풀링크 보너스")
+        set_avaliable_minimum_width(flblabel)
+        self.flbbox = flbcombobox = QComboBox()
+        flbframe = makeframe(QVBoxLayout, flbcombobox)
+        flbframe.layout().insertWidget(0, flblabel, alignment=Qt.AlignCenter)
+
+        afflabel = QLabel("호감도")
+        set_avaliable_minimum_width(afflabel)
+        self.affectionbox = affspinbox = QSpinBox()
+        affspinbox.setMinimum(0)
+        affspinbox.setMaximum(200)
+        affspinbox.setSingleStep(1)
+        affspinbox.setValue(affspinbox.minimum())
+        affspinbox.setAccelerated(True)
+        affectionframe = makeframe(QVBoxLayout, affspinbox)
+        affectionframe.layout().insertWidget(0, afflabel, alignment=Qt.AlignCenter)
+
+        remainhplabel = QLabel("현재 HP 설정")
+        set_avaliable_minimum_width(remainhplabel)
+        self.remainhpbox = remainhpspinbox = QSpinBox()
+        remainhpspinbox.setMinimum(0)
+        remainhpspinbox.setSingleStep(1)
+        remainhpspinbox.setValue(remainhpspinbox.minimum())
+        remainhpspinbox.setAccelerated(True)
+        remainhpframe = makeframe(QVBoxLayout, remainhpspinbox)
+        remainhpframe.layout().insertWidget(0, remainhplabel, alignment=Qt.AlignCenter)
+
+        self.pledgebox = pledge = QCheckBox("서약")
+
+        infolayout.addWidget(rlframe, 0, 0, 1, 2)
+        infolayout.addWidget(linkframe, 1, 0)
+        infolayout.addWidget(flbframe, 1, 1)
+        infolayout.addWidget(affectionframe, 2, 0)
+        infolayout.addWidget(remainhpframe, 2, 1)
+        infolayout.addWidget(pledge, 3, 1, alignment=Qt.AlignRight | Qt.AlignVCenter)
+        infolayout.setHorizontalSpacing(20)
+        infolayout.setVerticalSpacing(15)
+        infolayout.setContentsMargins(15, 15, 15, 15)
+        infobox.setLayout(infolayout)
+
+        statbox = QGroupBox("스탯")
+        statlayout = QVBoxLayout()
+        self.statspinboxes = {i: None for i in BT.STATS}
+
+        def setmax(box):
+            def func():
+                box.setValue(box.maximum())
+            return func
+
+        for st in BT.STATS:
+            stlabel = QLabel(st)
+            stlabel.setAlignment(Qt.AlignCenter)
+            stlabel.setFixedWidth(40)
+            stspinbox = QSpinBox()
+            stspinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            stspinbox.setMinimum(0)
+            stspinbox.setSingleStep(1)
+            stspinbox.setValue(affspinbox.minimum())
+            stspinbox.setAccelerated(True)
+            stspinbox.setMinimumWidth(45)
+            stmaxbtn = QPushButton("MAX")
+            stmaxbtn.setFixedWidth(stmaxbtn.fontMetrics().width("MAX")+10)
+            stmaxbtn.clicked.connect(setmax(stspinbox))
+            self.statspinboxes[st] = stspinbox
+            stspinbox.valueChanged.connect(self.stat_value_changed)
+            statlayout.addWidget(makeframe(QHBoxLayout, stlabel, stspinbox, stmaxbtn))
+        self.statlabel = QLabel("스탯 합은 레벨의 3배 이하")
+        statlayout.addSpacing(15)
+        statlayout.addWidget(self.statlabel)
+        statlayout.setContentsMargins(15, 15, 15, 15)
+        statbox.setLayout(statlayout)
+
+        self.levelbox.valueChanged.connect(self.lvl_changed)
+        self.lvl_changed()
+
+        skillbox = QGroupBox("스킬")
+        skilllayout = QVBoxLayout()
+        self.skillspinboxes = {
+            "액티브1스킬": None,
+            "액티브2스킬": None,
+            "패시브1스킬": None,
+            "패시브2스킬": None,
+            "패시브3스킬": None,
+        }
+        for sk in self.skillspinboxes.keys():
+            sklabel = QLabel(sk)
+            set_avaliable_minimum_width(sklabel)
+            skspinbox = QSpinBox()
+            skspinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            skspinbox.setMinimum(1)
+            skspinbox.setMaximum(10)
+            skspinbox.setSingleStep(1)
+            skspinbox.setValue(skspinbox.minimum())
+            skspinbox.setAccelerated(True)
+            self.skillspinboxes[sk] = skspinbox
+            sklvllabel = QLabel("레벨")
+            set_avaliable_minimum_width(sklvllabel)
+            skilllayout.addWidget(makeframe(QHBoxLayout, sklabel, skspinbox, sklvllabel))
+        skilllayout.setContentsMargins(15, 15, 15, 15)
+        skillbox.setLayout(skilllayout)
+
+        equipbox = QGroupBox("장비")
+        equiplayout = QVBoxLayout()
+        self.equips = [None, None, None, None]
+        for i in range(4):
+            eqlabel = QLabel(f"장비{i+1}")
+            eqklassbox = QComboBox()
+            eqklassbox.setEditable(True)
+            eqklassbox.setMinimumWidth(127)
+            eqraritybox = QComboBox()
+            eqraritybox.setMinimumWidth(45)
+            eqraritybox.setEditable(True)
+            eqraritybox.lineEdit().setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            eqraritybox.lineEdit().setReadOnly(True)
+            eqraritylabel = QLabel("등급")
+            eqlvlbox = QSpinBox()
+            eqlvlbox.setMinimumWidth(35)
+            eqlvlbox.setMinimum(1)
+            eqlvlbox.setMaximum(10)
+            eqlvlbox.setSingleStep(1)
+            eqlvlbox.setValue(eqlvlbox.minimum())
+            eqlvlbox.setAccelerated(True)
+            eqlvlbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            eqlvllabel = QLabel("레벨")
+            set_avaliable_minimum_width(eqraritylabel)
+            set_avaliable_minimum_width(eqlvllabel)
+            self.equips[i] = (eqlabel, eqklassbox, eqraritybox, eqlvlbox)
+            eqrarityframe = makeframe(QHBoxLayout, eqraritybox, eqraritylabel)
+            eqlvlframe = makeframe(QHBoxLayout, eqlvlbox, eqlvllabel)
+            eqrlframe = makeframe(QHBoxLayout, eqrarityframe, eqlvlframe)
+            eqtotalframe = makeframe(QVBoxLayout, eqklassbox, eqrlframe)
+            eqtotalframe.layout().insertWidget(0, eqlabel, alignment=Qt.AlignCenter)
+            equiplayout.addWidget(eqtotalframe)
+            eqklassbox.currentTextChanged.connect(self.equip_changed(i))
+        for idx in range(3):
+            lineframe = QFrame()
+            lineframe.setFrameShape(QFrame.HLine | QFrame.Plain)
+            lineframe.setStyleSheet("color: gray;")
+            equiplayout.insertWidget(2*idx+1, lineframe)
+        equiplayout.setSpacing(10)
+        equiplayout.setContentsMargins(15, 15, 15, 15)
+        equipbox.setLayout(equiplayout)
+
+        funcbox = QGroupBox("편의 기능")
+        funclayout = QHBoxLayout()
+        affection200b = QPushButton("\n호감도\n200\n")
+        skillmaxb = QPushButton("\n스킬\n10레벨\n")
+        equiplvlmaxb = QPushButton("\n장비\n10레벨\n")
+        loadfromfileb = QPushButton("\n파일에서\n불러오기\n")
+        savetofileb = QPushButton("\n파일로\n저장하기\n")
+
+        map(lambda btn: btn.resize(btn.sizeHint()),
+            [affection200b, skillmaxb, equiplvlmaxb, loadfromfileb, savetofileb])
+
+        def affection200():
+            self.affectionbox.setValue(200)
+
+        def skillmax():
+            for box in self.skillspinboxes.values():
+                box.setValue(10)
+
+        def equiplvlmax():
+            for eq in self.equips:
+                eq[3].setValue(10)
+
+        affection200b.clicked.connect(affection200)
+        skillmaxb.clicked.connect(skillmax)
+        equiplvlmaxb.clicked.connect(equiplvlmax)
+        loadfromfileb.clicked.connect(self.load_from_file)
+        savetofileb.clicked.connect(self.save_to_file)
+
+        funclayout.addWidget(makeframe(QHBoxLayout, affection200b, skillmaxb, equiplvlmaxb, loadfromfileb, savetofileb))
+        funcbox.setLayout(funclayout)
+
+        klasscombobox.currentTextChanged.connect(self.klass_changed)
+        self.klass_changed()
+
+        okbutton = QPushButton("추가")
+        okbutton.clicked.connect(self.accept)
+        okbutton.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         cancelbutton = QPushButton("취소")
-        cancelbutton.clicked.connect(self.cancelclicked)
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(okbutton)
-        hlayout.addWidget(cancelbutton)
-        buttons = QWidget(self)
-        buttons.setFixedHeight(50)
-        buttons.setLayout(hlayout)
+        cancelbutton.clicked.connect(self.reject)
+        cancelbutton.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
-        self.selected_character = None
-        self.selected_character_label = QLabel('선택된 캐릭터 = None')
-        self.selected_character_label.setAlignment(Qt.AlignCenter)
+        glayout.addWidget(iconlabel, 0, 0)
+        glayout.addWidget(klassframe, 1, 0)
+        glayout.addWidget(infobox, 2, 0, 2, 1)
+        glayout.addWidget(statbox, 0, 1, 3, 1)
+        glayout.addWidget(skillbox, 3, 1)
+        glayout.addWidget(equipbox, 0, 2, 4, 2)
+        glayout.addWidget(funcbox, 4, 0, 1, 2)
+        glayout.addWidget(okbutton, 4, 2)
+        glayout.addWidget(cancelbutton, 4, 3)
+        glayout.setSpacing(15)
+        self.setLayout(glayout)
 
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addWidget(field)
-        layout.addWidget(self.selected_character_label)
-        layout.addWidget(buttons)
-
-        self.setLayout(layout)
-
-    def make_func(self, btn):
-        def do():
-            self.selected_character = btn.character
-            if self.selected_character is None:
-                self.selected_character_label.setText('선택된 캐릭터 = None')
+    def load_from_file(self):
+        fname = QFileDialog.getOpenFileName(
+            self,
+            '캐릭터 불러오기',
+            './',
+            "Json files (*.json)",
+            "Json files (*.json)"
+        )
+        if not fname[0]:
+            return
+        with open(fname[0], 'r', encoding='utf-8') as f_:
+            temp_ = json.load(f_)
+            klass = CharacterPools.ALL_CODES[temp_["code"]]
+            self.klassbox.setCurrentIndex(
+                [self.klassbox.itemText(i) for i in range(self.klassbox.count())].index(klass.name))
+            args = temp_.get("args")
+            if args is None:
+                return
+            self.raritybox.setCurrentIndex(args["rarity"]-klass.base_rarity if "rarity" in args else 0)
+            self.levelbox.setValue(args.get("lvl", self.levelbox.minimum()))
+            for idx, box in enumerate(self.statspinboxes.values()):
+                box.setValue(args["stat_lvl"][idx] if "stat_lvl" in args else box.minimum())
+            for idx, box in enumerate(self.skillspinboxes.values()):
+                box.setValue(args["skill_lvl"][idx] if "skill_lvl" in args else box.minimum())
+            if "equips" in args:
+                for idx, eq in enumerate(args["equips"]):
+                    eqlabel, eqklassbox, eqraritybox, eqlvlbox = self.equips[idx]
+                    if eq[0] not in EquipPools.ALL_NAME:
+                        eqklassbox.setCurrentIndex(0)
+                        continue
+                    eqklassbox.setCurrentIndex([eqklassbox.itemText(i) for i in range(eqklassbox.count())].index(eq[0]))
+                    eqraritybox.setCurrentIndex(eq[1]-EquipPools.ALL_NAME[eq[0]].BASE_RARITY)
+                    eqlvlbox.setValue(eq[2])
             else:
-                self.selected_character_label.setText(
-                    f"선택된 캐릭터 = "
-                    f"{self.selected_character.name}{self.selected_character.getposxy()}"
-                )
-        return do
+                for eq in self.equips:
+                    eq[1].setCurrentIndex(0)
+            self.linkbox.setValue(args.get("link", 0))
+            if "full_link_bonus_no" not in args or (flbno := args["full_link_bonus_no"]) is None:
+                self.flbbox.setCurrentIndex(0)
+            else:
+                self.flbbox.setCurrentIndex(flbno + 1)
+            self.affectionbox.setValue(args("affection", 0))
+            self.pledgebox.setChecked(args("pledge", False))
+            self.remainhpbox.setValue(args("current_hp", 0))
 
-    def okclicked(self):
-        if self.selected_character is None:
+    def save_to_file(self):
+        fname = QFileDialog.getSaveFileName(
+            self,
+            "캐릭터 저장",
+            "./",
+            "Json files (*.json)",
+            "Json files (*.json)"
+        )
+        if not fname[0]:
             QMessageBox.information(
                 self,
-                self.parentWidget().windowTitle(),
-                "캐릭터를 무조건 선택해야 합니다.\n"
-                "창을 나가고 싶으면 대신 '취소' 버튼을 클릭하세요."
+                "오류",
+                "캐릭터 저장에 실패했습니다.",
+                QMessageBox.Ok
             )
-        else:
-            self.accept()
+            return
+        res = self.generate_arguments()
+        if res is None:
+            pass
+        data = {
+            "code": res[0].code,
+            "args": dict(zip(
+                ("rarity", "lvl", "stat_lvl", "skill_lvl", "equips", "link",
+                 "full_link_bonus_no", "affection", "pledge", "current_hp"),
+                res[1])
+            ),
+        }
+        with open(fname[0], 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+        QMessageBox.information(
+            self,
+            "성공",
+            f"캐릭터 저장에 성공했습니다.\n({fname[0]})",
+            QMessageBox.Ok
+        )
 
-    def cancelclicked(self):
-        self.reject()
+    def generate_arguments(self):
+        klass = CharacterPools.ALL.get(self.klassbox.currentText())
+        if klass is None:
+            return None
+        rarity = Rarity[self.raritybox.currentText()]
+        level = self.levelbox.value()
+        stat_lvl = [0, 0, 0, 0, 0, 0]
+        for idx, bt in enumerate(BT.STATS):
+            stat_lvl[idx] = self.statspinboxes[bt].value()
+        skill_lvl = [0, 0, 0, 0, 0]
+        for idx, box in enumerate(self.skillspinboxes.values()):
+            skill_lvl[idx] = box.value()
+        equips = []
+        for eq in self.equips:
+            if eq[1].currentText() == "없음":
+                equips.append(None)
+            else:
+                equips.append((eq[1].currentText(), Rarity[eq[2].currentText()], eq[3].value()))
+        link = self.linkbox.value()
+        flb = self.flbbox.currentIndex()
+        if flb == 0:
+            flb = None
+        else:
+            flb -= 1
+        affection = self.affectionbox.value()
+        pledge = self.pledgebox.isChecked()
+        currenthp = self.remainhpbox.value()
+        return klass, (rarity, level, stat_lvl, skill_lvl, equips, link, flb, affection, pledge, currenthp)
+
+    def lvl_changed(self):
+        lvl = self.levelbox.value()
+        for box in self.statspinboxes.values():
+            box.setMaximum(lvl * 3)
+        self.stat_value_changed()
+
+    def stat_value_changed(self):
+        statpoint = 0
+        lvl = self.levelbox.value()
+        for box in self.statspinboxes.values():
+            statpoint += box.value()
+        if statpoint > lvl * 3:
+            self.statlabel.setStyleSheet("color: red;")
+        else:
+            self.statlabel.setStyleSheet("color: black;")
+
+    def klass_changed(self):
+        klass = CharacterPools.ALL.get(self.klassbox.currentText())
+        if klass is None:
+            return
+        self.raritybox.clear()
+        self.flbbox.clear()
+        self.iconlabel.clear()
+        klassinfo = klass.get_info()
+        if klass.code not in UNITDATA:
+            self.raritybox.addItems(self.rarity_list[klass.base_rarity:klass.promotion+1])
+            self.flbbox.addItem("없음")
+            for flb in klass.full_link_bonuses:
+                if flb is None:
+                    continue
+                self.flbbox.addItem(flb.simpl_str())
+        else:
+            self.raritybox.addItems(self.rarity_list[klassinfo[-3]:klassinfo[-2]+1])
+            self.flbbox.addItem("없음")
+            for flb in klassinfo[3]:
+                if flb is None:
+                    continue
+                self.flbbox.addItem(Buff(flb[0], flb[1], d(flb[2])).simpl_str())
+        self.raritybox.setCurrentIndex(0)
+        self.flbbox.setCurrentIndex(0)
+        character_icon = klass.get_icon_filename()
+        if character_icon is None or character_icon + '.png' not in os.listdir(os.path.join(PATH, 'data', 'icons')):
+            self.iconlabel.setText(f"<font color='red'>{character_icon}</font>")
+        else:
+            self.iconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
+                                     .scaledToHeight(ICON_HEIGHT))
+        equipcond = klassinfo[4]
+        for i in range(4):
+            eqlabel, eqklassbox = self.equips[i][:2]
+            eqlabel.setText(f"장비{i+1} ({ET.desc[equipcond[i]]})")
+            eqklassbox.clear()
+            eqklassbox.addItem("없음")
+            eqklassbox.addItems(list(EquipPools.ALL_NAME_LIST[equipcond[i]].keys()))
+
+    def equip_changed(self, i):
+        def func():
+            eqlabel, eqklassbox, eqraritybox, eqlvlbox = self.equips[i]
+            eqraritybox.clear()
+            eqklass = EquipPools.ALL_NAME.get(eqklassbox.currentText())
+            if eqklass:
+                eqraritybox.addItems(self.rarity_list[eqklass.BASE_RARITY:eqklass.PROMOTION+1])
+            else:
+                eqraritybox.addItem("")
+            eqraritybox.setCurrentIndex(0)
+        return func
 
     def show_window(self):
         return super().exec_()
@@ -739,11 +945,13 @@ class CharacterInfo(QDialog):
         ilayout = QVBoxLayout()
         templabel = QLabel()
         templabel.setAlignment(Qt.AlignCenter)
+        templabel.setMinimumHeight(81)
         character_icon = self.character.get_icon_filename()
         if character_icon is None or character_icon + '.png' not in os.listdir(os.path.join(PATH, 'data', 'icons')):
-            templabel.setText(str(character_icon))
+            templabel.setText(f"<font color='red'>{character_icon}</font>")
         else:
-            templabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png')))
+            templabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
+                                .scaledToHeight(ICON_HEIGHT))
         ilayout.addWidget(templabel, alignment=Qt.AlignCenter)
         templabel = QLabel(self.character.name)
         templabel.setAlignment(Qt.AlignCenter)

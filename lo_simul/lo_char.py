@@ -117,6 +117,10 @@ class Character:
                           self.dmgTakeIncBuffs, self.dmgTakeDecBuffs, self.dmgGiveIncBuffs, self.dmgGiveDecBuffs,
                           self.specialBuffs)
 
+        if sum(self.statlvl) > self.lvl * 3:
+            print(f'[wre] <!> 경고: 불가능한 스탯 레벨입니다 (스탯 레벨 총합 {sum(self.statlvl)} > {self.lvl * 3})',
+                  file=self.stream)
+
         if self.link > 0:
             self.baseBuffs += self.link_bonus * (self.link / d('100'))
         if self.link == 500 and self.flinkbNO is not None:
@@ -142,6 +146,7 @@ class Character:
         self.stack_limited_buff_tags = defaultdict(int)
 
         self.maxhp = self.get_stats()[BT.HP].quantize(d(1))
+        self.current_hp_arg_val = current_hp
         if current_hp > 0:
             self.hp = current_hp
         else:

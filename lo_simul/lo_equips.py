@@ -6,13 +6,28 @@ if TYPE_CHECKING:
     from lo_simul import Character
 
 
+class EquipPools:
+    CHIP_NAME: Dict[str, Type['Chip']] = {}
+    OS_NAME: Dict[str, Type['OS']] = {}
+    GEAR_NAME: Dict[str, Type['Gear']] = {}
+    ALL_NAME_LIST: List[Dict[str, Type['Equip']]] = [CHIP_NAME, OS_NAME, GEAR_NAME]
+    ALL_NAME: Dict[str, Type['Equip']] = {}
+
+
 class Equip:
-    EQUIP_TYPE: str
+    EQUIP_TYPE: int
     nick: str = "???"
     name: str = "-"
     BASE_RARITY: int = R.B
     PROMOTION: int = R.SS
     owner: 'Character'
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__()
+        if cls.__name__ in {"Chip", "OS", "Gear"}:
+            return
+        EquipPools.ALL_NAME_LIST[cls.EQUIP_TYPE][cls.nick] = cls
+        EquipPools.ALL_NAME[cls.nick] = cls
 
     def __init__(self, rarity: int = -1, lvl: int = 0, owner=None):
         if not isinstance(lvl, NUMBER) or lvl != lvl // 1:
@@ -98,7 +113,7 @@ class CRITChip(Chip):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.CRIT, 0, self.val[self.rarity][0] * self.val[self.rarity][1] * self.dval[self.lvl], removable=False)
+            Buff(BT.CRIT, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.dval[self.lvl], removable=False)
         )
 
 
@@ -425,7 +440,7 @@ class SubBooster(Gear):
                                      desc="보조 부스터")
 
 
-class UltraScope(Equip):
+class UltraScope(Gear):
     nick = "스코프"
     name = "초정밀 조준기"
     val = [((d('4'), d('.4')), (d('6'), d('.6')), (d('8'), d('.8')), (d('10'), d('1'))),
@@ -1387,7 +1402,7 @@ class VerminEliminator(Gear):
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF), desc=self.name)
 
 
-class QMObserver(Equip):
+class QMObserver(Gear):
     BASE_RARITY = R.SS
     nick = "레오나전장"
     name = "전투 관측 프레임"
@@ -1566,28 +1581,3 @@ class AWThruster(Gear):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.SKILL_RATE, 0,
                                  self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * self.lvl, desc=self.name)
-
-
-class EquipPools:
-    CHIP_NAME: Dict[str, Type[Chip]]
-    OS_NAME: Dict[str, Type[OS]]
-    GEAR_NAME: Dict[str, Type[Gear]]
-    ALL_NAME_LIST: List[Dict[str, Type[Equip]]]
-    ALL_NAME: Dict[str, Type[Equip]]
-
-    @classmethod
-    def update(cls):
-        cls.CHIP_NAME = {}
-        for klass in Chip.__subclasses__():
-            cls.CHIP_NAME[klass.nick] = klass
-        cls.OS_NAME = {}
-        for klass in OS.__subclasses__():
-            cls.OS_NAME[klass.nick] = klass
-        cls.GEAR_NAME = {}
-        for klass in Gear.__subclasses__():
-            cls.GEAR_NAME[klass.nick] = klass
-        cls.ALL_NAME_LIST = [cls.CHIP_NAME, cls.OS_NAME, cls.GEAR_NAME]
-        cls.ALL_NAME = {**cls.CHIP_NAME, **cls.OS_NAME, **cls.GEAR_NAME}
-
-
-EquipPools.update()

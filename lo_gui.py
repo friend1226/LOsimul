@@ -87,6 +87,7 @@ class MyApp(QWidget):
         }
 
         vbox = QVBoxLayout()
+        vbox.setSpacing(0)
 
         field = QFrame()
         flayout = QHBoxLayout()
@@ -149,12 +150,6 @@ class MyApp(QWidget):
         blayout.setContentsMargins(0, 0, 0, 0)
         self.buttons.setFixedHeight(40)
 
-        char_add_button = QPushButton(self.buttons)
-        char_add_button.setIcon(QIcon(os.path.join(PATH, 'images', 'add_button.png')))
-        char_add_button.clicked.connect(self.char_add_clicked)
-        char_remove_button = QPushButton(self.buttons)
-        char_remove_button.setIcon(QIcon(os.path.join(PATH, 'images', 'remove_button.png')))
-        char_remove_button.clicked.connect(self.char_remove_clicked)
         trigger_button = QPushButton(self.buttons)
         trigger_button.setIcon(QIcon(os.path.join(PATH, 'images', 'trigger_button.png')))
         trigger_button.clicked.connect(self.trigger_clicked)
@@ -162,16 +157,18 @@ class MyApp(QWidget):
         speed_button.setIcon(QIcon(os.path.join(PATH, 'images', 'speed_button.png')))
         speed_button.clicked.connect(self.show_act_order)
 
-        blayout.addWidget(char_add_button)
-        blayout.addWidget(char_remove_button)
         blayout.addWidget(trigger_button)
         blayout.addWidget(speed_button)
         self.buttons.setLayout(blayout)
 
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(self.log)
+        splitter.addWidget(self.outputs)
+
         vbox.addWidget(field)
-        vbox.addWidget(self.log)
+        vbox.addSpacing(25)
+        vbox.addWidget(splitter)
         vbox.addWidget(self.buttons)
-        vbox.addWidget(self.outputs)
         vbox.addWidget(self.commandbox)
         self.setLayout(vbox)
 
@@ -201,6 +198,45 @@ class MyApp(QWidget):
             self.update_field_labels()
             self.print(f"[Info] 파일 '{fname[0]}'로부터 불러오기 성공!")
 
+    def save_to_json(self, field):
+        fname = QFileDialog.getSaveFileName(
+            self,
+            f'{"적군" if field else "아군"} 캐릭터 배치 저장하기',
+            './',
+            "Json files (*.json)",
+            "Json files (*.json)"
+        )
+        if fname[0]:
+            data = []
+            for i in range(9):
+                char = self.game.get_char(i, field=field)
+                if char is None:
+                    data.append(dict())
+                    continue
+                data.append({
+                    'code': char.code,
+                    'args': {
+                        "rarity": char.rarity,
+                        "lvl": char.lvl,
+                        "stat_lvl": char.statlvl,
+                        "skill_lvl": char.skillvl,
+                        "equips": [(eq.name, eq.rarity, eq.lvl) for eq in char.equips],
+                        "link": char.link,
+                        "full_link_bonus_no": char.flinkbNO,
+                        "affection": char.affection,
+                        "pledge": char.pledge,
+                        "current_hp": char.current_hp_arg_val,
+                    }
+                })
+            with open(fname[0], 'w', encoding='utf-8') as f:
+                json.dump(data, f)
+            QMessageBox.information(
+                self,
+                "성공",
+                f"{'적군' if field else '아군'} 캐릭터 배치를 저장했습니다.\n({fname[0]})",
+                QMessageBox.Ok
+            )
+
     def eventFilter(self, source: 'QObject', ev: 'QEvent') -> bool:
         if ev.type() == QEvent.MouseButtonRelease and isinstance(source, QLabel):
             self.char_labels_clicked(source, ev.button() == Qt.LeftButton)
@@ -209,10 +245,10 @@ class MyApp(QWidget):
     def char_labels_clicked(self, label: QLabel, leftclick: bool):
         p = label.fpos
         target = self.game.get_char(p[1], field=p[0])
-        if target is None:
-            return
         try:
             if leftclick:
+                if target is None:
+                    return
                 if self.game.enemy_all_down:
                     return
                 win = lo_gui_subwindows.UseSkill(target, self)
@@ -231,8 +267,41 @@ class MyApp(QWidget):
                 )
                 self.print(f"[Info] 스킬 사용 완료. ({subjc}(이)가 {objpos}번 위치에 {skill_no}번 스킬 사용)")
             else:
-                win = lo_gui_subwindows.CharacterInfo(target, self)
+                win = lo_gui_subwindows.SelectFunction(*p, self)
                 win.show_window()
+                if not (res := win.selected_button_code):
+                    return
+                if res == 1:
+                    win = lo_gui_subwindows.CreateCharacter(*p, self)
+                    res = win.show_window()
+                    if res:
+                        values = win.generate_arguments()
+                        if values is not None:
+                            character = values[0](self.game, p[1], *values[1])
+                            self.game.put_char(character, p[0])
+                            self.print(f"[Info] {character}가 생성되었습니다. ({character.getposn()+1}번 위치)")
+                        else:
+                            self.print(f"[Error] 캐릭터 생성 실패.", color='red')
+                elif res == 2:
+                    button_reply = QMessageBox.question(self, "캐릭터 제거", f"{target}(을)를 제거하겠습니까?")
+                    if button_reply == QMessageBox.Yes:
+                        try:
+                            self.game.remove_char(target)
+                        except ValueError:
+                            self.print(f"[Error] 해당 위치에 캐릭터가 없습니다.", color='red')
+                        except Exception as ex_:
+                            self.print(''.join(traceback.format_exception(type(ex_), ex_, ex_.__traceback__)),
+                                       color='red')
+                        else:
+                            self.print(f"[Info] {target}가 제거되었습니다.")
+                elif res == 3:
+                    QMessageBox.information(self, "오류", "개발 중인 기능입니다.", QMessageBox.Ok)
+                elif res == 4:
+                    win = lo_gui_subwindows.CharacterInfo(target, self)
+                    win.show_window()
+                else:
+                    self.print(f"[Error] 예상치 않은 버튼 코드 : {res}", color='red')
+                    return
         except Exception as ex:
             self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
         finally:
@@ -262,57 +331,6 @@ class MyApp(QWidget):
         self.log.setTextColor(QColor(color))
         self.log.insertPlainText(s)
         QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
-
-    def char_add_clicked(self):
-        win = lo_gui_subwindows.SelectCharacter(self)
-        res = win.show_window()
-        if not res:
-            return
-        ws = win.selectors
-        try:
-            char_class = CharacterPools.ALL.get(ws['id'].currentText())
-            flbn = ws['full_link_bonus_no'].currentText()
-            rarity = ws['rarity'].currentText()
-            newchar = char_class(
-                self.game,
-                ws['pos'].currentText(),
-                {i.name: i.value for i in R}[rarity] if rarity != "없음" else None,
-                int(ws['lvl'].value()),
-                [int(spbox.value()) for spbox in ws['stat_lvl']],
-                [int(spbox.value()) for spbox in ws['skill_lvl']],
-                [None if frame.names.currentText() == "없음"
-                 else (frame.names.currentText(),
-                       R[frame.rarity.currentText()].value if frame.rarity.currentText() else -1,
-                       int(frame.lvl.currentText()))
-                 for frame in ws['equips']],
-                int(ws['link'].value()),
-                int(flbn) if flbn != "없음" else None,
-                int(ws['affection'].value()),
-                ws['pledge'] == '서약함',
-                int(ws['current_hp'].value())
-            )
-            self.game.put_char(newchar)
-            self.print(f"[Info] {newchar}가 생성되었습니다. (위치 {newchar.getpos()})")
-        except Exception as ex:
-            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
-        finally:
-            self.update_field_labels()
-
-    def char_remove_clicked(self):
-        win = lo_gui_subwindows.RemoveCharacter(self)
-        res = win.show_window()
-        if not res:
-            return
-        target = win.selected_character
-        try:
-            self.game.remove_char(target)
-            self.print(f"[Info] {target}가 제거되었습니다.")
-        except ValueError:
-            self.print(f"[Error] 해당 위치에 캐릭터가 없습니다.")
-        except Exception as ex:
-            self.print(''.join(traceback.format_exception(type(ex), ex, ex.__traceback__)), color='red')
-        finally:
-            self.update_field_labels()
 
     def trigger_clicked(self):
         win = lo_gui_subwindows.Trigger(self)
@@ -380,13 +398,31 @@ class MyWindow(QMainWindow):
         def load_enemy():
             wg.load_from_json(1)
 
-        load_ally_file_action = QAction(QIcon(os.path.join(PATH, 'images', 'load_button.png')), '아군 불러오기...', self)
-        load_ally_file_action.setStatusTip('파일로부터 아군 캐릭터의 배치 정보를 불러옵니다. (현재 정보는 초기화됨)')
+        def save_ally():
+            wg.save_to_json(0)
 
+        def save_enemy():
+            wg.save_to_json(1)
+
+        load_ally_file_action = QAction(QIcon(os.path.join(PATH, 'images', 'load_button.png')),
+                                        '아군 불러오기...', self)
+        load_ally_file_action.setStatusTip('파일로부터 아군 캐릭터의 배치 정보를 불러옵니다. (현재 정보는 초기화됨)')
         load_ally_file_action.triggered.connect(load_ally)
-        load_enemy_file_action = QAction(QIcon(os.path.join(PATH, 'images', 'load_button.png')), '적 불러오기...', self)
+
+        load_enemy_file_action = QAction(QIcon(os.path.join(PATH, 'images', 'load_button.png')),
+                                         '적 불러오기...', self)
         load_enemy_file_action.setStatusTip('파일로부터 적의 배치 정보를 불러옵니다. (현재 정보는 초기화됨)')
         load_enemy_file_action.triggered.connect(load_enemy)
+
+        save_ally_action = QAction(QIcon(os.path.join(PATH, 'images', 'save_button.png')),
+                                   '아군 배치 저장하기...', self)
+        save_ally_action.setStatusTip('아군 캐릭터의 배치 정보를 저장합니다.')
+        save_ally_action.triggered.connect(save_ally)
+
+        save_enemy_action = QAction(QIcon(os.path.join(PATH, 'images', 'save_button.png')),
+                                    '적 배치 저장하기...', self)
+        save_enemy_action.setStatusTip('적의 배치 정보를 저장합니다.')
+        save_enemy_action.triggered.connect(save_enemy)
 
         def wave_start():
             wg.game.wave_start()
@@ -437,6 +473,9 @@ class MyWindow(QMainWindow):
         filemenu = menubar.addMenu('&File')
         filemenu.addAction(load_ally_file_action)
         filemenu.addAction(load_enemy_file_action)
+        filemenu.addSeparator()
+        filemenu.addAction(save_ally_action)
+        filemenu.addAction(save_enemy_action)
         filemenu.addSeparator()
         filemenu.addAction(exit_action)
 

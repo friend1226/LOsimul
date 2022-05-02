@@ -213,6 +213,7 @@ class EquipType:
     CHIP = 0
     OS = 1
     GEAR = 2
+    desc = ['칩', 'OS', '보조']
 
 
 class BuffEffectType:
