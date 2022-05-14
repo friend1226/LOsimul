@@ -4,7 +4,6 @@ import os
 import sys
 import lo_gui_subwindows
 import traceback
-import numpy as np
 import json
 import re
 from PyQt5.QtWidgets import *
@@ -113,19 +112,19 @@ class MyApp(QWidget):
             r.setWordWrap(True)
             r.font().setPointSize(12)
             return r
-        self.field_labels = np.array([
+        self.field_labels = [
             [[get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()]],
             [[get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()],
              [get_qlabel(), get_qlabel(), get_qlabel()]],
-        ])
+        ]
         self.update_field_labels()
         for i in range(3):
             for j in range(3):
-                afl = self.field_labels[0, i, j]
-                efl = self.field_labels[1, i, j]
+                afl = self.field_labels[0][i][j]
+                efl = self.field_labels[1][i][j]
                 afl.fpos = (0, i * 3 + j)
                 efl.fpos = (1, i * 3 + j)
                 afl.installEventFilter(self)
@@ -316,7 +315,7 @@ class MyApp(QWidget):
             for i in range(3):
                 for j in range(3):
                     c = self.game.get_char(i, j, x)
-                    self.field_labels[x, i, j].setText(
+                    self.field_labels[x][i][j].setText(
                         f"{c}\n" + ('--- / ---' if c is None else f'{c.hp}/{c.maxhp}')
                     )
 

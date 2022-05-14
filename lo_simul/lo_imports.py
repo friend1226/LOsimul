@@ -19,11 +19,14 @@ import os
 import sys
 import inspect
 import json
+import math
 
 decimal.getcontext().rounding = decimal.ROUND_FLOOR
 d = decimal.Decimal
 NUMBER = (int, d)
 NUM_T = TypeVar('NUM_T', *NUMBER)
+
+sys.setrecursionlimit(100)
 
 
 def simpl(x):
@@ -33,6 +36,44 @@ def simpl(x):
     return x.quantize(d(1)) if x == x.to_integral() else x.normalize()
 
 
+def solve_linear(coefficient, constant):
+    if len(coefficient) > 0 and not(len(constant) == len(coefficient) == len(coefficient[0])):
+        raise ValueError(f"행렬의 사이즈가 너무 작거나 다릅니다. "
+                         f"(계수 행렬 {len(coefficient)}x{len(coefficient[0])}, 상수 {len(constant)}개)")
+    coefficient = [_[:] for _ in coefficient]  # TODO : 정렬해야 함
+    constant = constant[:]
+    size = len(constant)
+    decimalfactor = 10 ** -min(simpl(v).as_tuple().exponent for arr in [*coefficient, constant] for v in arr)
+    for i in range(size):
+        for j in range(size):
+            coefficient[i][j] *= decimalfactor
+        constant[i] *= decimalfactor
+    for i in range(size):
+        if coefficient[i][i] == 0:
+            tempj = -1
+            for j in range(i, size):
+                if coefficient[j][i] != 0:
+                    tempj = j
+                    break
+            for k in range(size):
+                coefficient[i][k] += coefficient[tempj][k]
+            constant[i] += constant[tempj]
+        lcm = math.lcm(*(ci for l in coefficient if (ci := int(l[i])) != 0))
+        for j in range(size):
+            factor = lcm // coefficient[j][i]
+            for k in range(size):
+                coefficient[j][k] *= factor
+            constant[j] *= factor
+        for j in range(size):
+            if i == j:
+                continue
+            for k in range(size):
+                coefficient[j][k] -= coefficient[i][k]
+            constant[j] -= constant[i]
+    for i in range(size):
+        constant[i] /= coefficient[i][i]
+    return constant
+
 try:
     PATH = getattr(sys, '_MEIPASS', os.path.abspath('.'))
     with gzip.open(os.path.join(PATH, 'data', 'unitdata'), 'rb') as f:
@@ -40,10 +81,12 @@ try:
     del f
 except FileNotFoundError:
     try:
-        with gzip.open(os.path.join(os.path.abspath(os.getcwd()), 'data', 'unitdata'), 'rb') as f:
+        PATH = os.path.abspath(os.path.join(__file__, '..', '..'))
+        with gzip.open(os.path.join(PATH, 'data', 'unitdata'), 'rb') as f:
             UNITDATA = pickle.load(f)
         del f
     except FileNotFoundError:
+        print("[err] File not found!")
         UNITDATA = dict()
 
 

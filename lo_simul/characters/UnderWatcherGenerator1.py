@@ -30,14 +30,14 @@ class UnderWatcherGenerator1(Character):
             t.give_buff(BT.BARRIER, 0, bv[0], round_=9, efft=BET.BUFF, desc=desc)
             t.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.BUFF, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.hp / self.maxhp <= d('.5'):
             desc = "재충전 개시"
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, desc=desc)
             self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], round_=1, desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
             self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF,
                            chance=10, desc="제네레이터 쇼트")
@@ -45,7 +45,7 @@ class UnderWatcherGenerator1(Character):
                 self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF,
                                chance=50, desc="제네레이터 쇼트")
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
             desc = "제네레이터 파괴"
             for t in self.get_passive_targets(targets):

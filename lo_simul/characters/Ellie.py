@@ -36,13 +36,13 @@ class Ellie(Character):
             if targets[t] > 0:
                 t.give_buff(BT.WIDE_TAKEDMG, 1, bv[0], round_=2, efft=BET.BUFF, desc=desc)
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "노블레스 오블리주"
             self.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "편안한 티타임"
             for t in self.get_passive_targets(targets):

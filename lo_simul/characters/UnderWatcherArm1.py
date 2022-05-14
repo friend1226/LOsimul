@@ -33,12 +33,12 @@ class UnderWatcherArm1(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.HIT:
             if self.find_buff(type_=BT.ACC, efft=BET.BUFF):
                 self.give_buff(BT.ACC, 0, bv[0], round_=1, efft=BET.BUFF, desc="재 조준")
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 5:
                 self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, round_=1)

@@ -113,7 +113,8 @@ class Character:
         self.dmgGiveIncBuffs = BuffList()
         self.dmgGiveDecBuffs = BuffList()
         self.specialBuffs = BuffList()
-        self.buff_iter = (self.baseBuffs, self.statBuffs, self.antiOSBuffs,
+        self.proportionBuffs = BuffList()
+        self.buff_iter = (self.baseBuffs, self.statBuffs, self.proportionBuffs, self.antiOSBuffs,
                           self.dmgTakeIncBuffs, self.dmgTakeDecBuffs, self.dmgGiveIncBuffs, self.dmgGiveDecBuffs,
                           self.specialBuffs)
 
@@ -123,7 +124,7 @@ class Character:
 
         if self.link > 0:
             self.baseBuffs += self.link_bonus * (self.link / d('100'))
-        if self.link == 500 and self.flinkbNO is not None:
+        if self.link >= 500 and self.flinkbNO is not None:
             self.baseBuffs.append(self.full_link_bonuses[self.flinkbNO])
         for ei in range(len(self.equips)):
             e = self.equips[ei]
@@ -237,13 +238,16 @@ class Character:
         return self.skills[no // 5][no % 5]
 
     def get_orig_hp(self):
-        return simpl(d(self.stats[self.rarity][0]) + d(self.stats[self.rarity][1])*(self.lvl-1) + self.statlvl[0]*d('8'))
+        return simpl(d(self.stats[self.rarity][0]) + d(self.stats[self.rarity][1])*(self.lvl-1) +
+                     self.statlvl[0]*d('8'))
 
     def get_orig_atk(self):
-        return simpl(d(self.stats[self.rarity][2]) + d(self.stats[self.rarity][3])*(self.lvl-1) + self.statlvl[1]*d('1.5'))
+        return simpl(d(self.stats[self.rarity][2]) + d(self.stats[self.rarity][3])*(self.lvl-1) +
+                     self.statlvl[1]*d('1.5'))
 
     def get_orig_def(self):
-        return simpl(d(self.stats[self.rarity][4]) + d(self.stats[self.rarity][5])*(self.lvl-1) + self.statlvl[2]*d('1.25'))
+        return simpl(d(self.stats[self.rarity][4]) + d(self.stats[self.rarity][5])*(self.lvl-1) +
+                     self.statlvl[2]*d('1.25'))
 
     def get_orig_acc(self):
         return simpl(d(self.stats[self.rarity][8]) + self.statlvl[3]*d('1.5'))
@@ -266,16 +270,145 @@ class Character:
     def get_base_stats(self) -> Dict[str, d]:
         base_buff_sum = self.baseBuffs.getSUM()
         orig_stats = self.get_orig_stats()
-        return {i: base_buff_sum.calc(i, orig_stats[i]) for i in BT.STATS}
+        return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.STATS}
 
     def get_stats(self) -> Dict[str, d]:
+        tempbuffs = self.calculated_cycled_buff()
+        stats = self.get_base_stats()
         stat_buff_sum = self.statBuffs.getSUM()
-        base_stats = self.get_base_stats()
-        return {i: stat_buff_sum.calc(i, base_stats[i]) for i in BT.STATS}
+        if tempbuffs:
+            extra_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).getSUM()
+            extra_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None)
+            for s in BT.STATS:
+                stats[s] = stat_buff_sum.calc(s, extra_add.calc(s, stats[s]), True)
+            for pbf in extra_mul:
+                if pbf.type in BT.STATS_SET:
+                    stats[pbf.type] = pbf.calc(stats[pbf.type])
+            for char in {b.owner for b in tempbuffs}:
+                char.remove_buff(tag="Prop_", force=True)
+            return stats
+        else:
+            return {i: stat_buff_sum.calc(i, stats[i], True) for i in BT.STATS}
+
+    def calculated_cycled_buff(self) -> List[Buff]:
+        history = dict()
+        dfs_visited = set()
+
+        def dfs(buffpair):
+            if buffpair in dfs_visited:
+                return
+            dfs_visited.add(buffpair)
+            if buffpair not in history:
+                history[buffpair] = set()
+            for bf in buffpair[0].proportionBuffs.find(func=lambda b: b.proportion):
+                bfpair = bf.proportion
+                if bfpair not in history[buffpair]:
+                    history[buffpair].add(bfpair)
+                    dfs(bfpair)
+
+        for bf in self.proportionBuffs.find(func=lambda b: b.proportion):
+            bfpair = (self, bf.type)
+            if bfpair not in history:
+                history[bfpair] = set()
+            bfdatapair = bf.proportion
+            history[bfpair].add(bfdatapair)
+            dfs(bfdatapair)
+
+        recursive_chain = []
+        chain_index = dict()
+        search_queue = deque([(tuple(), (pair, nextpair)) for pair in history.keys() for nextpair in history[pair]])
+        while search_queue:
+            chain, next_dest = search_queue.popleft()
+            if next_dest in chain_index:
+                continue
+            if next_dest in chain:
+                chain = chain[chain.index(next_dest):]
+                recursive_chain.append(chain)
+                for pair in recursive_chain[-1]:
+                    if pair not in chain_index:
+                        chain_index[pair] = set()
+                    chain_index[pair].add(chain)
+            else:
+                chain += (next_dest,)
+                for nextnext_dest in history[next_dest[1]]:
+                    search_queue.append((chain, (next_dest[1], nextnext_dest)))
+
+        if not recursive_chain:
+            return []
+
+        def get_value(__char, __bt):
+            __bv = None
+            if __bt in BT.STATS_SET:
+                __bv = __char.get_base_stats()[__bt]
+            elif __bt in BT.ELEMENT_RES:
+                __bv = __char.get_orig_res()[BT.ELEMENT_RES.index(__bt)]
+            elif __bt == BT.SPD:
+                __bv = __char.get_orig_spd()
+            elif __bt == BT.AP:
+                __bv = __char.ap
+            return __bv
+
+        tempbuffs = []
+        index: Dict[Tuple['Character', str], int] = {v: i for i, v in enumerate(set(
+            pair
+            for chain in recursive_chain
+            for pairpair in chain
+            for pair in pairpair
+            if pair[1] in BT_CYCLABLE
+        ))}
+        pairn = len(index)
+        mulv = [1 for _ in range(pairn)]
+        basev = [0 for _ in range(pairn)]
+        propv = [[0 for _ in range(pairn)] for __ in range(pairn)]
+        for (char, bt), idx in index.items():
+            if bt == BT.DEFPEN:
+                basev[idx] = 1 - char.find_buff(type_=bt, func=lambda b: b.proportion is None).getSUM().calc(bt, 1)
+            else:
+                mulv[idx] = char.find_buff(type_=bt, opr=1, func=lambda b: b.proportion is None) \
+                    .getSUM().calc(bt, 1) - 1
+                bv = 0
+                if bt in BT.STATS_SET:
+                    bv = char.get_base_stats()[bt]
+                elif bt in BT.ELEMENT_RES:
+                    bv = char.get_orig_res()[BT.ELEMENT_RES.index(bt)]
+                elif bt == BT.SPD:
+                    bv = char.get_orig_spd()
+                elif bt == BT.AP:
+                    bv = char.ap
+                basev[idx] = char.find_buff(type_=bt, opr=0, func=lambda b: b.proportion is None).getSUM().calc(bt, bv)
+            for pbf in char.proportionBuffs.find(type_=bt, func=lambda b: b.proportion):
+                if pbf.proportion in index:
+                    if (char, pbf.type) == pbf.proportion:
+                        mulv[idx] *= 1 + pbf.value
+                        if not char.find_buff(tag=f"Prop_{pbf.getID()}_"):
+                            tempbuff = Buff(pbf.type, 1, pbf.value, tag=f"Prop_{pbf.getID()}_",
+                                            owner=char, do_print=False)
+                            char.proportionBuffs.append(tempbuff)
+                            tempbuffs.append(tempbuff)
+                    else:
+                        propv[idx][index[pbf.proportion]] += pbf.value
+                        
+        for i in range(pairn):
+            for j in range(pairn):
+                if i == j:
+                    propv[i][j] = -1
+                else:
+                    propv[i][j] *= mulv[i]
+            basev[i] *= -mulv[i]
+        
+        resultv = solve_linear(propv, basev)
+        for (char, bt), idx in index.items():
+            if not char.find_buff(tag=f"Prop_{char}_{bt}_"):
+                tempbuff = Buff(bt, 0, (resultv[idx] + basev[idx]) / mulv[idx], tag=f"Prop_{char}_{bt}_",
+                                owner=char, do_print=False)
+                char.proportionBuffs.append(tempbuff)
+                tempbuffs.append(tempbuff)
+
+        return tempbuffs
 
     def get_res(self):
         resb = self.find_buff(func=lambda b: b.type in set(BT.ELEMENT_RES)).getSUM()
-        return tuple(resb.calc(BT.ELEMENT_RES[i+1], self.get_orig_res()[i]) for i in range(3))
+        return tuple(resb.calc(BT.ELEMENT_RES[i+1], self.get_orig_res()[i], True) for i in range(3))
 
     def get_res_dmgrate(self, element: int):
         if element == 0:
@@ -288,7 +421,7 @@ class Character:
         return 1 - res / d(100)
 
     def get_spd(self):
-        return self.find_buff(BT.SPD).getSUM().calc(BT.SPD, self.get_orig_spd())
+        return self.find_buff(BT.SPD).getSUM().calc(BT.SPD, self.get_orig_spd(), True)
 
     def get_aoe(self, targ_pos, skill_no) -> Union[List[Tuple[int, int]], List[Tuple[int, int, NUM_T]]]:
         r = []
@@ -323,11 +456,11 @@ class Character:
             value = d(self.get_skill(skill_no-1)['atkrate'][self.skillvl[(skill_no-1) % 5]])
         if value is None:
             return 0
-        return self.find_buff(BT.SKILL_RATE).getSUM().calc(BT.SKILL_RATE, value)
+        return self.find_buff(BT.SKILL_RATE).getSUM().calc(BT.SKILL_RATE, value, True)
 
     def get_skill_buff_value(self, skill_no):
         skill_no -= 1
-        lvl = self.find_buff(BT.BUFFLVL).getSUM().calc(BT.BUFFLVL, self.skillvl[skill_no % 5]) - 1
+        lvl = self.find_buff(BT.BUFFLVL).getSUM().calc(BT.BUFFLVL, self.skillvl[skill_no % 5], True) - 1
         r = []
         for x in self.get_skill(skill_no)['buff']:
             if isinstance(x, str):
@@ -341,7 +474,8 @@ class Character:
     def get_skill_range(self, skill_no):
         return self.find_buff(BT.RANGE).getSUM().calc(
             BT.RANGE, 
-            d(self.get_skill(skill_no-1)['range'][self.skillvl[(skill_no-1) % 5]])
+            d(self.get_skill(skill_no-1)['range'][self.skillvl[(skill_no-1) % 5]]),
+            True
         )
 
     def get_skill_cost(self, skill_no):
@@ -363,7 +497,7 @@ class Character:
             return d('1')
 
     def judge_active(self, chance: NUM_T = 100):
-        chance = self.specialBuffs.getSUM().calc(BT.ACTIVE_RATE, chance)
+        chance = self.specialBuffs.getSUM().calc(BT.ACTIVE_RATE, chance, True)
         return self.random() <= chance
         # True = 발동 성공
         # False = 발동 실패
@@ -422,7 +556,7 @@ class Character:
         damage = self.get_stats()[BT.ATK] * self.get_skill_atk_rate(value=rate[0])
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
-            damage = antiosb.getSUM().calc(objtype, damage)
+            damage = antiosb.getSUM().calc(objtype, damage, True)
         hprate = [1, self.hp / self.maxhp, obj.hp / obj.maxhp, 1 - self.hp / self.maxhp, 1 - obj.hp / obj.maxhp]
         # 적 받피감 (체력 비례 포함) (합연산)
         dmgdectemp = 0
@@ -442,7 +576,7 @@ class Character:
             objdef = obj.get_stats()[BT.DEF]
             # 적 방어력
             if dpb := self.find_buff(BT.DEFPEN):
-                objdef = dpb.getSUM().calc(BT.DEFPEN, objdef)
+                objdef = dpb.getSUM().calc(BT.DEFPEN, objdef, True)
                 # 방관 (합연산)
             damage -= objdef
         else:
@@ -516,28 +650,30 @@ class Character:
                   removable: bool = True,
                   tag: Optional[str] = None,
                   data: Optional[Data] = None,
+                  proportion: Optional[tuple] = None,
                   desc: Optional[str] = None,
                   force: bool = False,
                   chance: NUM_T = 100,
-                  made_by: Optional['Character'] = None):
+                  made_by: Optional['Character'] = None,
+                  do_print: bool = True):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
         return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack,
-                                   removable, tag, data, desc, force, chance, made_by)
+                                   removable, tag, data, proportion, desc, force, chance, made_by, do_print)
 
-    def find_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None):
+    def find_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None):
         result = BuffList()
         for bl in self.buff_iter:
-            result += bl.find(type_, efft, tag, func, id_, val_sign)
+            result += bl.find(type_, efft, tag, func, id_, val_sign, opr)
         return result
 
-    def remove_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, limit=MAX, force=False,
-                    log=True, **kwargs):
+    def remove_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None,
+                    limit=MAX, force=False, log=True, **kwargs):
         result = BuffList()
         for bl in self.buff_iter:
-            result += bl.remove(type_, efft, tag, func, id_, val_sign, limit-len(result), force)
+            result += bl.remove(type_, efft, tag, func, id_, val_sign, opr, limit-len(result), force)
         for b in result:
-            if log:
+            if log and b.do_print:
                 print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
             if self.stack_limited_buff_tags[b.tag] > 0:
                 self.stack_limited_buff_tags[b.tag] -= 1
@@ -549,7 +685,8 @@ class Character:
             result += bl.update(tt, args)
         for b in result:
             if b.type == BT.INSTANT_DMG and self.hp > 0:
-                element_rate = 1 if b.data.element == 0 else (1 - self.get_res()[b.data.element] / 100)
+                element_rate = 1 if b.data is None or b.data.element == 0 \
+                    else (1 - self.get_res()[b.data.element] / 100)
                 if b.opr:
                     self.give_damage(
                         b.value * b.data.subject.get_stats()[BT.ATK] * element_rate,
@@ -558,7 +695,8 @@ class Character:
                 else:
                     self.give_damage(b.value * element_rate, True)
                 self.dead_judge_process()
-            print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
+            if b.do_print:
+                print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
         return result
 
     def dead_judge_process(self,
@@ -572,22 +710,24 @@ class Character:
             for x in BasicData.passive_order:
                 if c := self.game.get_char(x, field=self.isenemy):
                     if c is not self:
-                        c.trigger(TR.ALLY_DEAD, self)
+                        c.trigger(TR.ALLY_DEAD, {"subject": self})
                 if c := self.game.get_char(x, field=not self.isenemy):
                     c.trigger(TR.ENEMY_DEAD)
             if self.hp <= 0:  # 전투속행 안 터짐
                 self.trigger(TR.INCAPABLE)
                 for x in BasicData.passive_order:
                     if c := self.game.get_char(x, field=self.isenemy):
-                        c.trigger(TR.ALLY_KILLED, self)
+                        c.trigger(TR.ALLY_KILLED, {"target": self})
                 if attacker is not None:
                     if attacker_follow is None:
-                        attacker.trigger(TR.KILL, [attacker_skill_no])
+                        attacker.trigger(TR.KILL, {"skill_no": attacker_skill_no})
                     else:
-                        attacker_follow.trigger(TR.KILL, [attacker_skill_no])
+                        attacker_follow.trigger(TR.KILL, {"skill_no": attacker_skill_no})
+        elif hit_value is None or damage_value is None:
+            return
         elif hit_value > 0 and damage_value > 0:
             self.trigger(TR.GET_HIT,
-                         D.FDmgInfo(subject=attacker, element=attacker.get_skill_element(attacker_skill_no)))
+                         {"subject": attacker, "element": attacker.get_skill_element(attacker_skill_no)})
         elif hit_value == 0:
             self.trigger(TR.EVADE)
 
@@ -699,22 +839,22 @@ class Character:
         return sorted(self.game.get_chars(aoe, self.isenemy if field is None else field).values(),
                       key=lambda c: c.getposn())
 
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _fpassive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         self._passive1(tt, args, targets, bv)
 
-    def _fpassive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         self._passive2(tt, args, targets, bv)
 
-    def _fpassive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         self._passive3(tt, args, targets, bv)
 
     def base_passive_before(self, tt, args=None):
@@ -751,7 +891,7 @@ class Character:
         self.game.remove_char(self)
         self.pos = Pos(pos)
         self.game.put_char(self)
-        self.trigger(TR.MOVE, pos)
+        self.trigger(TR.MOVE, {"pos": pos})
 
     def idle(self):
         self.give_ap(-1)

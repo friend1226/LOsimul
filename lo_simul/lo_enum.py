@@ -61,9 +61,9 @@ class BuffType:
     
     DEFPEN = "방어 관통"
     ANTI_OS = ["대 경장 피해량", "대 중장 피해량", "대 기동 피해량"]
-    ELEMENT_RES = [None, "화염 저항", "냉기 저항", "전기 저항"]
-    ELEMENT_REV = [None, "화염 저항 반전", "냉기 저항 반전", "전기 저항 반전"]
-    ELEMENT_MIN = [None, "화염 저항 최소", "냉기 저항 최소", "전기 저항 최소"]
+    ELEMENT_RES = ["물리 저항?", "화염 저항", "냉기 저항", "전기 저항"]
+    ELEMENT_REV = ["물리 저항 반전?", "화염 저항 반전", "냉기 저항 반전", "전기 저항 반전"]
+    ELEMENT_MIN = ["물리 저항 최소?", "화염 저항 최소", "냉기 저항 최소", "전기 저항 최소"]
     
     ROW_PROTECT = "행 보호"
     COLUMN_PROTECT = "열 보호"
@@ -116,6 +116,10 @@ for typestr in ('ROOTED', 'MARKED', 'PROVOKED', 'ROW_PROTECT', 'COLUMN_PROTECT',
                 'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF'):
     BT_NOVAL.add(getattr(BuffType, typestr))
 
+BT_CYCLABLE = {*BuffType.STATS_SET, *BuffType.ELEMENT_RES, *BuffType.ELEMENT_MIN}
+for typestr in ("SPD", "AP", "DEFPEN", "BARRIER", ):
+    BT_CYCLABLE.add(getattr(BuffType, typestr))
+
 
 class BasicData:
     passive_order = (0, 1, 2, 3, 4, 5, 6, 7, 8)
@@ -144,6 +148,7 @@ class Trigger:
     ATTACK = "공격 시"
     GET_ATTACKED = "공격 받을 시"
     HIT = "공격 적중 시"
+    EXPECT_GET_HIT = "피격 예정 시"
     GET_HIT = "피격 시"
     EVADE = "회피 시"
     

@@ -35,19 +35,19 @@ class UnderWatcher2(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "특수 합금"
         if tt == TR.GET_ATTACKED:
             if self.find_buff(tag=G.UNDER_WATCHER_GENERATOR_TU2):
                 self.give_buff(BT.MINIMIZE_DMG, 0, bv[0], count=1, max_stack=1, tag="UWTU2_P1", desc=desc,
                                efft=BET.BUFF, count_trig={TR.GET_HIT}, chance=90)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_TU2] >= 4:
                 self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF)
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
             for t in self.get_passive_targets(targets):
                 t.give_buff(BT.INSTANT_DMG, 1, bv[0], desc="시스템 정지", data=D.FDmgInfo(self))

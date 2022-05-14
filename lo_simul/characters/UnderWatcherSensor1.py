@@ -34,7 +34,7 @@ class UnderWatcherSensor1(Character):
                 t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3)
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             hprate = self.hp / self.maxhp
             ts = self.get_passive_targets(targets)
@@ -48,7 +48,7 @@ class UnderWatcherSensor1(Character):
                 for t in ts:
                     t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, round_=1, chance=20)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 3:
                 self.give_buff(BT.ACTIVE_RATE, 0, bv[0], efft=BET.BUFF, round_=1)

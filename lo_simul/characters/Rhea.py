@@ -50,7 +50,7 @@ class Rhea(Character):
                     t.give_buff(BT.INSTANT_DMG, 1, bv[1]*2, efft=BET.DEBUFF,
                                 data=D.FDmgInfo(subject=self), desc="내부 파괴")
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(type_=BT.SPD, efft=BET.BUFF):
             desc = "느긋함"
             self.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
@@ -58,7 +58,7 @@ class Rhea(Character):
             self.give_buff(BT.ACC, 0, bv[0] * 200, round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.REMOVE_BUFF, 0, 1, efft=BET.BUFF, desc=desc, data=D.BuffCond(type_=BT.SPD, efft=BET.BUFF))
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.WAVE_START:
             desc = "기상 최적화"
             bv2 = bv[0]*500
@@ -71,7 +71,7 @@ class Rhea(Character):
                     p.give_buff(BT.ELEMENT_RES[i], 0, bv2, efft=BET.BUFF, desc=desc)
                 p.give_buff(BT.ACTIVE_RESIST, 1, bv2, efft=BET.BUFF, desc=desc)
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "강운"
         if tt == TR.ATTACK:
             self.give_buff(BT.ATK, 0, 1, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, },

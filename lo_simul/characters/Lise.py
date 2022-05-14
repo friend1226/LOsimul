@@ -36,7 +36,7 @@ class Lise(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "정원사의 본성"
             self.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
@@ -46,7 +46,7 @@ class Lise(Character):
             self.give_buff(BT.ATK, 1, bv[2], round_=2, max_stack=1, desc=desc, tag="Lise_P1_ATK")
             self.give_buff(BT.TAKEDMGINC, 1, bv[3], round_=2, max_stack=1, desc=desc, tag="Lise_P1_TAKEDMGINC")
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.WAVE_START:
             self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="해충 처리")
             allys = set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values()))

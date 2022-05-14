@@ -41,11 +41,11 @@ class Peregrinus(Character):
         for t in targets:
             if targets[t] > 0:
                 self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, round_=0, desc=desc)
-                self.give_buff(BT.SKILL_RATE, 0, self.get_stats()[BT.EVA] * bv[0] / 100,
+                self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, data=D.BuffByInfo(subject=self, type=BT.EVA),
                                efft=BET.BUFF, round_=0, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "팔콘 폼"
             self.give_buff(BT.CRIT, 0, bv[0], max_stack=5, efft=BET.BUFF, desc=desc, tag=G.PEREGRINUS_FALCON+"_CRIT")
@@ -55,14 +55,15 @@ class Peregrinus(Character):
         elif tt == TR.IDLE and self.find_buff(type_=BT.GIMMICK, tag=G.PEREGRINUS_READY):
             self.give_buff(BT.GIMMICK, 0, 1, desc=G.PEREGRINUS_HUMAN, tag=G.PEREGRINUS_HUMAN)
 
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "위대한 하피의 왕"
             self.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.SPD, 1, bv[1], round_=1, efft=BET.BUFF, desc=desc)
-            self.give_buff(BT.SKILL_RATE, 0, self.get_stats()[BT.EVA] * bv[0] / 100, round_=1, efft=BET.BUFF, desc=desc)
+            self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, data=D.BuffByInfo(subject=self, type=BT.EVA),
+                           round_=1, efft=BET.BUFF, desc=desc)
 
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "뛰어난 적응력"
             falcon = len(self.find_buff(type_=BT.EVA, tag=G.PEREGRINUS_FALCON))
@@ -102,9 +103,9 @@ class Peregrinus(Character):
                             round_=1, efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
-    def _fpassive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.AFTER_SKILL:
-            if args[0] == 7:
+            if args["skill_no"] == 7:
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, desc="휴먼 폼 모드 해제",
                                data=D.BuffCond(type_=BT.GIMMICK, tag=G.PEREGRINUS_HUMAN))
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, desc="모드 전환 종료",

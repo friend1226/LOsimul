@@ -26,25 +26,30 @@ del EDIT
 
 if __name__ != "__main__":
     from .Alice import Alice
+    from .Cerestia import Cerestia
     from .Constantia import Constantia
     from .DummyAlly import DummyAlly
     from .DummyEnemy import DummyEnemy
     from .EliteCenturion1 import EliteCenturion1
     from .Ellie import Ellie
     from .Emily import Emily
+    from .EratoOld import EratoOld
     from .Fotia import Fotia
     from .Goltarion import Goltarion
     from .Labiata import Labiata
     from .LegionEX1 import LegionEX1
     from .Lise import Lise
+    from .LRL import LRL
     from .NightChickDetector3 import NightChickDetector3
     from .NightChickEX3 import NightChickEX3
     from .NightChickModifiedEX3 import NightChickModifiedEX3
     from .NightChickShielder3 import NightChickShielder3
     from .NightChickSniper1 import NightChickSniper1
+    from .OrangeAde import OrangeAde
     from .Peregrinus import Peregrinus
     from .Phalangites1 import Phalangites1
     from .Rhea import Rhea
+    from .Silky import Silky
     from .Titania import Titania
     from .TyrantChallenge1 import TyrantChallenge1
     from .UnderWatcher1 import UnderWatcher1

@@ -32,7 +32,7 @@ class NightChickDetector3(Character):
                 t.give_buff(BT.ACC, 0, bv[0], round_=2, efft=BET.DEBUFF)
                 t.give_buff(BT.AP, 0, bv[1], round_=2, efft=BET.DEBUFF)
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.GET_HIT:
             desc = "레이더 공유"
             for p in self.get_passive_targets(targets):

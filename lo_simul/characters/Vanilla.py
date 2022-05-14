@@ -36,7 +36,7 @@ class Vanilla(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, data=D.FDmgInfo(element=E.FIRE), desc="정밀 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "뒷정리"
         if tt == TR.ATTACK:
             for p in self.get_passive_targets(targets):
@@ -50,7 +50,7 @@ class Vanilla(Character):
                 if p.type_[1] != CR.DEFENDER:
                     p.give_buff(BT.AP, 0, bv[2], efft=BET.BUFF, desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "앞장서시죠"
         if tt == TR.ROUND_START:
             for p in self.get_passive_targets(targets):

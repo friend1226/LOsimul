@@ -30,7 +30,7 @@ class NightChickModifiedEX3(Character):
                 t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.MOVE:
             desc = "기동 사격"
             self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=4, desc=desc)

@@ -34,7 +34,7 @@ class Alice(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="정밀 폭격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.hp / self.maxhp >= d('.5'):
                 desc = "강자의 품격"
@@ -42,14 +42,14 @@ class Alice(Character):
                 self.give_buff(BT.GIVEDMGINC, 1, bv[1], efft=BET.BUFF, round_=1, data=D.DmgHPInfo(type_=4), desc=desc)
                 self.give_buff(BT.CRIT, 0, bv[2], efft=BET.BUFF, round_=1, desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "가학의 기쁨"
         if tt == TR.ATTACK:
             self.give_buff(BT.SPD, 1, bv[0], efft=BET.BUFF, max_stack=3, tag="Alice_P2", desc=desc)
         elif tt == TR.KILL:
-            self.give_buff(BT.AP, 0, self.get_skill_cost(args[0]), efft=BET.BUFF, desc=desc, chance=10)
+            self.give_buff(BT.AP, 0, self.get_skill_cost(args["skill_no"]), efft=BET.BUFF, desc=desc, chance=10)
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "학살 본능"
         if tt == TR.ROUND_START:
             self.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)

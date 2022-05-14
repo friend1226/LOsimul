@@ -38,7 +38,7 @@ class TyrantChallenge1(Character):
                 self.remove_buff(tag=G.Tyrant_Challenge_1)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             hprate = self.hp / self.maxhp
             if hprate >= d('.6'):
@@ -55,11 +55,11 @@ class TyrantChallenge1(Character):
                                tag="TyrantCh1_P1_ACC", desc=desc)
         elif tt == TR.GET_HIT:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.PROVOKED), desc="먹잇감 집중")
-            if args.element > 0:
+            if args["element"] > 0:
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.GIMMICK, tag="TyrantCh1_P1"),
                                desc="먹잇감 탐색")
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc1 = "원시의 본능"
         desc2 = "최후의 포효"
         if tt == TR.ROUND_START:
@@ -75,7 +75,7 @@ class TyrantChallenge1(Character):
             self.give_buff(BT.SPD, 1, bv[2], max_stack=1, tag="TyrantCh1_P2_SPD", desc=desc2)
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.BATTLE_CONTINUATION))
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.WAVE_START:
             for t in self.get_passive_targets(targets, field=not self.isenemy):
                 t.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=2, efft=BET.DEBUFF, desc="폭군의 포효", chance=50)

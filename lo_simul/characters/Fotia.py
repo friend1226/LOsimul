@@ -35,7 +35,7 @@ class Fotia(Character):
                 t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             tag = "Fotia_P1_ATK"
             self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=tag)

@@ -38,13 +38,13 @@ class Titania(Character):
         self.give_buff(BT.SPD, 1, d('-.55'), round_=2, desc=desc, tag="Titania_A2_SPD_DEC")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "피해의식"
             self.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "천년서리"
             for p in self.get_passive_targets(targets):
@@ -54,7 +54,7 @@ class Titania(Character):
                     p.give_buff(BT.IMMUNE_BUFF, 0, 1, round_=1, efft=BET.BUFF, desc=desc,
                                 data=D.BuffCond(type_=BT.ELEMENT_RES[E.FIRE], efft=BET.DEBUFF))
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(tag="Titania_A2_SPD_DEC"):
             desc = "끝없는 증오"
             self.give_buff(BT.RANGE, 0, 2, round_=1, efft=BET.BUFF, desc=desc)

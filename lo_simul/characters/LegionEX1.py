@@ -37,7 +37,7 @@ class LegionEX1(Character):
                             data=D.BuffCond(type_=BT.SPD, efft=BET.BUFF), chance=50)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ALLY_DEAD:
             desc = "경계 태세"
             for p in self.get_passive_targets(targets):

@@ -34,7 +34,7 @@ class Goltarion(Character):
                 t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="소환!! 데모닉 웨폰")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt in {TR.ROUND_START, TR.GET_ATTACKED, TR.ATTACK}:
             if self.hp / self.maxhp >= d('.9'):
                 if len(list(filter(lambda c: c.isags, self.game.get_chars(field=self.isenemy).values()))) > 3:
@@ -55,7 +55,7 @@ class Goltarion(Character):
                 self.give_buff(BT.DEFPEN, 1, bv[1], efft=BET.BUFF, round_=1, max_stack=1,
                                tag="Goltarion_P1_DEFPEN", desc=desc)
     
-    def _passive2(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "마왕님, 조심하십시오!"
             for t in self.get_passive_targets(targets):
@@ -73,7 +73,7 @@ class Goltarion(Character):
                 for i in range(1, 4):
                     t.give_buff(BT.ELEMENT_RES[i], 0, bv[0] * 100, efft=BET.BUFF, round_=2, desc=desc)
     
-    def _passive3(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         ally_ids = set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values()))
         momo = 123 in ally_ids
         baekto = 127 in ally_ids

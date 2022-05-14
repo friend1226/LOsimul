@@ -27,7 +27,7 @@ class NightChickShielder3(Character):
                  element: int):
         self.give_buff(BT.ROW_PROTECT, 0, 1, round_=3, efft=BET.BUFF)
     
-    def _passive1(self, tt: str, args: Any, targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, max_stack=1, tag="NightChickSI_TU3_P1",
                            desc="강화 방패")
