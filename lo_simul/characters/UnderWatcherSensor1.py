@@ -5,8 +5,9 @@ class UnderWatcherSensor1(Character):
     id_ = "UnderWatcherSensor_B05"
     name = "언더왓쳐 센서"
     code = "UnderWatcherSensor_B05"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     isboss = True
     
     def _active1(self,

@@ -49,6 +49,7 @@ if __name__ != "__main__":
     from .Peregrinus import Peregrinus
     from .Phalangites1 import Phalangites1
     from .Rhea import Rhea
+    from .RocCGeneratorChallenge2 import RocCGeneratorChallenge2
     from .Silky import Silky
     from .Titania import Titania
     from .TyrantChallenge1 import TyrantChallenge1

@@ -5,8 +5,9 @@ class EliteCenturion1(Character):
     id_ = "CenturionEX_TU"
     name = "엘리트 센츄리온"
     code = "CenturionEX_TU"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     
     def _active1(self,
                  targets: Dict['Character', NUM_T],

@@ -7,6 +7,7 @@ class Peregrinus(Character):
     code = "PECS_Peregrinus"
     group = Group.BISMARK
     isenemy = False
+    isags = True
 
     def isformchanged(self):
         return bool(self.find_buff(type_=BT.GIMMICK, tag=G.PEREGRINUS_HUMAN))

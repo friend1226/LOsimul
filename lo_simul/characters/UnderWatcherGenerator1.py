@@ -5,8 +5,9 @@ class UnderWatcherGenerator1(Character):
     id_ = "UnderWatcherGenerator_B05"
     name = "언더왓쳐 제네레이터"
     code = "UnderWatcherGenerator_B05"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     isboss = True
     
     def _active1(self,

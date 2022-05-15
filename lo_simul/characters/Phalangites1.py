@@ -5,8 +5,9 @@ class Phalangites1(Character):
     id_ = "Phalangites_TU"
     name = "팔랑스"
     code = "Phalangites_TU"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     
     def _active1(self,
                  targets: Dict['Character', NUM_T],

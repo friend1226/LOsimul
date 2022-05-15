@@ -5,8 +5,9 @@ class LegionEX1(Character):
     id_ = "LegionEX_TU"
     name = "정예 레기온"
     code = "LegionEX_TU"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     
     def _active1(self,
                  targets: Dict['Character', NUM_T],

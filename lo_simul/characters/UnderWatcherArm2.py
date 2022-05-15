@@ -5,8 +5,9 @@ class UnderWatcherArm2(Character):
     id_ = "UnderWatcherArm_TU2"
     name = "언더왓쳐 암"
     code = "UnderWatcherArm_TU2"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     isboss = True
     
     def _active1(self,

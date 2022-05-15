@@ -5,8 +5,9 @@ class TyrantChallenge1(Character):
     id_ = "Tyrant_Challenge1"
     name = "폭군 타이런트"
     code = "Tyrant_Challenge1"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     
     def _active1(self,
                  targets: Dict['Character', NUM_T],

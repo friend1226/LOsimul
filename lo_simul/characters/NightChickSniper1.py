@@ -5,8 +5,9 @@ class NightChickSniper1(Character):
     id_ = "NightChickSP_N"
     name = "칙 스나이퍼"
     code = "NightChickSP_N"
-    group = None
+    group = G.PARASITE
     isenemy = True
+    isags = True
     
     def _active1(self,
                  targets: Dict['Character', NUM_T],
