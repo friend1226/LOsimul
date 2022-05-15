@@ -5,7 +5,7 @@ class NightChickModifiedEX3(Character):
     id_ = "NightChickMEX_TU3"
     name = "강화형 칙 런처"
     code = "NightChickMEX_TU3"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

@@ -5,7 +5,7 @@ class LegionEX1(Character):
     id_ = "LegionEX_TU"
     name = "정예 레기온"
     code = "LegionEX_TU"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

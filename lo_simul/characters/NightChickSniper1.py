@@ -5,7 +5,7 @@ class NightChickSniper1(Character):
     id_ = "NightChickSP_N"
     name = "칙 스나이퍼"
     code = "NightChickSP_N"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

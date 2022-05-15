@@ -5,7 +5,7 @@ class NightChickDetector3(Character):
     id_ = "NightChickDE_TU3"
     name = "나이트 칙 디텍터"
     code = "NightChickDE_TU3"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

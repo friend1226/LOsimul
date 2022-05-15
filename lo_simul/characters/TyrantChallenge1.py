@@ -5,7 +5,7 @@ class TyrantChallenge1(Character):
     id_ = "Tyrant_Challenge1"
     name = "폭군 타이런트"
     code = "Tyrant_Challenge1"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

@@ -5,7 +5,7 @@ class RocCGeneratorChallenge2(Character):
     id_ = "RocCGenerator_Challenge2"
     name = "재생 애너지 컨덴서"
     code = "RocCGenerator_Challenge2"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

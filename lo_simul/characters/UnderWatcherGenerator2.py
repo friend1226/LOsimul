@@ -5,7 +5,7 @@ class UnderWatcherGenerator2(Character):
     id_ = "UnderWatcherGenerator_TU2"
     name = "언더왓쳐 제네레이터"
     code = "UnderWatcherGenerator_TU2"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     isboss = True

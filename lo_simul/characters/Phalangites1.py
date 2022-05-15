@@ -5,7 +5,7 @@ class Phalangites1(Character):
     id_ = "Phalangites_TU"
     name = "팔랑스"
     code = "Phalangites_TU"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     

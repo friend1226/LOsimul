@@ -5,7 +5,7 @@ class UnderWatcher2(Character):
     id_ = "UnderWatcher_TU2"
     name = "언더왓쳐"
     code = "UnderWatcher_TU2"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     isboss = True

@@ -5,7 +5,7 @@ class EliteCenturion1(Character):
     id_ = "CenturionEX_TU"
     name = "엘리트 센츄리온"
     code = "CenturionEX_TU"
-    group = G.PARASITE
+    group = Group.PARASITE
     isenemy = True
     isags = True
     
