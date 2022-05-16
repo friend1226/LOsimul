@@ -40,7 +40,7 @@ def solve_linear(coefficient, constant):
     if len(coefficient) > 0 and not(len(constant) == len(coefficient) == len(coefficient[0])):
         raise ValueError(f"행렬의 사이즈가 너무 작거나 다릅니다. "
                          f"(계수 행렬 {len(coefficient)}x{len(coefficient[0])}, 상수 {len(constant)}개)")
-    coefficient = [_[:] for _ in coefficient]  # TODO : 정렬해야 함
+    coefficient = [_[:] for _ in coefficient]
     constant = constant[:]
     size = len(constant)
     decimalfactor = 10 ** -min(simpl(v).as_tuple().exponent for arr in [*coefficient, constant] for v in arr)

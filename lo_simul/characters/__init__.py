@@ -28,6 +28,7 @@ if __name__ != "__main__":
     from .Alice import Alice
     from .Cerestia import Cerestia
     from .Constantia import Constantia
+    from .CyclopsePrincess import CyclopsePrincess
     from .DummyAlly import DummyAlly
     from .DummyEnemy import DummyEnemy
     from .EliteCenturion1 import EliteCenturion1

@@ -30,8 +30,8 @@ class LRL(Character):
         desc = "이터널 빔!"
         for t in targets:
             t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.BUFF), efft=BET.DEBUFF, desc=desc)
-            t.give_buff(BT.ACC, 0, bv[0], efft=BET.DEBUFF, round_=2, desc=desc)
-            t.give_buff(BT.AP, 0, bv[1], efft=BET.DEBUFF, round_=2, desc=desc)
+            t.give_buff(BT.ACC, 0, bv[0], efft=BET.DEBUFF, round_=2, desc=desc, tag="LRL_A2_ACC")
+            t.give_buff(BT.AP, 0, bv[1], efft=BET.DEBUFF, round_=2, desc=desc, tag="LRL_A2_AP")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -67,8 +67,9 @@ class LRL(Character):
             for t in self.get_passive_targets(targets):
                 t.give_buff(BT.SKILL_RATE, 0, bv[0], desc=desc)
         elif tt == TR.ROUND_START:
-            # TODO : 찐조 버프 적용 중이면 추가 부여
-            pass
+            for t in self.get_passive_targets(targets):
+                if t.find_buff(tag="CyclopsePrincess_P3"):
+                    t.give_buff(BT.SKILL_RATE, 0, bv[0], desc=desc)
         elif tt == TR.HIT:
             if args["skill_no"] == 1:
                 for t in args["targets"]:

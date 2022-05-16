@@ -497,7 +497,7 @@ class CreateCharacter(QDialog):
             args = temp_.get("args")
             if args is None:
                 return
-            self.raritybox.setCurrentIndex(args["rarity"]-klass.base_rarity if "rarity" in args else 0)
+            self.raritybox.setCurrentIndex(args["rarity"]-klass.get_info()["base_rarity"] if "rarity" in args else 0)
             self.levelbox.setValue(args.get("lvl", self.levelbox.minimum()))
             for idx, box in enumerate(self.statspinboxes.values()):
                 box.setValue(args["stat_lvl"][idx] if "stat_lvl" in args else box.minimum())
@@ -613,17 +613,15 @@ class CreateCharacter(QDialog):
         self.flbbox.clear()
         self.iconlabel.clear()
         klassinfo = klass.get_info()
+        self.raritybox.addItems(self.rarity_list[klassinfo["base_rarity"]:klassinfo["promotion"]+1])
+        self.flbbox.addItem("없음")
         if klass.code not in UNITDATA:
-            self.raritybox.addItems(self.rarity_list[klass.base_rarity:klass.promotion+1])
-            self.flbbox.addItem("없음")
-            for flb in klass.full_link_bonuses:
+            for flb in klassinfo["full_link_bonuses"]:
                 if flb is None:
                     continue
                 self.flbbox.addItem(flb.simpl_str())
         else:
-            self.raritybox.addItems(self.rarity_list[klassinfo[-3]:klassinfo[-2]+1])
-            self.flbbox.addItem("없음")
-            for flb in klassinfo[3]:
+            for flb in klassinfo["full_link_bonuses"]:
                 if flb is None:
                     continue
                 self.flbbox.addItem(Buff(flb[0], flb[1], d(flb[2])).simpl_str())
@@ -635,7 +633,7 @@ class CreateCharacter(QDialog):
         else:
             self.iconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
                                      .scaledToHeight(ICON_HEIGHT))
-        equipcond = klassinfo[4]
+        equipcond = klassinfo["equip_condition"]
         for i in range(4):
             eqlabel, eqklassbox = self.equips[i][:2]
             eqlabel.setText(f"장비{i+1} ({ET.desc[equipcond[i]]})")

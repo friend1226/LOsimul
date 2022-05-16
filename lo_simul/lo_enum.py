@@ -91,6 +91,8 @@ class BuffType:
     REMOVE_BUFF = "버프 제거"
     REMOVE_BUFF_RESIST = "버프 제거 저항"
     IMMUNE_BUFF = "버프 면역"
+    IGNORE_PROTECT = "보호 무시"
+    ACT_PER_TURN = "턴당 행동 횟수"
 
     WIDE_TAKEDMG = "광역 피해 분산"
     WIDE_GIVEDMG = "광역 피해 집중"

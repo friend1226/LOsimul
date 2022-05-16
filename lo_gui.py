@@ -33,7 +33,7 @@ class Pipe:
                     color = 'gray'
                 if tag in "amd adi bar bad".split():
                     color = 'green'
-                if tag in "trg acc acf aco aci act imp wst wed rst".split():
+                if tag in "trg acc acf aco aci act acs imp wst wed rst".split():
                     color = 'blue'
                 if tag in "mov idl tmp".split():
                     color = 'black'

@@ -261,16 +261,19 @@ class Game:
             subjc.give_ap(-subjc.get_skill_cost(skill_no))
         skill_idx = skill_no - 1
         skillvl_val = subjc.skillvl[skill_idx % 5]
+        skill_data = subjc.get_skill(skill_idx)
         fn = int(subjc.isenemy)
-        isatk = bool(subjc.get_skill(skill_idx)['isattack'] & (1 << skillvl_val))
+        isatk = bool(skill_data['isattack'] & (1 << skillvl_val))
         tf = fn ^ isatk
-        grid = subjc.get_skill(skill_idx)['isgrid'] & (1 << skillvl_val)
-        ignp = subjc.get_skill(skill_idx)['isignoreprot'] & (1 << skillvl_val)
+        grid = skill_data['isgrid'] & (1 << skillvl_val)
+        ignp = skill_data['isignoreprot'] & (1 << skillvl_val)
         if not grid and self.get_char(objpos, field=tf) is None:
             return  # 필드형 스킬이 아닌데 땅을 목표로 공격함.
+        if skill_data['range'][skillvl_val] == 0 and not isatk:
+            objpos = subjc.getposn()  # 자기 자신 지정인 경우 (range=0) objpos를 subjc.getposn()으로 변경
         aoe = subjc.get_aoe(objpos, skill_no)
         aoetemp = {i[:2]: i[2] for i in aoe}
-        targets = self.get_targets(aoe, ignp|(not isatk), field=tf)
+        targets = self.get_targets(aoe, ignp|(not isatk)|bool(subjc.find_buff(type_=BT.IGNORE_PROTECT)), field=tf)
         targ_atkr: Dict['Character', NUM_T] = {i[1]: 1 for i in targets.values()}
         targ_aoe_rate: Dict['Character', NUM_T] = {i[1]: aoetemp[p] for p, i in targets.items()}
         temp_protect_types: Dict['Character', str] = dict()
@@ -294,7 +297,7 @@ class Game:
                 for t in targ_atkr:
                     t.trigger(TR.GET_ATTACKED)
             for t in targ_atkr:
-                h_ = subjc.judge_hit(t, subjc.get_skill(skill_idx)['accbonus'][skillvl_val])
+                h_ = subjc.judge_hit(t, skill_data['accbonus'][skillvl_val])
                 if h_ > 0:
                     ishit = True
                     t.trigger(TR.EXPECT_GET_HIT)
@@ -306,11 +309,12 @@ class Game:
             for t in targ_atkr:
                 targ_hits[t] = 1
 
-        atkr = d(subjc.get_skill(skill_idx)['atkrate'][skillvl_val])
+        atkr = d(skill_data['atkrate'][skillvl_val])
         for t in targ_atkr:
             targ_atkr[t] *= atkr
         damages: Dict['Character', NUM_T]
         if follow is None or coop is None:
+            print(f"[acs] {subjc}(이)가 {objpos}번 위치에 액티브 {skill_no}스킬 사용", file=self.stream)
             damages = subjc.active(
                 skill_no, 
                 targ_hits, 

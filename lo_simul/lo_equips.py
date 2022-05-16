@@ -1384,6 +1384,36 @@ class ExoSkeleton(Gear):
                                  round_=1, desc=self.name)
 
 
+class ODAmplifier(Gear):
+    BASE_RARITY = R.SS
+    nick = "O.D 증폭기"
+    name = "O.D 증폭기"
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START and not self.owner.isags:
+            self.owner.give_buff(BT.ATK, 1, d('.15') + d('.075') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.DOTDMG, 0, d(525), round_=1, desc=self.name)
+
+
+class CMIIShield(Gear):
+    BASE_RARITY = R.SS
+    nick = "켈베전장"
+    name = "촙 메이커 II"
+    dval = (0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, d('30') + d('6') * self.lvl, removable=False),
+            Buff(BT.ELEMENT_RES[E.FIRE], 0, d('20') + d('4') * self.lvl, removable=False),
+            Buff(BT.ELEMENT_RES[E.ELEC], 0, d('20') + d('4') * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('50') + d('5') * self.dval[self.lvl], round_=1, desc=self.name)
+            self.owner.give_buff(BT.DEF, 1, d('.1') + d('.025') * self.lvl, round_=1, desc="강화 티타늄 실드")
+
+
 class VerminEliminator(Gear):
     BASE_RARITY = R.SS
     nick = "리제전장"
@@ -1400,6 +1430,27 @@ class VerminEliminator(Gear):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.04') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF), desc=self.name)
+
+
+class GigantesArmor(Gear):
+    BASE_RARITY = R.SS
+    nick = "기간테스전장"
+    name = "개량형 복합 장갑"
+    dval1 = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
+    dval2 = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.SPD, 0, d('.1') + d('.005') * self.dval1[self.lvl], removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.5') + d('.005') * self.dval2[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.ELEMENT_RES[E.FIRE], 0, d('20') + self.dval1[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.ELEMENT_RES[E.ICE], 0, d('20') + self.dval1[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('.8') + d('.05') * self.lvl, desc=self.name)
 
 
 class QMObserver(Gear):
@@ -1562,6 +1613,18 @@ class SPDChipBETA(Chip):
                 Buff(BT.SPD, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False),
                 Buff(BT.EVA, 0, d('-6') + d('-.6') * self.lvl, removable=False)
             )
+
+
+class Precision(Gear):
+    BASE_RARITY = R.SS
+    nick = "정밀형 관측 장비"
+    name = "정밀형 관측 장비"
+    
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.RANGE, 0, 2, round_=1, desc=self.name)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), 
+                                 desc=self.name, chance=50+5*self.lvl)
 
 
 class AWThruster(Gear):
