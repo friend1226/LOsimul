@@ -26,7 +26,8 @@ class CyclopsePrincess(Character):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, 
                             data=D.BuffCond(type_={BT.COUNTER_ATTACK, BT.MINIMIZE_DMG}, efft=BET.BUFF), desc=desc)
                 for tagad in stack:
-                    t.give_buff(BT.DEF, 1, -bv[0], round_=2, max_stack=1, tag=f"CyclopsePrincess_A1_DEF_{tagad}", desc=desc)
+                    t.give_buff(BT.DEF, 1, -bv[0], round_=2, max_stack=1,
+                                tag=f"CyclopsePrincess_A1_DEF_{tagad}", desc=desc)
                     t.give_buff(BT.ACTIVE_RESIST, 0, -bv[0], round_=2, max_stack=1, 
                                 tag=f"CyclopsePrincess_A1_AR_{tagad}", desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
@@ -79,7 +80,7 @@ class CyclopsePrincess(Character):
                 if t.find_buff(tag="LRL_P2"):
                     t.give_buff(BT.ATK, 1, bv[0]/20, efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=1, desc=desc)
-                    t.give_buff(BT.DEFPEN, 1, bv[1]*5, efft=BET.BUFF, round_=1, desc=desc)
+                    t.give_buff(BT.DEFPEN, 0, bv[1]*5, efft=BET.BUFF, round_=1, desc=desc)
 
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "피의 저주"

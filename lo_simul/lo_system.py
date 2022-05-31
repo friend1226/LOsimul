@@ -397,7 +397,7 @@ class Game:
                 continue
             isinfo[0] -= 1
             if isinfo[0] < 0:
-                h.heappush(tempskills, (-isinfo[1][0].get_spd(),) + isinfo[1])
+                h.heappush(tempskills, (-isinfo[1][0]._get_stats(BT.SPD),) + isinfo[1])
             else:
                 self.__impacts.append(isinfo)
         while tempskills:
@@ -414,17 +414,18 @@ class Game:
                   round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
-                  efft: int = BET.NORMAL,
+                  efft: BET = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
                   tag: Optional[str] = None,
                   data: Optional[Data] = None,
                   proportion: Optional[tuple] = None,
                   desc: Optional[str] = None,
+                  overlap_type: BOT = BOT.NORMAL,
                   force: bool = False,
                   chance: NUM_T = 100,
                   made_by: Optional['Character'] = None,
-                  do_print: bool = True):
+                  do_print: bool = True) -> Optional['Buff']:
         """
         :param target: Character
         :param type_: BT.type_name
@@ -448,6 +449,16 @@ class Game:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
         buff = Buff(type_, opr, value, round_, count, count_trig, efft, max_stack, removable, tag, data, proportion,
                     desc, target, made_by, self, do_print)
+        if overlap_type == BOT.SINGLE:
+            if target.find_buff(func=lambda b: b.type == type_ and b.opr == opr and
+                                                   b.value == value and b.desc == desc):
+                if do_print:
+                    print(f"[bim] <{target}> - 버프 무효됨 (동일 버프 존재): [{buff}]", file=self.stream)
+                return None
+        elif overlap_type == BOT.INSTANCE:
+            buff.expired = True
+        elif overlap_type == BOT.RENEW:
+            target.remove_buff(type_=type_)
         # 최대 중첩
         if 0 < max_stack <= target.stack_limited_buff_tags[tag]:
             target.remove_buff(tag=tag, force=True, limit=1)
@@ -479,10 +490,12 @@ class Game:
                 target.remove_buff(**data._asdict())
         if proportion:
             target.proportionBuffs.append(buff)
-        elif type_ in BT.STATS_SET:
+        elif type_ in BT.BASE_STATS_SET:
             target.statBuffs.append(buff)
         elif type_ == BT.AP:
             target.give_ap(value)
+        elif type_ == BT.CHANGE_AP:
+            target.ap = value
         elif type_ in BT.ANIT_OS_SET:
             target.antiOSBuffs.append(buff)
         elif type_ == BT.TAKEDMGINC:
@@ -496,7 +509,7 @@ class Game:
         else:
             target.specialBuffs.append(buff)
         if type_ == BT.FORCE_MOVE:
-            pass
+            pass  # TODO
         if max_stack > 0:
             target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
@@ -534,7 +547,7 @@ class Game:
                 if characters[-1][1] >= 10:
                     break
                 for c in characters:
-                    c[0].give_ap(c[0].get_spd())
+                    c[0].give_ap(c[0]._get_stats(BT.SPD))
         self.round += 1
         print(f"[rst] ============= {self.wave}-{self.round} 라운드 시작 "
               f"================================================",
@@ -559,7 +572,7 @@ class Game:
         order = deque()
         for c in self.__characters:
             order.append(
-                (c.ap, c.get_spd(), -BasicData.act_order_idx[c.isenemy*9+c.getposn()], c)
+                (c.ap, c._get_stats(BT.SPD), -BasicData.act_order_idx[c.isenemy*9+c.getposn()], c)
             )
         res = []
         while order:
@@ -602,7 +615,7 @@ class Buff:
                  round_: int = MAX,
                  count: int = MAX,
                  count_trig: Set[str] = None,
-                 efft: int = BET.NORMAL,
+                 efft: BET = BET.NORMAL,
                  max_stack: int = 0,
                  removable: bool = True,
                  tag: Optional[str] = None,
@@ -624,7 +637,7 @@ class Buff:
         self.round: int = round_
         self.count: int = count
         self.count_triggers: Set[str] = set() if count_trig is None else count_trig
-        self.efftype: int = efft
+        self.efftype: BET = efft
         self.max_stack: int = max_stack
         self.removable: bool = removable
         self.tag: Optional[str] = tag
@@ -699,15 +712,19 @@ class Buff:
                 else:
                     result += "효과 적용 확률"
             else:
-                result += self.type
+                if self.type == BT.DEFPEN and self.opr:
+                    result += "방어 관통 수치"
+                else:
+                    result += self.type
             if self.type not in BT_NOVAL:
                 if self.proportion is None:
                     if self.opr:
                         result += f' {simpl(self.value * (1 if self.type == BT.ACTIVE_RESIST else 100)):+}%'
                     else:
-                        result += f' {simpl(self.value * (100 if self.type == BT.SKILL_RATE else 1)):+}' + \
+                        result += f' {simpl(self.value * (100 if self.type in {BT.SKILL_RATE, BT.DEFPEN} else 1)):+}' +\
                             ('%' if self.type in {
-                                BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE, *BT.ELEMENT_RES, BT.SKILL_RATE
+                                BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE,
+                                *BT.ELEMENT_RES, BT.SKILL_RATE, BT.DEFPEN
                             } else '')
                 else:
                     result += " 증가"
@@ -763,10 +780,12 @@ class Buff:
     def calc(self, v, extra_rate=None):
         if extra_rate is None:
             extra_rate = d('1')
+        if self.proportion:
+            targ, bt = self.proportion
+            if bt in {*BT.BASE_STATS, *BT.ELEMENT_RES, BT.SPD, BT.AP}:
+                extra_rate *= targ._get_stats(bt)
         if self.opr:
-            if self.type == BT.DEFPEN:
-                r = (d('1')-extra_rate*self.value)*v
-            elif self.type == BT.DOT_DMG:
+            if self.type == BT.DOT_DMG:
                 r = self.value*extra_rate*v
             else:
                 r = (d('1')+extra_rate*self.value)*v
@@ -917,8 +936,7 @@ class BuffList:
                 continue
             b.trigger(tt, args)
             if b.owner is not None and b.type == BT.DOT_DMG and tt == TR.ROUND_END and b.owner.hp > 0:
-                element_rate = 1 if b.data.element == 0 else (1 - b.owner.get_res()[b.data.element] / 100)
-                b.owner.give_damage(b.value * element_rate, True)
+                b.owner.give_damage(b.value * b.owner.get_res_dmgrate(0 if b.data is None else b.data.element), True)
             if b.round > 0 and b.count > 0 and not (tt == TR.DUMMY and b.expired):
                 self.buffs.append(b)
             else:
@@ -956,16 +974,16 @@ class BuffList:
                     self.buffs.append(b)
         return result
     
-    def getSUM(self):
-        return BuffSUM(self)
+    def getSUM(self, mul=False):
+        return BuffSUM(self, mul)
 
 
 class BuffSUM:
-    def __init__(self, buffs: BuffList):
+    def __init__(self, buffs: BuffList, mul=False):
         self.values = dict([(i, [d('0'), d('1')]) for i in bufftypes])
         for b in buffs:
-            if b.type == BT.DEFPEN:
-                self.values[b.type][b.opr] += 1 - b.calc(1)
+            if mul and b.opr:
+                self.values[b.type][b.opr] *= b.calc(1) - 1
             else:
                 self.values[b.type][b.opr] += b.calc(1) - 1
 
@@ -973,16 +991,10 @@ class BuffSUM:
         b = self.values[t]
         if extra_rate is None:
             extra_rate = d('1')
-        if t == BT.DEFPEN:
-            if switch_order:
-                r = (v - b[0]) * (1 - (b[1] - 1) * extra_rate)
-            else:
-                r = v * (1 - (b[1] - 1) * extra_rate) - b[0]
+        if switch_order:
+            r = (v + b[0]) * (1 + (b[1] - 1) * extra_rate)
         else:
-            if switch_order:
-                r = (v + b[0]) * (1 + (b[1] - 1) * extra_rate)
-            else:
-                r = v * (1 + (b[1] - 1) * extra_rate) + b[0]
+            r = v * (1 + (b[1] - 1) * extra_rate) + b[0]
         return simpl(r)
     
     def __add__(self, other: 'BuffSUM'):

@@ -36,7 +36,7 @@ class Cerestia(Character):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), efft=BET.BUFF, desc=desc)
                 t.give_buff(BT.ATK, 1, bv[1], efft=BET.BUFF, round_=3, desc=desc)
                 t.give_buff(BT.CRIT, 0, bv[1]*100, efft=BET.BUFF, round_=3, desc=desc)
-                t.give_buff(BT.DEFPEN, 1, bv[2], efft=BET.BUFF, round_=3, desc=desc)
+                t.give_buff(BT.DEFPEN, 0, bv[2], efft=BET.BUFF, round_=3, desc=desc)
                 t.give_buff(BT.INSTANT_DMG, 0, self.get_orig_atk() * d('.02'), efft=BET.BUFF)
         return {}
 
@@ -62,15 +62,15 @@ class Cerestia(Character):
                 if t.id_ == 133 or t.id_ == 135 or t.type_[0] == CT.LIGHT:
                     t.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.SPD, 1, bv[0]/2, efft=BET.BUFF, round_=1, desc=desc)
-                    t.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+                    t.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     if elven:
                         t.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                         t.give_buff(BT.SPD, 1, bv[0]/2, efft=BET.BUFF, round_=1, desc=desc)
-                        t.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+                        t.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     if darkelven:
                         t.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                         t.give_buff(BT.SPD, 1, bv[0]/2, efft=BET.BUFF, round_=1, desc=desc)
-                        t.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+                        t.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
 
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "모성"

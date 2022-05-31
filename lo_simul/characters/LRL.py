@@ -53,7 +53,7 @@ class LRL(Character):
                 if args["skill_no"] == 1:
                     if any(args["targets"].values()):
                         desc = "슈퍼 럭키 히트!"
-                        self.give_buff(BT.DEFPEN, 1, d('1.5'), efft=BET.BUFF, round_=0, desc=desc, chance=19)
+                        self.give_buff(BT.DEFPEN, 0, d('1.5'), efft=BET.BUFF, round_=0, desc=desc, chance=19)
                         self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, round_=0, desc=desc, chance=19)
                 if args["skill_no"] == 2:
                     for t in args["targets"]:

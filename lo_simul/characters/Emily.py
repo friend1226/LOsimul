@@ -53,7 +53,7 @@ class Emily(Character):
         if tt == TR.IDLE:
             desc = "출력 강화"
             self.give_buff(BT.CRIT, 0, bv[0], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_CRIT")
-            self.give_buff(BT.DEFPEN, 1, bv[1], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_DEFPEN")
+            self.give_buff(BT.DEFPEN, 0, bv[1], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_DEFPEN")
             self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_IGN")
             self.give_buff(BT.ATK, 1, bv[2], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_ATK")
     

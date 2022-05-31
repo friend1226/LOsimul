@@ -325,14 +325,14 @@ class CreateCharacter(QDialog):
 
         statbox = QGroupBox("스탯")
         statlayout = QVBoxLayout()
-        self.statspinboxes = {i: None for i in BT.STATS}
+        self.statspinboxes = {i: None for i in BT.BASE_STATS}
 
         def setmax(box):
             def func():
                 box.setValue(box.maximum())
             return func
 
-        for st in BT.STATS:
+        for st in BT.BASE_STATS:
             stlabel = QLabel(st)
             stlabel.setAlignment(Qt.AlignCenter)
             stlabel.setFixedWidth(40)
@@ -567,7 +567,7 @@ class CreateCharacter(QDialog):
         rarity = Rarity[self.raritybox.currentText()]
         level = self.levelbox.value()
         stat_lvl = [0, 0, 0, 0, 0, 0]
-        for idx, bt in enumerate(BT.STATS):
+        for idx, bt in enumerate(BT.BASE_STATS):
             stat_lvl[idx] = self.statspinboxes[bt].value()
         skill_lvl = [0, 0, 0, 0, 0]
         for idx, box in enumerate(self.skillspinboxes.values()):
@@ -979,7 +979,7 @@ class CharacterInfo(QDialog):
         layouts[0].addWidget(QLabel(f"체력\n{self.character.hp}/{self.character.maxhp}"))
         layouts[0].addWidget(QLabel(f"AP\n{self.character.ap}/20"))
 
-        stats = self.character.get_stats()
+        stats = self.character._get_stats(*BT.BASE_STATS, BT.SPD, *BT.ELEMENT_RES)
         bstats = self.character.get_base_stats()
 
         atk = stats[BT.ATK].to_integral(rounding=decimal.ROUND_FLOOR)
@@ -999,15 +999,13 @@ class CharacterInfo(QDialog):
 
         layouts[3].addWidget(QLabel(f"치명률\n{stats[BT.CRIT]}%" +
                                     (f" ({dcr:+}%)" if (dcr := stats[BT.CRIT] - bstats[BT.CRIT]) != 0 else "")))
-        layouts[3].addWidget(QLabel(f"행동력\n{self.character.get_spd()}" +
+        layouts[3].addWidget(QLabel(f"행동력\n{stats[BT.SPD]}" +
                                     (f" ({ds:+})" if
-                                     (ds := self.character.get_spd() - self.character.get_orig_spd()) != 0 else "")))
+                                     (ds := stats[BT.SPD] - self.character.get_orig_spd()) != 0 else "")))
 
-        reses = self.character.get_res()
-
-        layouts[4].addWidget(QLabel(f"화염저항\n{reses[0]}%"))
-        layouts[4].addWidget(QLabel(f"냉기저항\n{reses[1]}%"))
-        layouts[4].addWidget(QLabel(f"전기저항\n{reses[2]}%"))
+        layouts[4].addWidget(QLabel(f"화염저항\n{stats[BT.ELEMENT_RES[1]]}%"))
+        layouts[4].addWidget(QLabel(f"냉기저항\n{stats[BT.ELEMENT_RES[2]]}%"))
+        layouts[4].addWidget(QLabel(f"전기저항\n{stats[BT.ELEMENT_RES[3]]}%"))
 
         for i in range(5):
             frames[i].setLayout(layouts[i])

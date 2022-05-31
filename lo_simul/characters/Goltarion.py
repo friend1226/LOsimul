@@ -52,7 +52,7 @@ class Goltarion(Character):
                                tag="Goltarion_P1_CRIT", desc=desc)
                 self.give_buff(BT.ACC, 0, bv[1] * 100, efft=BET.BUFF, round_=1, max_stack=1,
                                tag="Goltarion_P1_ACC", desc=desc)
-                self.give_buff(BT.DEFPEN, 1, bv[1], efft=BET.BUFF, round_=1, max_stack=1,
+                self.give_buff(BT.DEFPEN, 0, bv[1], efft=BET.BUFF, round_=1, max_stack=1,
                                tag="Goltarion_P1_DEFPEN", desc=desc)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -85,7 +85,7 @@ class Goltarion(Character):
                     t.give_buff(BT.TARGET_PROTECT, 0, 1, efft=BET.BUFF, round_=1,
                                 data=D.TargetProtect(self), desc=desc)
             if faucre:
-                self.give_buff(BT.DEFPEN, 1, bv[0], round_=1, desc=desc + " (뽀끄루)")
+                self.give_buff(BT.DEFPEN, 0, bv[0], round_=1, desc=desc + " (뽀끄루)")
                 self.give_buff(BT.ATK, 1, bv[0], round_=1, desc=desc + " (뽀끄루)")
             if momo:
                 self.give_buff(BT.SKILL_RATE, 0, bv[1], round_=1, desc=desc + " (모모)")

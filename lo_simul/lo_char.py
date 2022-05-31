@@ -152,7 +152,7 @@ class Character:
             self.hp = current_hp
         else:
             self.hp = self.maxhp
-        self.ap = d(0)
+        self.__ap = d(0)
 
     def random(self, r=100, offset=0):
         return self.game.random.uniform(offset, offset+r)
@@ -160,6 +160,17 @@ class Character:
     @property
     def stream(self):
         return self.game.stream
+
+    @property
+    def ap(self):
+        return self.__ap
+
+    @ap.setter
+    def ap(self, __value):
+        if isinstance(__value, NUMBER):
+            self.__ap = __value
+        else:
+            raise ValueError(f"잘못된 값 : {__value!r}")
 
     @classmethod
     def get_info(cls):
@@ -282,32 +293,115 @@ class Character:
         return tuple(map(d, self.stats[self.rarity][10:]))
 
     def get_orig_stats(self) -> Dict[str, d]:
-        return {i: self.getOrigStatFuncs[i]() for i in BT.STATS}
+        return {i: self.getOrigStatFuncs[i]() for i in BT.BASE_STATS}
 
     def get_base_stats(self) -> Dict[str, d]:
         base_buff_sum = self.baseBuffs.getSUM()
         orig_stats = self.get_orig_stats()
-        return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.STATS}
+        return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.BASE_STATS}
 
     def get_stats(self) -> Dict[str, d]:
-        tempbuffs = self.calculated_cycled_buff()
+        tempbuffs = self.calculate_cycled_buff()
         stats = self.get_base_stats()
         stat_buff_sum = self.statBuffs.getSUM()
         if tempbuffs:
             extra_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).getSUM()
             extra_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None)
-            for s in BT.STATS:
+            for s in BT.BASE_STATS_SET:
                 stats[s] = stat_buff_sum.calc(s, extra_add.calc(s, stats[s]), True)
             for pbf in extra_mul:
-                if pbf.type in BT.STATS_SET:
+                if pbf.type in BT.BASE_STATS_SET:
                     stats[pbf.type] = pbf.calc(stats[pbf.type])
             for char in {b.owner for b in tempbuffs}:
                 char.remove_buff(tag="Prop_", force=True)
             return stats
         else:
-            return {i: stat_buff_sum.calc(i, stats[i], True) for i in BT.STATS}
+            return {i: stat_buff_sum.calc(i, stats[i], True) for i in BT.BASE_STATS}
 
-    def calculated_cycled_buff(self) -> List[Buff]:
+    def _get_stats(self, *bufftypes) -> Union[d, Dict[str, Union[d, Iterable[d]]]]:
+        if not bufftypes:
+            return dict()
+        bufftypes = set(bt for bt in bufftypes if bt not in BT_NOVAL)
+        tempbuffs = self.calculate_cycled_buff()
+        propb_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).getSUM()
+        propb_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None).getSUM(True)
+        stat_buff_sum = self.statBuffs.getSUM()
+        special_buff_sum = self.specialBuffs.getSUM()
+        pstp = propb_add * stat_buff_sum * propb_mul
+        psppm = propb_add * special_buff_sum * propb_mul
+        psppp = propb_add + special_buff_sum + propb_mul
+        base_stats = self.get_base_stats()
+        element_resist = {k: v for k, v in zip(BT.ELEMENT_RES, self.get_orig_res())}
+        gtdmgdict = {
+            BT.GIVEDMGINC: self.dmgGiveIncBuffs,
+            BT.GIVEDMGDEC: self.dmgGiveDecBuffs,
+            BT.TAKEDMGINC: self.dmgTakeIncBuffs,
+            BT.TAKEDMGDEC: self.dmgTakeDecBuffs,
+        }
+        result = {bt: None for bt in bufftypes}
+        for bt in result:
+            if bt in BT.BASE_STATS_SET:
+                result[bt] = pstp.calc(bt, base_stats[bt], True)
+            elif bt == BT.SPD:
+                result[bt] = psppm.calc(bt, self.get_orig_spd(), True)
+            elif bt == BT.AP:
+                result[bt] = self.ap
+            elif bt in BT.ELEMENT_RES:
+                result[bt] = psppm.calc(bt, element_resist[bt], True)
+            elif bt in BT.ELEMENT_MIN:
+                result[bt] = d('-Infinity')
+                for emb in self.specialBuffs.find(type_=bt):
+                    result[bt] = max(result[bt], emb.value)
+            elif bt in gtdmgdict:
+                result[bt] = [0, 0, 0, 0, 0]
+                for bf in gtdmgdict[bt]:
+                    if bf.data is None:
+                        type_ = 0
+                    else:
+                        type_ = bf.data.type_
+                    result[bt][type_] += bf.value
+            elif bt in BT.ANTI_OS:
+                result[bt] = (self.antiOSBuffs.find(type_=bt).getSUM() + propb_mul).calc(bt, 1)
+            elif bt == BT.DEFPEN:
+                result[bt] = psppp.calc(bt, 0, True)
+            elif bt == BT.ACTIVE_RESIST:
+                result[bt] = []
+                tempv = 0
+                for bf in self.specialBuffs.find(type_=bt):
+                    if bf.opr:
+                        result[bt].append(bf.value)
+                    else:
+                        tempv += bf.value
+                for _ in range(len(result[bt])):
+                    result[bt][_] += tempv
+            elif bt == BT.COUNTER_ATTACK or bt == BT.WIDE_GIVEDMG or bt == BT.WIDE_TAKEDMG:
+                result[bt] = psppp.calc(bt, 1)
+            elif bt == BT.BARRIER:
+                result[bt] = special_buff_sum.calc(bt, 0)
+            elif bt == BT.BATTLE_CONTINUATION:
+                result[bt] = []
+                for bf in self.specialBuffs.find(type_=bt):
+                    result[bt].append(bf.value * (1 if bf.opr else -1))
+            elif bt == BT.MINIMIZE_DMG:
+                result[bt] = 0
+                for bf in self.specialBuffs.find(type_=bt):
+                    result[bt] = max(result[bt], bf.value)
+            elif bt == BT.DOT_DMG:
+                result[bt] = [0, 0, 0, 0]
+                for bf in self.specialBuffs.find(type_=bt):
+                    result[bt][0 if bf.data is None else bf.data.element] += bf.value
+            elif bt == BT.ACT_PER_TURN:
+                result[bt] = psppm.calc(bt, 2, True)
+
+        for char in {b.owner for b in tempbuffs}:
+            char.remove_buff(tag="Prop_", force=True)
+        if len(result) == 1:
+            return list(result.values())[0]
+        else:
+            return result
+
+    def calculate_cycled_buff(self) -> BuffList:
+        """"""
         history = dict()
         dfs_visited = set()
 
@@ -330,61 +424,28 @@ class Character:
             bfdatapair = bf.proportion
             history[bfpair].add(bfdatapair)
             dfs(bfdatapair)
+            dfs_visited.add(bfpair)
 
-        recursive_chain = []
-        chain_index = dict()
-        search_queue = deque([(tuple(), (pair, nextpair)) for pair in history.keys() for nextpair in history[pair]])
-        while search_queue:
-            chain, next_dest = search_queue.popleft()
-            if next_dest in chain_index:
-                continue
-            if next_dest in chain:
-                chain = chain[chain.index(next_dest):]
-                recursive_chain.append(chain)
-                for pair in recursive_chain[-1]:
-                    if pair not in chain_index:
-                        chain_index[pair] = set()
-                    chain_index[pair].add(chain)
-            else:
-                chain += (next_dest,)
-                for nextnext_dest in history[next_dest[1]]:
-                    search_queue.append((chain, (next_dest[1], nextnext_dest)))
+        if not dfs_visited:
+            return BuffList()
 
-        if not recursive_chain:
-            return []
-
-        def get_value(__char, __bt):
-            __bv = None
-            if __bt in BT.STATS_SET:
-                __bv = __char.get_base_stats()[__bt]
-            elif __bt in BT.ELEMENT_RES:
-                __bv = __char.get_orig_res()[BT.ELEMENT_RES.index(__bt)]
-            elif __bt == BT.SPD:
-                __bv = __char.get_orig_spd()
-            elif __bt == BT.AP:
-                __bv = __char.ap
-            return __bv
-
-        tempbuffs = []
-        index: Dict[Tuple['Character', str], int] = {v: i for i, v in enumerate(set(
-            pair
-            for chain in recursive_chain
-            for pairpair in chain
-            for pair in pairpair
-            if pair[1] in BT_CYCLABLE
-        ))}
+        tempbuffs = BuffList()
+        index: Dict[Tuple['Character', str], int] = {v: i for i, v in enumerate(dfs_visited)}
         pairn = len(index)
         mulv = [1 for _ in range(pairn)]
         basev = [0 for _ in range(pairn)]
         propv = [[0 for _ in range(pairn)] for __ in range(pairn)]
         for (char, bt), idx in index.items():
             if bt == BT.DEFPEN:
-                basev[idx] = 1 - char.find_buff(type_=bt, func=lambda b: b.proportion is None).getSUM().calc(bt, 1)
+                basev[idx] = char.find_buff(
+                    type_=bt, func=lambda b: b.proportion is None and b not in char.baseBuffs
+                ).getSUM().calc(bt, 0, True)
             else:
-                mulv[idx] = char.find_buff(type_=bt, opr=1, func=lambda b: b.proportion is None) \
-                    .getSUM().calc(bt, 1) - 1
+                mulv[idx] = char.find_buff(
+                    type_=bt, opr=1, func=lambda b: b.proportion is None and b not in char.baseBuffs
+                ).getSUM().calc(bt, 1)
                 bv = 0
-                if bt in BT.STATS_SET:
+                if bt in BT.BASE_STATS_SET:
                     bv = char.get_base_stats()[bt]
                 elif bt in BT.ELEMENT_RES:
                     bv = char.get_orig_res()[BT.ELEMENT_RES.index(bt)]
@@ -392,18 +453,24 @@ class Character:
                     bv = char.get_orig_spd()
                 elif bt == BT.AP:
                     bv = char.ap
-                basev[idx] = char.find_buff(type_=bt, opr=0, func=lambda b: b.proportion is None).getSUM().calc(bt, bv)
+                basev[idx] = char.find_buff(
+                    type_=bt, opr=0, func=lambda b: b.proportion is None and b not in char.baseBuffs
+                ).getSUM().calc(bt, bv)
             for pbf in char.proportionBuffs.find(type_=bt, func=lambda b: b.proportion):
                 if pbf.proportion in index:
                     if (char, pbf.type) == pbf.proportion:
                         mulv[idx] *= 1 + pbf.value
-                        if not char.find_buff(tag=f"Prop_{pbf.getID()}_"):
+                        if not (temppropbs := char.find_buff(tag=f"Prop_{pbf.getID()}_")):
                             tempbuff = Buff(pbf.type, 1, pbf.value, tag=f"Prop_{pbf.getID()}_",
                                             owner=char, do_print=False)
                             char.proportionBuffs.append(tempbuff)
                             tempbuffs.append(tempbuff)
+                        else:
+                            tempbuffs.append(temppropbs[0])
                     else:
                         propv[idx][index[pbf.proportion]] += pbf.value
+
+        prevbasev = basev[:]
                         
         for i in range(pairn):
             for j in range(pairn):
@@ -415,30 +482,25 @@ class Character:
         
         resultv = solve_linear(propv, basev)
         for (char, bt), idx in index.items():
-            if not char.find_buff(tag=f"Prop_{char}_{bt}_"):
-                tempbuff = Buff(bt, 0, (resultv[idx] + basev[idx]) / mulv[idx], tag=f"Prop_{char}_{bt}_",
-                                owner=char, do_print=False)
+            if not (temppropbs := char.find_buff(tag=f"Prop_{char}_{bt}_")):
+                tempbuff = Buff(bt, 0, ((resultv[idx] + basev[idx]) / mulv[idx]) if mulv[idx] != 0 else -prevbasev[idx],
+                                tag=f"Prop_{char}_{bt}_", owner=char, do_print=False)
                 char.proportionBuffs.append(tempbuff)
                 tempbuffs.append(tempbuff)
+            else:
+                tempbuffs.append(temppropbs[0])
 
         return tempbuffs
-
-    def get_res(self):
-        resb = self.find_buff(func=lambda b: b.type in set(BT.ELEMENT_RES)).getSUM()
-        return tuple(resb.calc(BT.ELEMENT_RES[i+1], self.get_orig_res()[i], True) for i in range(3))
 
     def get_res_dmgrate(self, element: int):
         if element == 0:
             return 1
-        res = self.get_res()[element - 1]
+        res = self._get_stats(BT.ELEMENT_RES[element])
         if eml := self.find_buff(type_=BT.ELEMENT_MIN[element]):
             res = max(res, eml[-1].value)
         if self.find_buff(type_=BT.ELEMENT_REV[element]):
             res *= -1
         return 1 - res / d(100)
-
-    def get_spd(self):
-        return self.find_buff(BT.SPD).getSUM().calc(BT.SPD, self.get_orig_spd(), True)
 
     def get_aoe(self, targ_pos, skill_no) -> Union[List[Tuple[int, int]], List[Tuple[int, int, NUM_T]]]:
         r = []
@@ -519,7 +581,7 @@ class Character:
         # True = 발동 성공
         # False = 발동 실패
 
-    def judge_resist_buff(self, buff, chance: NUM_T = 100, print_p=False):
+    def judge_resist_buff(self, buff, chance: NUM_T = 100, print_p=False, return_value=False):
         active_p = 0
         active_chances = []
         if buff.efftype == BET.DEBUFF and (buff.type != BT.ACTIVE_RESIST or not self.isenemy):
@@ -563,7 +625,10 @@ class Character:
         if print_p:
             print(f"[tmp] {buff.type} ({buff.efftype}) / "
                   f"버프 발동 확률 = {total_p}%", file=self.stream)
-        return self.random() > total_p
+        if return_value:
+            return total_p
+        else:
+            return self.random() > total_p
         # True = 저항 성공
         # False = 저항 실패
 
@@ -593,7 +658,7 @@ class Character:
             objdef = obj.get_stats()[BT.DEF]
             # 적 방어력
             if dpb := self.find_buff(BT.DEFPEN):
-                objdef = dpb.getSUM().calc(BT.DEFPEN, objdef, True)
+                objdef *= dpb.getSUM().calc(BT.DEFPEN, 0, True)
                 # 방관 (합연산)
             damage -= objdef
         else:
@@ -662,21 +727,22 @@ class Character:
                   round_: int = MAX,
                   count: int = MAX,
                   count_trig: Set[str] = None,
-                  efft: int = BET.NORMAL,
+                  efft: BET = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
                   tag: Optional[str] = None,
                   data: Optional[Data] = None,
                   proportion: Optional[tuple] = None,
                   desc: Optional[str] = None,
+                  overlap_type: BOT = BOT.NORMAL,
                   force: bool = False,
                   chance: NUM_T = 100,
                   made_by: Optional['Character'] = None,
                   do_print: bool = True):
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
-        return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack,
-                                   removable, tag, data, proportion, desc, force, chance, made_by, do_print)
+        return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack, removable,
+                                   tag, data, proportion, desc, overlap_type, force, chance, made_by, do_print)
 
     def find_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None):
         result = BuffList()
@@ -702,8 +768,7 @@ class Character:
             result += bl.update(tt, args)
         for b in result:
             if b.type == BT.INSTANT_DMG and self.hp > 0:
-                element_rate = 1 if b.data is None or b.data.element == 0 \
-                    else (1 - self.get_res()[b.data.element] / 100)
+                element_rate = self.get_res_dmgrate(0 if b.data is None else b.data.element)
                 if b.opr:
                     self.give_damage(
                         b.value * b.data.subject.get_stats()[BT.ATK] * element_rate,
@@ -763,15 +828,12 @@ class Character:
         self.extra_passive(trigtype, args)
 
     def give_ap(self, val: NUM_T):
-        if isinstance(val, NUMBER):
-            self.ap += val
-            if self.ap > 20:
-                self.ap = d(20)
-            elif self.ap < 0:
-                self.ap = d(0)
-            self.ap = simpl(self.ap)
-        else:
-            raise ValueError(f"잘못된 값 : {val}")
+        self.ap += val
+        if self.ap > 20:
+            self.ap = d(20)
+        elif self.ap < 0:
+            self.ap = d(0)
+        self.ap = simpl(self.ap)
 
     def active(
             self,
@@ -888,7 +950,7 @@ class Character:
 
     def base_passive_after(self, tt, args=None):
         if tt == TR.ROUND_START:
-            self.give_ap(self.get_spd())
+            self.give_ap(self._get_stats(BT.SPD))
         elif tt == TR.INCAPABLE:
             self.game.remove_char(self, msg=True)
         elif tt == TR.IDLE:

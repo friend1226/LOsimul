@@ -19,7 +19,7 @@ class Ellie(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.AP, 0, bv[0], efft=BET.DEBUFF, desc=desc)
-                if t.get_spd() > self.get_spd():
+                if t._get_stats(BT.SPD) > self._get_stats(BT.SPD):
                     t.give_buff(BT.AP, 0, bv[1], efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     

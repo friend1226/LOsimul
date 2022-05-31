@@ -46,9 +46,9 @@ class EratoOld(Character):
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "감미로운 멜로디"
         if tt == TR.WAVE_START:
-            myspd = self.get_spd()
+            myspd = self._get_stats(BT.SPD)
             for t in self.get_passive_targets(targets):
-                if myspd > t.get_spd():
+                if myspd > t._get_stats(BT.SPD):
                     t.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc=desc)
         elif tt == TR.ROUND_START:
             for t in self.get_passive_targets(targets):

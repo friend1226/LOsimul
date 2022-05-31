@@ -39,7 +39,7 @@ class Lise(Character):
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "정원사의 본성"
-            self.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+            self.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
             self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=1, desc=desc)
         elif tt == TR.HIT:
             desc = "숨겨진 본성"

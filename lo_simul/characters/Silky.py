@@ -58,12 +58,12 @@ class Silky(Character):
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "거대 배낭"
         if tt == TR.ROUND_START:
-            myspd = self.get_spd()
+            myspd = self._get_stats(BT.SPD)
             for t in self.get_passive_targets(targets):
                 if t.type_[0] != CT.FLY:
                     t.give_buff(BT.EVA, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.TAKEDMGDEC, 1, bv[0]/200, efft=BET.BUFF, round_=1, desc=desc)
-                    if t.get_spd() < myspd:
+                    if t._get_stats(BT.SPD) < myspd:
                         t.give_buff(BT.ACC, 0, -bv[0], efft=BET.DEBUFF, round_=1, desc=desc)
         elif tt == TR.GET_HIT or (tt == TR.AFTER_SKILL and args["skill_no"] == 1):
             for t in self.get_passive_targets(targets):
@@ -83,4 +83,4 @@ class Silky(Character):
                 if t.find_buff(type_=BT.SPD, efft=BET.BUFF):
                     t.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=1, desc=desc)
-                    t.give_buff(BT.DEFPEN, 1, bv[2], efft=BET.BUFF, round_=1, desc=desc)
+                    t.give_buff(BT.DEFPEN, 0, bv[2], efft=BET.BUFF, round_=1, desc=desc)

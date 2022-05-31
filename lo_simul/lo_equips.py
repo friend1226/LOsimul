@@ -483,7 +483,7 @@ class ArmorPierce(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.DEFPEN, 1, self.val[1][self.rarity][self.lvl], desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, self.val[1][self.rarity][self.lvl], desc=self.name)
 
 
 class EnergyConverter(Gear):
@@ -648,7 +648,7 @@ class SpecialRifleBullet(Gear):
 
     def passive(self, tt, args):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.05') * min(self.lvl, 1), desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.05') * min(self.lvl, 1), desc=self.name)
 
 
 class AMRAAMPod(Gear):
@@ -669,7 +669,7 @@ class AMRAAMPod(Gear):
         if tt == TR.WAVE_START:
             desc = "AMRAAM"
             self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, self.val[0][self.lvl], desc=desc)
-            self.owner.give_buff(BT.DEFPEN, 1, self.val[1][self.lvl], desc=desc)
+            self.owner.give_buff(BT.DEFPEN, 0, self.val[1][self.lvl], desc=desc)
             if self.lvl == 10:
                 self.owner.give_buff(BT.RANGE, 0, 1, desc=desc)
 
@@ -788,7 +788,7 @@ class DUBullet(Gear):
 
     def passive(self, tt, args):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.05') * min(self.lvl, 1), desc="열화 우라늄탄")
+            self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.05') * min(self.lvl, 1), desc="열화 우라늄탄")
 
 
 class ATFLIR(Chip):
@@ -904,7 +904,7 @@ class Bombard(Gear):
     def passive(self, tt, args):
         if tt == TR.WAVE_START and not self.owner.isags:
             self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
-            self.owner.give_buff(BT.DEFPEN, 1, d('.15') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('.15') + d('.03') * self.lvl, desc=self.name)
 
 
 class SpATKChip(Chip):
@@ -1097,7 +1097,7 @@ class ASN6G(Gear):
 
     def passive(self, tt, args):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.DEFPEN, 1, d('.15') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('.15') + d('.03') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
 
 
@@ -1113,7 +1113,7 @@ class HornOfBADK(Gear):
             self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, round_=1, desc=desc)
             self.owner.give_buff(BT.ACC, 0, d('5') + self.dval[1][self.lvl], round_=1, desc=desc)
             self.owner.give_buff(BT.CRIT, 0, d('2.5') + d('.5') * self.dval[0][self.lvl], round_=1, desc=desc)
-            self.owner.give_buff(BT.DEFPEN, 1, d('.1') + d('.01') * self.dval[0][self.lvl], round_=1, desc=desc)
+            self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.dval[0][self.lvl], round_=1, desc=desc)
             self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc="뽀끄루...?", chance=10)
 
 
@@ -1428,7 +1428,7 @@ class VerminEliminator(Gear):
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.DEFPEN, 1, d('0.25') + d('0.04') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.04') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF), desc=self.name)
 
 

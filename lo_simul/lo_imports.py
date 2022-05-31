@@ -36,42 +36,75 @@ def simpl(x):
     return x.quantize(d(1)) if x == x.to_integral() else x.normalize()
 
 
-def solve_linear(coefficient, constant):
+def solve_linear(coefficient, constant, debug=False):
     if len(coefficient) > 0 and not(len(constant) == len(coefficient) == len(coefficient[0])):
         raise ValueError(f"행렬의 사이즈가 너무 작거나 다릅니다. "
                          f"(계수 행렬 {len(coefficient)}x{len(coefficient[0])}, 상수 {len(constant)}개)")
     coefficient = [_[:] for _ in coefficient]
     constant = constant[:]
     size = len(constant)
+    if debug:
+        print(f"{size=}\n{coefficient=}\n{constant=}")
     decimalfactor = 10 ** -min(simpl(v).as_tuple().exponent for arr in [*coefficient, constant] for v in arr)
+    if debug:
+        print(f"{decimalfactor=}")
     for i in range(size):
         for j in range(size):
             coefficient[i][j] *= decimalfactor
         constant[i] *= decimalfactor
     for i in range(size):
+        if debug:
+            print(f"row_{i} targeted")
         if coefficient[i][i] == 0:
+            if debug:
+                print(f"row_{i}: element_{i} is 0, adding with other row")
             tempj = -1
             for j in range(i, size):
                 if coefficient[j][i] != 0:
                     tempj = j
                     break
+            if tempj == -1:
+                coefficient[i][i] = 1
+                constant[i] *= d("Infinity")
+                if debug:
+                    print(f"row_{i}: all row's element_{i} is 0  => {coefficient[i]}, {constant[i]}")
+                break
             for k in range(size):
                 coefficient[i][k] += coefficient[tempj][k]
             constant[i] += constant[tempj]
+            if debug:
+                print(f"row_{i}: add with row_{tempj} => {coefficient[i]}, {constant[i]}")
         lcm = math.lcm(*(ci for l in coefficient if (ci := int(l[i])) != 0))
+        if debug:
+            print(f"row_{i}: {lcm=}")
+            print(f"row_{i}: multiplying other rows")
         for j in range(size):
+            if coefficient[j][i] == 0:
+                if debug:
+                    print(f"row_{i}: pass row_{j}")
+                continue
             factor = lcm // coefficient[j][i]
             for k in range(size):
                 coefficient[j][k] *= factor
             constant[j] *= factor
+            if debug:
+                print(f"row_{i}: multiply row_{j} by {factor} => {coefficient[j]}, {constant[j]}")
+        if debug:
+            print(f"row_{i}: substiuting with other rows")
         for j in range(size):
-            if i == j:
+            if i == j or coefficient[j][i] == 0:
+                if debug:
+                    print(f"row_{i}: pass row_{j}")
                 continue
             for k in range(size):
                 coefficient[j][k] -= coefficient[i][k]
             constant[j] -= constant[i]
+            if debug:
+                print(f"row_{i}: substitute to row_{j} => {coefficient[j]}, {constant[j]}")
     for i in range(size):
         constant[i] /= coefficient[i][i]
+        if debug:
+            print(f"row_{i}: divide constant to coefficient => {constant[i]}")
     return constant
 
 try:
@@ -339,3 +372,7 @@ class Datas:
 
 D = Datas  #: :meta private:
 Data = TypeVar('Data', *D.get_all())
+
+
+if __name__ == '__main__':
+    print(solve_linear([[1, 3], [4, 1]], [2, 3], True))

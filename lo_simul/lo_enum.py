@@ -38,11 +38,12 @@ class BuffType:
     ACC = "적중"
     EVA = "회피"
     CRIT = "치명타"
-    STATS = (HP, ATK, DEF, ACC, EVA, CRIT)
-    STATS_SET = set(STATS)
+    BASE_STATS = (HP, ATK, DEF, ACC, EVA, CRIT)
+    BASE_STATS_SET = set(BASE_STATS)
     
     SPD = "행동력"
     AP = "AP"
+    CHANGE_AP = "AP 변경"
     RANGE = "사거리"
     SKILL_RATE = "스킬 위력"
 
@@ -118,9 +119,17 @@ for typestr in ('ROOTED', 'MARKED', 'PROVOKED', 'ROW_PROTECT', 'COLUMN_PROTECT',
                 'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF'):
     BT_NOVAL.add(getattr(BuffType, typestr))
 
-BT_CYCLABLE = {*BuffType.STATS_SET, *BuffType.ELEMENT_RES, *BuffType.ELEMENT_MIN}
+BT_CYCLABLE = {*BuffType.BASE_STATS_SET, *BuffType.ELEMENT_RES, *BuffType.ELEMENT_MIN}
 for typestr in ("SPD", "AP", "DEFPEN", "BARRIER", ):
     BT_CYCLABLE.add(getattr(BuffType, typestr))
+
+
+class BuffOverlapType(IntEnum):
+    NORMAL = 0  # 기본
+    SINGLE = 1  # 단일
+    UPDATE = 2  # 갱신
+    RENEW = 3  # 즉발
+    INSTANCE = 4  # 재생성
 
 
 class BasicData:
@@ -267,6 +276,7 @@ CT = CharType
 CR = CharRole
 E = Element
 BT = BuffType
+BOT = BuffOverlapType
 TR = Trigger
 ET = EquipType
 BET = BuffEffectType

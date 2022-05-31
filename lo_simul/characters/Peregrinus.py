@@ -96,7 +96,7 @@ class Peregrinus(Character):
                   element: int):
         desc = "하피 왕의 숨결"
         if any(targets.values()):
-            self.give_buff(BT.DEFPEN, 1, bv[0], efft=BET.BUFF, round_=0, desc=desc)
+            self.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=0, desc=desc)
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, desc=desc, data=D.BuffCond(type_=BT.BARRIER, efft=BET.BUFF))
