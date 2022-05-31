@@ -658,7 +658,7 @@ class Character:
             objdef = obj.get_stats()[BT.DEF]
             # 적 방어력
             if dpb := self.find_buff(BT.DEFPEN):
-                objdef *= dpb.getSUM().calc(BT.DEFPEN, 0, True)
+                objdef *= 1 - dpb.getSUM().calc(BT.DEFPEN, 0, True)
                 # 방관 (합연산)
             damage -= objdef
         else:

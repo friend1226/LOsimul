@@ -451,7 +451,7 @@ class Game:
                     desc, target, made_by, self, do_print)
         if overlap_type == BOT.SINGLE:
             if target.find_buff(func=lambda b: b.type == type_ and b.opr == opr and
-                                                   b.value == value and b.desc == desc):
+                                               b.value == value and b.desc == desc):
                 if do_print:
                     print(f"[bim] <{target}> - 버프 무효됨 (동일 버프 존재): [{buff}]", file=self.stream)
                 return None
