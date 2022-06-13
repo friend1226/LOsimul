@@ -14,6 +14,8 @@ from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 defsysstdout = sys.stdout
 lo_simul_output_pattern = re.compile(r"\[(...)] (.*)")
 
+__version__ = "Beta.20220613"
+
 
 class Pipe:
     def __init__(self, output, color='black'):
@@ -491,7 +493,7 @@ class MyWindow(QMainWindow):
         helpaction.triggered.connect(wg.help_)
         helpmenu.addAction(helpaction)
 
-        self.setWindowTitle(f"LastOrigin Battle Simulator (V.{ver})")
+        self.setWindowTitle(f"LastOrigin Battle Simulator (System {ver} / GUI {__version__})")
         self.setGeometry(50, 50, 600, 700)
         self.setMinimumWidth(600)
         self.show()

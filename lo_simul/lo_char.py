@@ -146,7 +146,7 @@ class Character:
 
         self.stack_limited_buff_tags = defaultdict(int)
 
-        self.maxhp = self.get_stats()[BT.HP].quantize(d(1))
+        self.maxhp = self.get_stats(BT.HP).quantize(d(1))
         self.current_hp_arg_val = current_hp
         if current_hp > 0:
             self.hp = current_hp
@@ -300,25 +300,7 @@ class Character:
         orig_stats = self.get_orig_stats()
         return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.BASE_STATS}
 
-    def get_stats(self) -> Dict[str, d]:
-        tempbuffs = self.calculate_cycled_buff()
-        stats = self.get_base_stats()
-        stat_buff_sum = self.statBuffs.getSUM()
-        if tempbuffs:
-            extra_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).getSUM()
-            extra_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None)
-            for s in BT.BASE_STATS_SET:
-                stats[s] = stat_buff_sum.calc(s, extra_add.calc(s, stats[s]), True)
-            for pbf in extra_mul:
-                if pbf.type in BT.BASE_STATS_SET:
-                    stats[pbf.type] = pbf.calc(stats[pbf.type])
-            for char in {b.owner for b in tempbuffs}:
-                char.remove_buff(tag="Prop_", force=True)
-            return stats
-        else:
-            return {i: stat_buff_sum.calc(i, stats[i], True) for i in BT.BASE_STATS}
-
-    def _get_stats(self, *bufftypes) -> Union[d, Dict[str, Union[d, Iterable[d]]]]:
+    def get_stats(self, *bufftypes) -> Union[d, Dict[str, Union[d, Iterable[d]]]]:
         if not bufftypes:
             return dict()
         bufftypes = set(bt for bt in bufftypes if bt not in BT_NOVAL)
@@ -331,7 +313,7 @@ class Character:
         psppm = propb_add * special_buff_sum * propb_mul
         psppp = propb_add + special_buff_sum + propb_mul
         base_stats = self.get_base_stats()
-        element_resist = {k: v for k, v in zip(BT.ELEMENT_RES, self.get_orig_res())}
+        element_resist = {k: v for k, v in zip(BT.ELEMENT_RES, (0, *self.get_orig_res()))}
         gtdmgdict = {
             BT.GIVEDMGINC: self.dmgGiveIncBuffs,
             BT.GIVEDMGDEC: self.dmgGiveDecBuffs,
@@ -495,7 +477,7 @@ class Character:
     def get_res_dmgrate(self, element: int):
         if element == 0:
             return 1
-        res = self._get_stats(BT.ELEMENT_RES[element])
+        res = self.get_stats(BT.ELEMENT_RES[element])
         if eml := self.find_buff(type_=BT.ELEMENT_MIN[element]):
             res = max(res, eml[-1].value)
         if self.find_buff(type_=BT.ELEMENT_REV[element]):
@@ -564,10 +546,10 @@ class Character:
         return self.get_skill(skill_no-1)['element'][self.skillvl[(skill_no-1) % 5]]
 
     def judge_hit(self, obj: 'Character', acc_bonus: int = 0):
-        mystats = self.get_stats()
+        mystats = self.get_stats(BT.ACC, BT.CRIT)
         myacc = mystats[BT.ACC] + acc_bonus
         mycrit = mystats[BT.CRIT]
-        objeva = obj.get_stats()[BT.EVA]
+        objeva = obj.get_stats(BT.EVA)
         if self.random() >= myacc - objeva:
             return d('0')
         if self.random() <= mycrit:
@@ -635,7 +617,7 @@ class Character:
     def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
-        damage = self.get_stats()[BT.ATK] * self.get_skill_atk_rate(value=rate[0])
+        damage = self.get_stats(BT.ATK) * self.get_skill_atk_rate(value=rate[0])
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
             damage = antiosb.getSUM().calc(objtype, damage, True)
@@ -655,7 +637,7 @@ class Character:
 
         if element == 0:
             # 물리 피해
-            objdef = obj.get_stats()[BT.DEF]
+            objdef = obj.get_stats(BT.DEF)
             # 적 방어력
             if dpb := self.find_buff(BT.DEFPEN):
                 objdef *= 1 - dpb.getSUM().calc(BT.DEFPEN, 0, True)
@@ -771,7 +753,7 @@ class Character:
                 element_rate = self.get_res_dmgrate(0 if b.data is None else b.data.element)
                 if b.opr:
                     self.give_damage(
-                        b.value * b.data.subject.get_stats()[BT.ATK] * element_rate,
+                        b.value * b.data.subject.get_stats(BT.ATK) * element_rate,
                         True
                     )
                 else:
@@ -950,7 +932,7 @@ class Character:
 
     def base_passive_after(self, tt, args=None):
         if tt == TR.ROUND_START:
-            self.give_ap(self._get_stats(BT.SPD))
+            self.give_ap(self.get_stats(BT.SPD))
         elif tt == TR.INCAPABLE:
             self.game.remove_char(self, msg=True)
         elif tt == TR.IDLE:

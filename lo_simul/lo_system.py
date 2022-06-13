@@ -362,7 +362,7 @@ class Game:
             
         counters = {t: t.find_buff(BT.COUNTER_ATTACK) for t in damages if t.attackable(subjc, 1) and t.hp > 0}
         if any(counters.values()):
-            catkc = max(counters, key=lambda c: c.get_stats()[BT.ATK])
+            catkc = max(counters, key=lambda c: c.get_stats(BT.ATK))
             catkr = counters[catkc][-1].value
             if coop:
                 countobjpos = coop
@@ -381,7 +381,7 @@ class Game:
             self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
 
         if followers := subjc.find_buff(BT.FOLLOW_ATTACK):
-            followc = max(map(lambda b: b.data.attacker, followers), key=lambda c: c.get_stats()[BT.ATK])
+            followc = max(map(lambda b: b.data.attacker, followers), key=lambda c: c.get_stats(BT.ATK))
             if grid:
                 followtarg = random.choice(list(damages.keys()))
             else:
@@ -397,7 +397,7 @@ class Game:
                 continue
             isinfo[0] -= 1
             if isinfo[0] < 0:
-                h.heappush(tempskills, (-isinfo[1][0]._get_stats(BT.SPD),) + isinfo[1])
+                h.heappush(tempskills, (-isinfo[1][0].get_stats(BT.SPD),) + isinfo[1])
             else:
                 self.__impacts.append(isinfo)
         while tempskills:
@@ -441,6 +441,7 @@ class Game:
         :param data: NamedTuple in Datas
         :param proportion: tuple (Character, BuffType)
         :param desc: str
+        :param overlap_type: BOT
         :param force: bool
         :param chance: number between 0 and 100
         :param made_by: Character giving this buff
@@ -547,7 +548,7 @@ class Game:
                 if characters[-1][1] >= 10:
                     break
                 for c in characters:
-                    c[0].give_ap(c[0]._get_stats(BT.SPD))
+                    c[0].give_ap(c[0].get_stats(BT.SPD))
         self.round += 1
         print(f"[rst] ============= {self.wave}-{self.round} 라운드 시작 "
               f"================================================",
@@ -572,7 +573,7 @@ class Game:
         order = deque()
         for c in self.__characters:
             order.append(
-                (c.ap, c._get_stats(BT.SPD), -BasicData.act_order_idx[c.isenemy*9+c.getposn()], c)
+                (c.ap, c.get_stats(BT.SPD), -BasicData.act_order_idx[c.isenemy * 9 + c.getposn()], c)
             )
         res = []
         while order:
@@ -783,7 +784,7 @@ class Buff:
         if self.proportion:
             targ, bt = self.proportion
             if bt in {*BT.BASE_STATS, *BT.ELEMENT_RES, BT.SPD, BT.AP}:
-                extra_rate *= targ._get_stats(bt)
+                extra_rate *= targ.get_stats(bt)
         if self.opr:
             if self.type == BT.DOT_DMG:
                 r = self.value*extra_rate*v

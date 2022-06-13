@@ -14,17 +14,22 @@ class EquipPools:
     ALL_NAME: Dict[str, Type['Equip']] = {}
 
 
+EQUIP_TYPE_CODE = ['Chip', 'System', 'Sub']
+META_CLASS_SET = {"Chip", "OS", "Gear"}
+
+
 class Equip:
     EQUIP_TYPE: int
     nick: str = "???"
     name: str = "-"
+    code: str = "None"
     BASE_RARITY: int = R.B
     PROMOTION: int = R.SS
     owner: 'Character'
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
-        if cls.__name__ in {"Chip", "OS", "Gear"}:
+        if cls.__name__ in META_CLASS_SET:
             return
         EquipPools.ALL_NAME_LIST[cls.EQUIP_TYPE][cls.nick] = cls
         EquipPools.ALL_NAME[cls.nick] = cls
@@ -42,6 +47,9 @@ class Equip:
         self.owner = owner
         self.buff = BuffList()
         self.init_buff()
+
+    def get_icon_filename(self):
+        return f"UI_Icon_Equip_{EQUIP_TYPE_CODE[self.EQUIP_TYPE]}_{self.code}_T{self.rarity + 1}"
 
     def init_buff(self):
         pass
@@ -68,6 +76,7 @@ class Gear(Equip):
 class ATKChip(Chip):
     nick = "공칩"
     name = "출력 강화 회로"
+    code = "Atk"
     val = [(20, 2), (30, 3), (40, 4), (50, 5)]
 
     def init_buff(self):
@@ -78,6 +87,7 @@ class ATKChip(Chip):
 class ACCChip(Chip):
     nick = "적칩"
     name = "연산 강화 회로"
+    code = "Acc"
     val = [(15, d('1.5')), (20, 2), (25, d('2.5')), (35, d('3.5'))]
 
     def init_buff(self):
@@ -88,6 +98,7 @@ class ACCChip(Chip):
 class DEFChip(Chip):
     nick = "방칩"
     name = "내 충격 회로"
+    code = "Def"
     val = [(16, d('3.2')), (24, d('4.4')), (30, d('6')), (36, d('7.2'))]
 
     def init_buff(self):
@@ -98,6 +109,7 @@ class DEFChip(Chip):
 class EVAChip(Chip):
     nick = "회칩"
     name = "반응 강화 회로"
+    code = "Ev"
     val = [(6, d('.3')), (8, d('.4')), (10, d('.5')), (15, d('.75'))]
 
     def init_buff(self):
@@ -108,6 +120,7 @@ class EVAChip(Chip):
 class CRITChip(Chip):
     nick = "치칩"
     name = "분석 회로"
+    code = "Cri"
     val = [(d('4'), d('0.2')), (d('5'), d('0.25')), (d('6'), d('0.3')), (d('8'), d('0.4'))]
     dval = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
 
@@ -120,6 +133,7 @@ class CRITChip(Chip):
 class HPChip(Chip):
     nick = "체칩"
     name = "회로 내구 강화"
+    code = "Hp"
     val = [(80, 16), (120, 24), (160, 32), (200, 40)]
 
     def init_buff(self):
@@ -130,6 +144,7 @@ class HPChip(Chip):
 class VaccineChip(Chip):
     nick = "백신칩"
     name = "백신 처리"
+    code = "Debuff_Res"
     bfval = [(5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25),
              (9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29),
              (15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35),
@@ -151,6 +166,7 @@ class VaccineChip(Chip):
 class SPDChip(Chip):
     nick = "행칩"
     name = "회로 최적화"
+    code = "Spd"
     val = [(d('.1'), d('.005')), (d('.12'), d('.006')), (d('.14'), d('.007')), (d('.15'), d('.0075'))]
 
     def init_buff(self):
@@ -161,6 +177,7 @@ class SPDChip(Chip):
 class StandardOS(OS):
     nick = "표준OS"
     name = "표준형 전투 시스템"
+    code = "Normal"
     val = [(((d('.2'), d('.003')), (d('.026'), d('.003')), (d('.035'), d('.003')), (d('.047'), d('.003'))),
             ((d('4'), d('.75')), (d('5.5'), d('.75')), (d('7.75'), d('.75')), (d('10.75'), d('.75'))),
             ((5, 1), (7, 1), (10, 1), (14, 1)))]
@@ -184,6 +201,7 @@ class StandardOS(OS):
 class OffenseOS(OS):
     nick = "돌격OS"
     name = "돌격형 전투 시스템"
+    code = "Assault"
     val = [((d('0.1'), d('0.105'), d('0.11'), d('0.115'), d('0.12'),
              d('0.125'), d('0.13'), d('0.135'), d('0.14'), d('0.145'), d('0.15')),
             (d('0.11'), d('0.115'), d('0.12'), d('0.125'), d('0.13'),
@@ -212,6 +230,7 @@ class OffenseOS(OS):
 class DefenseOS(OS):
     nick = "방어OS"
     name = "방어형 전투 시스템"
+    code = "Defense"
     val = [((d('.1'), d('.01')), (d('.12'), d('.01')), (d('.15'), d('.01')), (d('.19'), d('.01'))),
            ((d('.05'), d('.005')), (d('.06'), d('.005')), (d('.075'), d('.005')), (d('.095'), d('.005')))]
 
@@ -230,6 +249,7 @@ class DefenseOS(OS):
 class CounterOS(OS):
     nick = "반격OS"
     name = "대응형 전투 시스템"
+    code = "Sniper"
     val = [((30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60),
             (33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63),
             (45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75),
@@ -253,6 +273,7 @@ class CounterOS(OS):
 class AssaultOS(OS):
     nick = "사감OS"
     name = "강습형 전투 시스템"
+    code = "Highspd"
     val = [(d('.05'), d('.005')), (d('.06'), d('.005')), (d('.075'), d('.005')), (d('.095'), d('.005'))]
 
     def passive(self, tt, args=None):
@@ -268,6 +289,7 @@ class AssaultOS(OS):
 class PrecisionOS(OS):
     nick = "행깎OS"
     name = "정밀형 전투 시스템"
+    code = "Maneuver"
     val = [((d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))),
            ((d('1'), d('.2')), (d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8'))),
            ((d('.08'), d('.005')), (d('.09'), d('.005')), (d('.105'), d('.005')), (d('.125'), d('.005')))]
@@ -290,6 +312,7 @@ class PrecisionOS(OS):
 class AntiFlyOS(OS):
     nick = "대기동OS"
     name = "대 기동 전투 시스템"
+    code = "AntiAir"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
             d('0.15'), d('0.16'), d('0.17'), d('0.18'), d('0.19'), d('0.2')),
            (d('0.12'), d('0.13'), d('0.14'), d('0.15'), d('0.16'),
@@ -307,6 +330,7 @@ class AntiFlyOS(OS):
 class AntiLightOS(OS):
     nick = "대경장OS"
     name = "대 경장 전투 시스템"
+    code = "AntiTrooper"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
             d('0.15'), d('0.16'), d('0.17'), d('0.18'), d('0.19'), d('0.2')),
            (d('0.12'), d('0.13'), d('0.14'), d('0.15'), d('0.16'),
@@ -324,6 +348,7 @@ class AntiLightOS(OS):
 class AntiHeavyOS(OS):
     nick = "대중장OS"
     name = "대 중장 전투 시스템"
+    code = "AntiArmor"
     val = [(d('0.1'), d('0.11'), d('0.12'), d('0.13'), d('0.14'),
             d('0.15'), d('0.16'), d('0.17'), d('0.18'), d('0.19'), d('0.2')),
            (d('0.12'), d('0.13'), d('0.14'), d('0.15'), d('0.16'),
@@ -341,6 +366,7 @@ class AntiHeavyOS(OS):
 class EXPOS(OS):
     nick = "경험치OS"
     name = "고속 학습 시스템"
+    code = "Exp"
     val = [(d('.05'), d('.01')), (d('.07'), d('.01')), (d('.1'), d('.01')), (d('.14'), d('.01'))]
 
     def passive(self, tt, args=None):
@@ -355,6 +381,7 @@ class EXPOS(OS):
 class APpack(Gear):
     nick = "에팩"
     name = "보조 에너지 팩"
+    code = "EnergyPack"
     val = [(d('.1'), d('.05')), (d('.2'), d('.05')), (d('.35'), d('.05')), (d('.55'), d('.05'))]
 
     def passive(self, tt, args=None):
@@ -369,6 +396,7 @@ class APpack(Gear):
 class Observation(Gear):
     nick = "관측 장비"
     name = nick
+    code = "Observer"
     val = [((10, 2), (15, 3), (20, 4), (30, 6)),
            ((5, 5), (15, 5), (35, 5), (55, 5))]
 
@@ -388,6 +416,7 @@ class Observation(Gear):
 class SpaceArmor(Gear):
     nick = "공간 장갑"
     name = nick
+    code = "SpaceArmor"
     val = [((120, 24), (160, 32), (200, 60), (240, 48)),
            ((d('0.2'), d('0.22'), d('0.24'), d('0.26'), d('0.28'),
              d('0.3'), d('0.32'), d('0.35'), d('0.38'), d('0.41'), d('0.44')),
@@ -417,6 +446,7 @@ class SpaceArmor(Gear):
 class SubBooster(Gear):
     nick = "보조 부스터 유닛"
     name = nick
+    code = "SubBooster"
     val = [((d('8'), d('8.4'), d('8.8'), d('9.2'), d('9.6'),
              d('10'), d('10.4'), d('10.8'), d('11.2'), d('11.6'), d('12')),
             (d('10'), d('10.5'), d('11'), d('11.5'), d('12'),
@@ -443,6 +473,7 @@ class SubBooster(Gear):
 class UltraScope(Gear):
     nick = "스코프"
     name = "초정밀 조준기"
+    code = "SpSight"
     val = [((d('4'), d('.4')), (d('6'), d('.6')), (d('8'), d('.8')), (d('10'), d('1'))),
            ((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('25'), d('2.5'))),
            ((35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65),
@@ -466,6 +497,7 @@ class UltraScope(Gear):
 class ArmorPierce(Gear):
     nick = "송곳"
     name = "대 장갑 장비"
+    code = "ArmorPierce"
     val = [((d('2'), d('.4')), (d('3'), d('.5')), (d('4'), d('.8')), (d('5'), d('1'))),
            ((d('0.1'), d('0.115'), d('0.13'), d('0.145'), d('0.16'),
              d('0.175'), d('0.19'), d('0.205'), d('0.22'), d('0.235'), d('0.25')),
@@ -489,6 +521,7 @@ class ArmorPierce(Gear):
 class EnergyConverter(Gear):
     nick = "에너지 전환기"
     name = nick
+    code = "AntiBarrier"
     val = [(d('0.03'), d('0.035'), d('0.04'), d('0.045'), d('0.05'),
             d('0.055'), d('0.06'), d('0.065'), d('0.07'), d('0.075'), d('0.08')),
            (d('0.045'), d('0.05'), d('0.055'), d('0.06'), d('0.065'),
@@ -512,6 +545,7 @@ class EnergyConverter(Gear):
 class Barrier(Gear):
     nick = "방어막"
     name = "방어 역장"
+    code = "Barrier"
     val = [(60, 75, 90, 105, 120, 135, 150, 165, 180, 200, 210),
            (90, 105, 120, 135, 150, 165, 180, 200, 210, 225, 240),
            (135, 150, 165, 180, 200, 210, 225, 240, 260, 280, 300),
@@ -525,6 +559,7 @@ class Barrier(Gear):
 class ReconDrone(Gear):
     nick = "드론"
     name = "소형 정찰 드론"
+    code = "SpyDrone"
     val = [(((d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))),
             ((d('.06'), d('.006')), (d('.08'), d('.008')), (d('.1'), d('.01')), (d('.15'), d('.015'))))]
 
@@ -542,6 +577,7 @@ class ReconDrone(Gear):
 class ExamKit(Gear):
     nick = "중화기용 조준기"
     name = nick
+    code = "ExamKit"
     val = [((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('20'), d('2'))),
            ((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
            ((30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60),
@@ -565,6 +601,7 @@ class ExamKit(Gear):
 class AdvRadar(Gear):
     nick = "망원 조준 장치"
     name = nick
+    code = "AdvRadar"
     val = [((d('0.01'), d('0.012'), d('0.014'), d('0.016'), d('0.018'),
              d('0.02'), d('0.022'), d('0.024'), d('0.026'), d('0.028'), d('0.03')),
             (d('0.016'), d('0.018'), d('0.02'), d('0.022'), d('0.024'),
@@ -602,6 +639,7 @@ class AdvRadar(Gear):
 class Stimulant(Gear):
     nick = "전투 자극제"
     name = nick
+    code = "Stimulant"
     val = [((d('.025'), d('.005')), (d('.035'), d('.005')), (d('.05'), d('.005')), (d('.07'), d('.005'))),
            ((10, 15), (40, 15), (85, 15), (145, 15))]
 
@@ -618,6 +656,7 @@ class Stimulant(Gear):
 class Hologram(Gear):
     nick = "홀로그램"
     name = "더미 홀로그램"
+    code = "Hologram"
     val = [(d('5'), d('.5')), (d('7'), d('.7')), (d('9'), d('.9')), (d('12'), d('.12'))]
 
     def init_buff(self):
@@ -637,6 +676,7 @@ class SpecialRifleBullet(Gear):
     BASE_RARITY = R.SS
     nick = "콘챠전장"
     name = "특수 코팅 라이플탄"
+    code = "SpRifleBullet"
     val = [(d('30'), d('31.5'), d('33'), d('36'), d('40.5'),
             d('46.5'), d('51'), d('60'), d('72'), d('87'), d('105')),
            (d('5'), d('5.25'), d('5.5'), d('6'), d('6.75'),
@@ -655,6 +695,7 @@ class AMRAAMPod(Gear):
     BASE_RARITY = R.SS
     nick = "그리폰전장"
     name = "확장 AMRAAM 포드"
+    code = "AMRAAMPod"
     val = [[d('0.15'), d('0.15'), d('0.16'), d('0.17'), d('0.18'),
             d('0.19'), d('0.2'), d('0.21'), d('0.22'), d('0.23'), d('0.25')],
            [d('0.15'), d('0.15'), d('0.17'), d('0.19'), d('0.21'),
@@ -678,6 +719,7 @@ class SuperAlloyArmor(Gear):
     BASE_RARITY = R.SS
     nick = "요안나전장"
     name = "초합금 플레이트 아머"
+    code = "SpAlloyArmor"
     val = [15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30]
 
     def init_buff(self):
@@ -698,6 +740,7 @@ class DragonSlayer(Gear):
     BASE_RARITY = R.SS
     nick = "좌우좌전장"
     name = "용살자의 징표"
+    code = "MarkOfDS"
     val = [(d('27'), d('28.35'), d('29.7'), d('32.4'), d('36.45'),
             d('41.85'), d('45.9'), d('54'), d('64.8'), d('78.3'), d('94.5')),
            (d('10'), d('10'), d('11'), d('12'), d('13'),
@@ -715,6 +758,7 @@ class DragonSlayer(Gear):
 class FireSpray(Gear):
     nick = "화깡"
     name = "내열 코팅"
+    code = "AntiFire"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
 
     def init_buff(self):
@@ -727,6 +771,7 @@ class FireSpray(Gear):
 class IceSpray(Gear):
     nick = "냉깡"
     name = "내한 코팅"
+    code = "AntiCold"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
 
     def init_buff(self):
@@ -739,6 +784,7 @@ class IceSpray(Gear):
 class ElectricSpray(Gear):
     nick = "전깡"
     name = "내전 코팅"
+    code = "AntiLightning"
     val = [(d('20'), d('2')), (d('25'), d('2.5')), (d('30'), d('3')), (d('35'), d('3.5'))]
 
     def init_buff(self):
@@ -752,6 +798,7 @@ class CounterTerrorismArmor(Gear):
     BASE_RARITY = R.SS
     nick = "불가사리전장"
     name = "테러진압용 외장아머"
+    code = "T60ExtArmor"
     val = [(d('50'), d('52.5'), d('55'), d('60'), d('67.5'), 
             d('77.5'), d('85'), d('100'), d('120'), d('145'), d('175')), 
            (d('0.15'), d('0.15'), d('0.17'), d('0.19'), d('0.21'),
@@ -778,6 +825,7 @@ class DUBullet(Gear):
     BASE_RARITY = R.SS
     nick = "네레이드전장"
     name = "40mm DU탄"
+    code = "40mmDUBullet"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -795,6 +843,7 @@ class ATFLIR(Chip):
     BASE_RARITY = R.SS
     nick = "실피드전장"
     name = "ATFLIR 강화 회로"
+    code = "ATFLIR"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -808,6 +857,7 @@ class CM67SpaceBooster(Gear):
     BASE_RARITY = R.SS
     nick = "스팅어전장"
     name = "우주용 확장 부스터"
+    code = "CM67SpaceBooster"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -827,6 +877,7 @@ class MG80ModKit(Gear):
     BASE_RARITY = R.SS
     nick = "님프전장"
     name = "MG80용 개조 키트"
+    code = "MG80MODKit"
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
 
     def init_buff(self):
@@ -846,6 +897,7 @@ class Steroid(Gear):
     BASE_RARITY = R.SS
     nick = "스카디전장"
     name = "수상한 보조제"
+    code = "STEROID"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -863,6 +915,7 @@ class SK14ModKit(Gear):
     BASE_RARITY = R.SS
     nick = "미호전장"
     name = "SK-14 P.C.C"
+    code = "SK14MODKit"
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
 
     def init_buff(self):
@@ -882,6 +935,7 @@ class SowanLunchBox(Gear):
     BASE_RARITY = R.SS
     nick = "도시락"
     name = "소완제 수제 도시락"
+    code = "LunchBox"
 
     def passive(self, tt, args):
         if tt == TR.WAVE_START and not self.owner.isags:
@@ -894,6 +948,7 @@ class Bombard(Gear):
     BASE_RARITY = R.SS
     nick = "전략 폭격 장비"
     name = nick
+    code = "Bombard"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -910,6 +965,7 @@ class Bombard(Gear):
 class SpATKChip(Chip):
     nick = "적깎칩"
     name = "출력 증폭 회로"
+    code = "SpAtk"
     val = [(40, 4), (45, d('4.5')), (55, d('5.5')), (65, d('6.5')), (-30, -3)]
 
     def init_buff(self):
@@ -923,6 +979,7 @@ class EyesOfBeholderD(Gear):
     BASE_RARITY = R.SS
     nick = "마리전장"
     name = "주사위의 눈 D형 OS"
+    code = "EyesOfBeholderD"
     dval = [0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15]
 
     def init_buff(self):
@@ -941,6 +998,7 @@ class EyesOfBeholderD(Gear):
 class ATKCRIChip(Chip):
     nick = "공치칩"
     name = "출력 안정 회로"
+    code = "ATKCRI"
     val = [[(12, d('2.4')), (16, d('3.2')), (22, d('4.4')), (28, d('5.6'))],
            [(3, d('.3')), (4, d('.4')), (5, d('.5')), (6, d('.6'))]]
 
@@ -955,6 +1013,7 @@ class ATKCRIChip(Chip):
 class ExpChip(Chip):
     nick = "경험칩"
     name = "전투 기록 회로"
+    code = "KillExp"
     val = [[2, d('.2'), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)],
            [d('2.6'), d('.2'), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11)],
            [d('3.2'), d('.2'), (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14)],
@@ -970,6 +1029,7 @@ class ExpChip(Chip):
 class AquaModule(Gear):
     nick = "아쿠아 모듈"
     name = nick
+    code = "AquaModule"
     val = [[(d('10'), d('1')), (d('15'), d('1.5')), (d('20'), d('2')), (d('25'), d('2.5'))],
            [(d('.05'), d('.005')), (d('.065'), d('0.005')), (d('.08'), d('.005')), (d('.095'), d('.005'))]]
 
@@ -994,6 +1054,7 @@ class AquaModule(Gear):
 class Overclock(Gear):
     nick = "글카"
     name = "출력 제한 해제 장치"
+    code = "Overclock"
     val = [[(d('.15'), d('.005')), (d('.165'), d('.005')), (d('.18'), d('.005')), (d('.195'), d('.005'))],
            [(d('.05'), d('.005')), (d('.065'), d('.005')), (d('.08'), d('.005')), (d('.095'), d('.005'))],
            [(d('-19.5'), d('-.5')), (d('-18'), d('-.5')), (d('-16.5'), d('-.5')), (d('-15'), d('-.5'))]]
@@ -1014,6 +1075,7 @@ class Overclock(Gear):
 class HManeuver(OS):
     nick = "고기동OS"
     name = "고기동 메뉴버 시스템"
+    code = "HManeuver"
     val = [[(d('5'), d('1')), (d('8'), d('1.6')), (d('10'), d('2')), (d('15'), d('3'))],
            [(d('4'), d('0.8')), (d('6'), d('1.2')), (d('8'), d('1.6')), (d('10'), d('2'))],
            [(d('.1'), d('.02')), (d('.16'), d('.02')), (d('.22'), d('.02')), (d('.28'), d('.02'))]]
@@ -1037,6 +1099,7 @@ class HManeuver(OS):
 class EXAM(OS):
     nick = "정찰OS"
     name = "전황 분석 시스템"
+    code = "EXAM"
     val = [[(d('.05'), d('.005')), (d('.065'), d('.005')), (d('.08'), d('.005')), (d('.095'), d('.005'))],
            [(d('2'), d('.4')), (d('3.2'), d('.4')), (d('4.4'), d('.4')), (d('5.6'), d('.4'))],
            [(d('10'), d('.5')), (d('11.5'), d('.5')), (d('13'), d('.5')), (d('14.5'), d('.5'))],
@@ -1057,6 +1120,7 @@ class IcePack(Gear):
     BASE_RARITY = R.SS
     nick = "냉각 팩"
     name = nick
+    code = "IcePack"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1072,6 +1136,7 @@ class SunCream(Gear):
     BASE_RARITY = R.SS
     nick = "선 크림"
     name = nick
+    code = "SunCream"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1087,6 +1152,7 @@ class ASN6G(Gear):
     BASE_RARITY = R.SS
     nick = "운디네전장"
     name = "ASN-6G"
+    code = "ASN6G"
     dval = [(0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50), (0, 1, 2, 4, 7, 11, 14, 20, 30, 40, 60)]
 
     def init_buff(self):
@@ -1105,6 +1171,7 @@ class HornOfBADK(Gear):
     BASE_RARITY = R.SS
     nick = "뽀끄루전장"
     name = "뽀끄루 대마왕의 뿔"
+    code = "HornOfBADK"
     dval = [(0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15), (0, 1, 2, 3, 4, 5, 7, 10, 13, 16, 20)]
 
     def passive(self, tt, args):
@@ -1121,6 +1188,7 @@ class MoonCake(Gear):
     BASE_RARITY = R.SS
     nick = "송편"
     name = "달의 마력이 담긴 송편"
+    code = "MoonCake"
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
@@ -1138,6 +1206,7 @@ class Interceptor(Gear):
     BASE_RARITY = R.SS
     nick = "개량형 관측 장비"
     name = nick
+    code = "Interceptor"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1159,6 +1228,7 @@ class ATKSPDChip(Chip):
     BASE_RARITY = R.SS
     nick = "공행칩"
     name = "개량형 출력 강화 회로"
+    code = "AtkSpd"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1171,6 +1241,7 @@ class FortuneOrb(Gear):
     BASE_RARITY = R.SS
     nick = "수정구"
     name = "운명의 수정구"
+    code = "FortuneOrb"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1188,6 +1259,7 @@ class ElectroGenerator(Gear):
     BASE_RARITY = R.SS
     nick = "영전에팩"
     name = "고출력 제너레이터"
+    code = "ElectroGenerator"
     dval = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
 
     def init_buff(self):
@@ -1204,6 +1276,7 @@ class Recycler(Gear):
     BASE_RARITY = R.SS
     nick = "쓰레기통"
     name = "리사이클 모듈"
+    code = "Recycler"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1218,6 +1291,7 @@ class Recycler(Gear):
 class LightWeight(Chip):
     nick = "경량칩"
     name = "경량화 회로"
+    code = "LTWT"
     val = [((d('10'), d('1')), (d('12'), d('1.2')), (d('15'), d('1.5')), (d('20'), d('2'))),
            ((d('3'), d('.3')), (d('5'), d('.5')), (d('6'), d('.6')), (d('9'), d('.9'))),
            ((d('.01'), d('.002')), (d('.02'), d('.004')), (d('.03'), d('.006')), (d('.04'), d('.008')))]
@@ -1239,6 +1313,7 @@ class CriAccCHIP(Chip):
     BASE_RARITY = R.SS
     nick = "치적칩"
     name = "개량형 분석 회로"
+    code = "CriAccEx"
     dval = [(0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60),
             (0, 1, 2, 4, 7, 11, 14, 20, 28, 36, 50)]
 
@@ -1253,6 +1328,7 @@ class Nitro3000(Gear):
     BASE_RARITY = R.SS
     nick = "부스터"
     name = "니트로 EX 3000"
+    code = "NitroEx3000"
 
     val = [1, d('.9'), d('.8'), d('.7'), d('.6'), d('.5'), d('.4'), d('.3'), d('.2'), d('.1'), d('.03')]
 
@@ -1273,6 +1349,7 @@ class MiniPerralut(Gear):
     BASE_RARITY = R.SS
     nick = "미니 페로"
     name = "미니 페로"
+    code = "MiniPerralut"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1289,6 +1366,7 @@ class MiniHachiko(Gear):
     BASE_RARITY = R.SS
     nick = "미니 하치코"
     name = "미니 하치코"
+    code = "MiniHachiko"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1306,6 +1384,7 @@ class MiniLilith(Gear):
     BASE_RARITY = R.SS
     nick = "미니 리리스"
     name = "미니 블랙 리리스"
+    code = "MinLilith"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1322,6 +1401,7 @@ class EnhancedCombatOS(OS):
     BASE_RARITY = R.SS
     nick = "영전OS"
     name = "개량형 전투 시스템"
+    code = "Advanced"
     val = [d('.005'), d('.0075'), d('.01'), d('.015'), d('.02'),
            d('.025'), d('.03'), d('.035'), d('.04'), d('.045'), d('.05')]
 
@@ -1337,6 +1417,7 @@ class GrandCruChocolate(Gear):
     BASE_RARITY = R.SS
     nick = "초코"
     name = "그랑크뤼 초콜릿"
+    code = "GrandCruChocolate"
     val = [d('.5'), d('.6'), d('.7'), d('.8'), d('.9'),
            d('1'), d('1.2'), d('1.4'), d('1.6'), d('1.8'), d('2')]
 
@@ -1354,6 +1435,7 @@ class GrandCruChocolate(Gear):
 class ATKControl(Chip):
     nick = "치씹칩"
     name = "출력 제어 회로"
+    code = "AtkControl"
 
     val = [(d('20'), d('4')), (d('30'), d('6')), (d('40'), d('8')), (d('50'), d('10'))]
 
@@ -1367,6 +1449,7 @@ class ATKControl(Chip):
 class ExoSkeleton(Gear):
     nick = "보조 외골격"
     name = "보조 외골격"
+    code = "ExoSkeleton"
     val = [((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
            ((d('.02'), d('.002')), (d('.03'), d('.003')), (d('.04'), d('.004')), (d('.05'), d('.005'))),
            ((d('0'), d('.005')), (d('.015'), d('.005')), (d('.03'), d('.005')), (d('.05'), d('.005'))),]
@@ -1388,6 +1471,7 @@ class ODAmplifier(Gear):
     BASE_RARITY = R.SS
     nick = "O.D 증폭기"
     name = "O.D 증폭기"
+    code = "Odamplifier"
 
     def passive(self, tt, args):
         if tt == TR.ROUND_START and not self.owner.isags:
@@ -1399,6 +1483,7 @@ class CMIIShield(Gear):
     BASE_RARITY = R.SS
     nick = "켈베전장"
     name = "촙 메이커 II"
+    code = "CMIIShield"
     dval = (0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15)
 
     def init_buff(self):
@@ -1418,6 +1503,7 @@ class VerminEliminator(Gear):
     BASE_RARITY = R.SS
     nick = "리제전장"
     name = "해충 파쇄기"
+    code = "VerminEliminator"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1436,6 +1522,7 @@ class GigantesArmor(Gear):
     BASE_RARITY = R.SS
     nick = "기간테스전장"
     name = "개량형 복합 장갑"
+    code = "GigantesArmor"
     dval1 = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
     dval2 = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15)
 
@@ -1457,6 +1544,7 @@ class QMObserver(Gear):
     BASE_RARITY = R.SS
     nick = "레오나전장"
     name = "전투 관측 프레임"
+    code = "QMObserver"
 
     val = [(d('20'), d('21'), d('22'), d('24'), d('27'),
             d('31'), d('34'), d('40'), d('48'), d('58'), d('70')),
@@ -1479,6 +1567,7 @@ class ATKChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "공베칩"
     name = "출력 강화 회로 베타"
+    code = "AtkTypeB"
     val = [(d('24'), d('2.4')), (d('36'), d('3.6')), (d('48'), d('4.8')), (d('60'), d('6')),
            (70, 75, 80, 85, 90, 100, 107, 114, 121, 128, 135)]
 
@@ -1499,6 +1588,7 @@ class ACCChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "적베칩"
     name = "연산 강화 회로 베타"
+    code = "AccTypeB"
     val = [(d('18'), d('1.8')), (d('24'), d('2.4')), (d('30'), d('3')), (d('42'), d('4.2')),
            (45, 49, 53, 57, 61, 65, 70, 75, 80, 85, 90)]
 
@@ -1519,6 +1609,7 @@ class DEFChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "방베칩"
     name = "내 충격 강화 회로 베타"
+    code = "DefTypeB"
     val = [(d('30'), d('3')), (d('43'), d('4.3')), (d('54'), d('5.4')), (d('65'), d('6.5')), (d('100'), d('10'))]
 
     def init_buff(self):
@@ -1538,6 +1629,7 @@ class EVAChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "회베칩"
     name = "반응 강화 회로 베타"
+    code = "EvTypeB"
     val = [(d('72'), d('.36')), (d('9.6'), d('.48')), (d('12'), d('.6')), (d('18'), d('.9')), (d('20'), d('1'))]
 
     def init_buff(self):
@@ -1557,6 +1649,7 @@ class CRITChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "치베칩"
     name = "분석 회로 베타"
+    code = "CriTypeB"
     val = [((d('4.8'), d('.24')), (d('6'), d('.3')), (d('7.2'), d('.36')), (d('9.6'), d('.48'))),
            (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)]
 
@@ -1578,6 +1671,7 @@ class HPChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "체베칩"
     name = "회로 내구 강화 베타"
+    code = "HpTypeB"
     val = [(d('96'), d('19.2')), (d('144'), d('28.8')), (d('192'), d('38.6')), (d('240'), d('48')), (d('300'), d('15'))]
     dval = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
 
@@ -1599,6 +1693,7 @@ class SPDChipBETA(Chip):
     PROMOTION = R.SSS
     nick = "행베칩"
     name = "회로 최적화 베타"
+    code = "SpdTypeB"
     val = [(d('.12'), d('.006')), (d('.144'), d('.0072')), (d('.168'), d('.0084')), (d('.18'), d('.009')),
            (d('.19'), d('.01'))]
 
@@ -1619,6 +1714,7 @@ class Precision(Gear):
     BASE_RARITY = R.SS
     nick = "정밀형 관측 장비"
     name = "정밀형 관측 장비"
+    code = "Precision"
     
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
@@ -1630,6 +1726,7 @@ class Precision(Gear):
 class AWThruster(Gear):
     nick = "공중화기용 추력기"
     name = nick
+    code = "AWThruster"
     val = [((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('20'), d('2'))),
            ((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
            ((d('.07'), d('.02')), (d('.11'), d('.02')), (d('.15'), d('.02')), (d('.25'), d('.02')))]

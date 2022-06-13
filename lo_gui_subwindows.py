@@ -5,7 +5,8 @@ from PyQt5.QtGui import QFont, QPixmap, QTextCursor, QColor, QFontMetrics, QIcon
 
 list_split = ','
 list2d_split = '/'
-ICON_HEIGHT = 128
+CH_ICON_SIZE = 128
+EQ_ICON_SIZE = 64
 
 # TODO : 도움말 다듬기 & 추가
 import os
@@ -245,7 +246,7 @@ class CreateCharacter(QDialog):
         infolayout = QGridLayout()
 
         self.iconlabel = iconlabel = QLabel("<font color='red'>???</font>")
-        iconlabel.setMinimumHeight(ICON_HEIGHT)
+        iconlabel.setMinimumHeight(CH_ICON_SIZE)
         iconlabel.setAlignment(Qt.AlignCenter)
 
         raritylabel = QLabel("등급")
@@ -632,7 +633,7 @@ class CreateCharacter(QDialog):
             self.iconlabel.setText(f"<font color='red'>{character_icon}</font>")
         else:
             self.iconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
-                                     .scaledToHeight(ICON_HEIGHT))
+                                     .scaledToHeight(CH_ICON_SIZE))
         equipcond = klassinfo["equip_condition"]
         for i in range(4):
             eqlabel, eqklassbox = self.equips[i][:2]
@@ -939,6 +940,7 @@ class CharacterInfo(QDialog):
         statgroupbox = QGroupBox('능력치')
         equigroupbox = QGroupBox('장비')
         buffgroupbox = QGroupBox('버프')
+        self.equipgroupbox = equigroupbox
 
         ilayout = QVBoxLayout()
         templabel = QLabel()
@@ -949,7 +951,7 @@ class CharacterInfo(QDialog):
             templabel.setText(f"<font color='red'>{character_icon}</font>")
         else:
             templabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
-                                .scaledToHeight(ICON_HEIGHT))
+                                .scaledToHeight(CH_ICON_SIZE))
         ilayout.addWidget(templabel, alignment=Qt.AlignCenter)
         templabel = QLabel(self.character.name)
         templabel.setAlignment(Qt.AlignCenter)
@@ -979,7 +981,7 @@ class CharacterInfo(QDialog):
         layouts[0].addWidget(QLabel(f"체력\n{self.character.hp}/{self.character.maxhp}"))
         layouts[0].addWidget(QLabel(f"AP\n{self.character.ap}/20"))
 
-        stats = self.character._get_stats(*BT.BASE_STATS, BT.SPD, *BT.ELEMENT_RES)
+        stats = self.character.get_stats(*BT.BASE_STATS, BT.SPD, *BT.ELEMENT_RES)
         bstats = self.character.get_base_stats()
 
         atk = stats[BT.ATK].to_integral(rounding=decimal.ROUND_FLOOR)
@@ -1015,26 +1017,36 @@ class CharacterInfo(QDialog):
         statgroupbox.setLayout(slayout)
 
         elayout = QHBoxLayout(equigroupbox)
-        equips = []
+        self.equip_frames = []
         for e in self.character.equips:
             ef = QFrame()
             ef.setMinimumHeight(100)
             ef.setFrameShape(QFrame.Panel | QFrame.Sunken)
-            equips.append(ef)
+            ef.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+            self.equip_frames.append(ef)
+            elayout.addWidget(ef, stretch=1)
             efl = QVBoxLayout(ef)
             efl.setAlignment(Qt.AlignCenter)
             if e is None:
                 efl.addWidget(QLabel("없음"))
             else:
+                eqiconlabel = QLabel()
+                equip_icon = e.get_icon_filename()
+                if equip_icon is None or equip_icon + '.png' not in os.listdir(
+                        os.path.join(PATH, 'data', 'icons')):
+                    eqiconlabel.setText(f"<font color='red'>{equip_icon}</font>")
+                else:
+                    eqiconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', equip_icon + '.png'))
+                                          .scaledToWidth(EQ_ICON_SIZE))
+                efl.addWidget(eqiconlabel)
                 efl.addWidget(QLabel(e.nick))
                 efl.addWidget(QLabel(f"({e.name})"))
                 efl.addWidget(QLabel(f"[{list(R)[e.rarity].name}] Lv.{e.lvl}"))
-                efl.children()
-            for i in range(efl.count()):
-                efl.itemAt(i).setAlignment(Qt.AlignCenter)
             ef.setLayout(efl)
-        for ef in equips:
-            elayout.addWidget(ef)
+            for label in [efl.itemAt(i).widget() for i in range(efl.count())]:
+                label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                label.setAlignment(Qt.AlignCenter)
+        equigroupbox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         equigroupbox.setLayout(elayout)
 
         blayout = QVBoxLayout(buffgroupbox)
@@ -1062,6 +1074,26 @@ class CharacterInfo(QDialog):
         mlayout.addWidget(equigroupbox)
         mlayout.addWidget(buffgroupbox)
         self.setLayout(mlayout)
+
+    def resizeEquipFrames(self):
+        boxlayout = self.equipgroupbox.layout()
+        tempfunc = lambda tp: tp[0] + tp[2]
+        framewidth = (self.equipgroupbox.width() - tempfunc(self.equipgroupbox.getContentsMargins())
+                      - tempfunc(boxlayout.getContentsMargins()) - boxlayout.spacing() * 3) // 4
+        for ef in self.equip_frames:
+            efl = ef.layout()
+            tfw = framewidth - tempfunc(ef.getContentsMargins()) - tempfunc(efl.getContentsMargins())
+            for i in range(efl.count()):
+                eflitem = efl.itemAt(i).widget()
+                text_font = eflitem.font()
+                text_font.setPointSize(9)
+                while QFontMetrics(text_font).width(eflitem.text()) > tfw and text_font.pointSize() > 6:
+                    text_font.setPointSize(text_font.pointSize() - 1)
+                eflitem.setFont(text_font)
+
+    def resizeEvent(self, a0) -> None:
+        self.resizeEquipFrames()
+        return super().resizeEvent(a0)
 
     def show_window(self):
         super().show()
