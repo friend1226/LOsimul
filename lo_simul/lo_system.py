@@ -309,7 +309,7 @@ class Game:
             for t in targ_atkr:
                 targ_hits[t] = 1
 
-        atkr = d(skill_data['atkrate'][skillvl_val])
+        atkr = subjc.get_skill_atk_rate(skill_no)
         for t in targ_atkr:
             targ_atkr[t] *= atkr
         damages: Dict['Character', NUM_T]
