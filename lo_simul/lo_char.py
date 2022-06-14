@@ -617,7 +617,7 @@ class Character:
     def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
-        damage = self.get_stats(BT.ATK) * self.get_skill_atk_rate(value=rate[0])
+        damage = self.get_stats(BT.ATK) * self.get_skill_atk_rate(value=rate[0]) * rate[1]
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
             damage = antiosb.getSUM().calc(objtype, damage, True)
@@ -656,7 +656,7 @@ class Character:
                 damage = dtib.calc(
                     damage, obj.get_res_dmgrate(dtib.data.element))
 
-        damage *= rate[1]
+        damage *= rate[2]
         # 범위 공격 피해량 감소
 
         # 피해 최소화

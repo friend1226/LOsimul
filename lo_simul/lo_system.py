@@ -309,16 +309,14 @@ class Game:
             for t in targ_atkr:
                 targ_hits[t] = 1
 
-        atkr = subjc.get_skill_atk_rate(skill_no)
-        for t in targ_atkr:
-            targ_atkr[t] *= atkr
+        atkr = d(skill_data['atkrate'][skillvl_val])
         damages: Dict['Character', NUM_T]
         if follow is None or coop is None:
             print(f"[acs] {subjc}(이)가 {objpos}번 위치에 액티브 {skill_no}스킬 사용", file=self.stream)
             damages = subjc.active(
                 skill_no, 
-                targ_hits, 
-                dict(zip(targ_atkr.keys(), zip(targ_atkr.values(), targ_aoe_rate.values()))), 
+                targ_hits,
+                {k: (atkr, targ_hits[k], targ_aoe_rate[k]) for k in targ_atkr},
                 len(aoe)
             )
             if damages is None:
@@ -489,30 +487,31 @@ class Game:
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
                 target.remove_buff(**data._asdict())
-        if proportion:
-            target.proportionBuffs.append(buff)
-        elif type_ in BT.BASE_STATS_SET:
-            target.statBuffs.append(buff)
-        elif type_ == BT.AP:
-            target.give_ap(value)
-        elif type_ == BT.CHANGE_AP:
-            target.ap = value
-        elif type_ in BT.ANIT_OS_SET:
-            target.antiOSBuffs.append(buff)
-        elif type_ == BT.TAKEDMGINC:
-            target.dmgTakeIncBuffs.append(buff)
-        elif type_ == BT.TAKEDMGDEC:
-            target.dmgTakeDecBuffs.append(buff)
-        elif type_ == BT.GIVEDMGINC:
-            target.dmgGiveIncBuffs.append(buff)
-        elif type_ == BT.GIVEDMGDEC:
-            target.dmgGiveDecBuffs.append(buff)
         else:
-            target.specialBuffs.append(buff)
-        if type_ == BT.FORCE_MOVE:
-            pass  # TODO
-        if max_stack > 0:
-            target.stack_limited_buff_tags[tag] += 1
+            if proportion:
+                target.proportionBuffs.append(buff)
+            elif type_ in BT.BASE_STATS_SET:
+                target.statBuffs.append(buff)
+            elif type_ == BT.AP:
+                target.give_ap(value)
+            elif type_ == BT.CHANGE_AP:
+                target.ap = value
+            elif type_ in BT.ANIT_OS_SET:
+                target.antiOSBuffs.append(buff)
+            elif type_ == BT.TAKEDMGINC:
+                target.dmgTakeIncBuffs.append(buff)
+            elif type_ == BT.TAKEDMGDEC:
+                target.dmgTakeDecBuffs.append(buff)
+            elif type_ == BT.GIVEDMGINC:
+                target.dmgGiveIncBuffs.append(buff)
+            elif type_ == BT.GIVEDMGDEC:
+                target.dmgGiveDecBuffs.append(buff)
+            else:
+                target.specialBuffs.append(buff)
+            if type_ == BT.FORCE_MOVE:
+                pass  # TODO
+            if max_stack > 0:
+                target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
         return buff
 
