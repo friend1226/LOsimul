@@ -17,7 +17,7 @@ class Alice(Character):
         for t in targets:
             if targets[t] > 0:
                 desc = "찌르는 강철"
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=2, desc=desc)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=2, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[0], efft=BET.DEBUFF, round_=2, desc=desc)
                 t.give_buff(BT.EVA, 0, bv[1], efft=BET.DEBUFF, round_=2, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
@@ -54,6 +54,5 @@ class Alice(Character):
         if tt == TR.ROUND_START:
             self.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
         elif tt == TR.WAVE_START or tt == TR.IDLE:
-            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF,
-                           count=2+(self.skillvl[4] == 10), max_stack=1, tag="Alice_P3", desc=desc,
-                           count_trig={TR.AFTER_SKILL})
+            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, count=2+(self.skillvl[4] == 10),
+                           desc=desc, count_trig={TR.AFTER_SKILL}, overlap_type=BOT.RENEW)

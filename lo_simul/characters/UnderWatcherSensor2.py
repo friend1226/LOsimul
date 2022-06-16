@@ -19,7 +19,7 @@ class UnderWatcherSensor2(Character):
         desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.AP, 0, bv[2], efft=BET.DEBUFF, desc=desc)
@@ -35,7 +35,7 @@ class UnderWatcherSensor2(Character):
         desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=9, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=9, desc=desc)
                 t.give_buff(BT.AP, 0, bv[2], efft=BET.DEBUFF, desc=desc)
@@ -47,13 +47,13 @@ class UnderWatcherSensor2(Character):
             ts = self.get_passive_targets(targets)
             if hprate >= d('.75'):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=1)
+                    t.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=1, overlap_type=BOT.SINGLE)
             if hprate >= d('.5'):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1, chance=50)
+                    t.give_buff(BT.ACC, 0, bv[1], efft=BET.BUFF, round_=1, chance=50, overlap_type=BOT.SINGLE)
             if hprate >= d('.25'):
                 for t in ts:
-                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, round_=1, chance=20)
+                    t.give_buff(BT.ACC, 0, bv[2], efft=BET.BUFF, round_=1, chance=20, overlap_type=BOT.SINGLE)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
@@ -65,4 +65,4 @@ class UnderWatcherSensor2(Character):
         if tt == TR.ROUND_START:
             if self.hp / self.maxhp <= d('.5'):
                 self.give_buff(BT.EVA, 0, bv[0], efft=BET.BUFF, round_=9, max_stack=3,
-                               tag="UWS2_P3", desc="반응 강화")
+                               tag="UWS2_P3", desc="반응 강화")  # TODO : 교본 표시 버프와 다름

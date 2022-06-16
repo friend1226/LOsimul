@@ -39,7 +39,7 @@ class Goltarion(Character):
             if self.hp / self.maxhp >= d('.9'):
                 if len(list(filter(lambda c: c.isags, self.game.get_chars(field=self.isenemy).values()))) > 3:
                     self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION)
+                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION, overlap_type=BOT.SINGLE)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True),
                                desc="내부 부품 손상")
@@ -95,6 +95,6 @@ class Goltarion(Character):
             if self.hp / self.maxhp >= d('.9'):
                 if momo and baekto and faucre:
                     self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION)
+                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION, overlap_type=BOT.SINGLE)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True), desc="내부 부품 손상")

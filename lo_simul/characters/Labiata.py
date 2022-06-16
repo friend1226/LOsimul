@@ -50,7 +50,8 @@ class Labiata(Character):
             self.give_buff(BT.DEFPEN, 0, bv[0], round_=1, efft=BET.BUFF, desc="P.G 활성화")
             if self.stack_limited_buff_tags[G.LABIATA] == 2:
                 self.give_buff(BT.DEFPEN, 0, bv[0], round_=1, efft=BET.BUFF, desc="P.G 출력 강화")
-                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF, desc="P.G 출력 강화")
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF, desc="P.G 출력 강화",
+                               overlap_type=BOT.RENEW)
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

@@ -29,9 +29,9 @@ class Constantia(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.SPD, 1, bv[0], efft=BET.DEBUFF, round_=1)
-                t.give_buff(BT.ROOTED, 0, 1, efft=BET.DEBUFF, round_=2)
+                t.give_buff(BT.ROOTED, 0, 1, efft=BET.DEBUFF, round_=2, overlap_type=BOT.RENEW)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=2)
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=2)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=2, overlap_type=BOT.RENEW)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

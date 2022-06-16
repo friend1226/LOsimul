@@ -39,7 +39,8 @@ class EratoOld(Character):
         desc = "With You"
         bval = bv[0] * (1 + len(self.game.get_chars(field=self.isenemy))) / 2
         for t in targets:
-            t.give_buff(BT.ATK, 0, bval, proportion=(self, BT.ATK), efft=BET.BUFF, round_=2, desc=desc)
+            t.give_buff(BT.ATK, 0, bval, proportion=(self, BT.ATK), efft=BET.BUFF, round_=2, desc=desc,
+                        overlap_type=BOT.RENEW)
         self.give_buff(BT.ATK, 1, d('-.4'), desc="성대 결절", tag='Erato_A2_ATK_DOWN')
         return {}
 

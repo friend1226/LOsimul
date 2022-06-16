@@ -20,7 +20,7 @@ class Cerestia(Character):
             if targets[t] > 0:
                 if t.find_buff(tag=G.FLOOD):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), desc=desc)
-                t.give_buff(BT.ROOTED, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ROOTED, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.RENEW)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,

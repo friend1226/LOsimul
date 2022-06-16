@@ -42,8 +42,8 @@ class Peregrinus(Character):
         for t in targets:
             if targets[t] > 0:
                 self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, round_=0, desc=desc)
-                self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, data=D.BuffByInfo(subject=self, type=BT.EVA),
-                               efft=BET.BUFF, round_=0, desc=desc)
+                self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, proportion=(self, BT.EVA), efft=BET.BUFF, round_=0,
+                               desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -61,8 +61,7 @@ class Peregrinus(Character):
             desc = "위대한 하피의 왕"
             self.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.SPD, 1, bv[1], round_=1, efft=BET.BUFF, desc=desc)
-            self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, data=D.BuffByInfo(subject=self, type=BT.EVA),
-                           round_=1, efft=BET.BUFF, desc=desc)
+            self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, proportion=(self, BT.EVA), round_=1, efft=BET.BUFF, desc=desc)
 
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

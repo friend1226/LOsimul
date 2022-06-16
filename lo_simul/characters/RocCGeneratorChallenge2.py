@@ -31,13 +31,13 @@ class RocCGeneratorChallenge2(Character):
         desc = "실드 충전"
         for t in targets:
             if t.isags:
-                t.give_buff(BT.BARRIER, 0, 5000, efft=BET.BUFF, round_=3, desc=desc)
+                t.give_buff(BT.BARRIER, 0, 5000, efft=BET.BUFF, round_=3, desc=desc, overlap_type=BOT.RENEW)
         return {}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ALLY_DEAD:
-            self.give_buff(BT.BATTLE_CONTINUATION, 1, 1, round_=1, max_stack=1, tag=f"{self.code}_P1_BC", desc="자동 수복")
+            self.give_buff(BT.BATTLE_CONTINUATION, 1, 1, round_=1, desc="자동 수복", overlap_type=BOT.RENEW)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.BATTLE_CONTINUED:
-            self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=4, desc="복원 대기")
+            self.give_buff(BT.INABILLITY_ACT, 0, 1, round_=4, desc="복원 대기", overlap_type=BOT.RENEW)

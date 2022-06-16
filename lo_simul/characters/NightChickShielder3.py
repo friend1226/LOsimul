@@ -17,7 +17,7 @@ class NightChickShielder3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.EVA, efft=BET.DEBUFF):
-                t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=1, efft=BET.DEBUFF, chance=50)
+                t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=1, efft=BET.DEBUFF, chance=50, overlap_type=BOT.SINGLE)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self,
@@ -26,7 +26,7 @@ class NightChickShielder3(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
-        self.give_buff(BT.ROW_PROTECT, 0, 1, round_=3, efft=BET.BUFF)
+        self.give_buff(BT.ROW_PROTECT, 0, 1, round_=3, efft=BET.BUFF, overlap_type=BOT.RENEW)
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

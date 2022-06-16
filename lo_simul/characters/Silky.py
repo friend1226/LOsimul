@@ -21,7 +21,7 @@ class Silky(Character):
                 extrav = 1 if t.type_ == CT.FLY else d('1.5')
                 t.give_buff(BT.EVA, 0, bv[0] * extrav, efft=BET.DEBUFF, round_=2, desc=desc)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=2, desc=desc)
-                t.give_buff(BT.ROOTED, 0, 1, efft=BET.DEBUFF, round_=2, desc=desc)
+                t.give_buff(BT.ROOTED, 0, 1, efft=BET.DEBUFF, round_=2, desc=desc, overlap_type=BOT.RENEW)
                 if extrav > 1:
                     t.give_buff(BT.TAKEDMGINC, 1, bv[2], efft=BET.DEBUFF, round_=2, desc=desc)
                     t.give_buff(BT.SPD, 1, d('.-1'), efft=BET.DEBUFF, round_=2, desc=desc)

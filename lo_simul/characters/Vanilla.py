@@ -18,7 +18,7 @@ class Vanilla(Character):
         for t in targets:
             if targets[t] > 0:
                 desc = "다리 노리기"
-                t.give_buff(BT.ROOTED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ROOTED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.SPD, 1, bv[0], round_=2, efft=BET.DEBUFF, desc=desc)
                 if t.find_buff(type_={BT.ROOTED, BT.EVA}, efft=BET.DEBUFF):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[1], round_=0, desc="직격")
@@ -54,7 +54,7 @@ class Vanilla(Character):
         desc = "앞장서시죠"
         if tt == TR.ROUND_START:
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.ROW_PROTECT, 0, 1, round_=1, efft=BET.BUFF, desc=desc)
+                p.give_buff(BT.ROW_PROTECT, 0, 1, round_=1, efft=BET.BUFF, desc=desc, overlap_type=BOT.RENEW)
                 p.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
                 p.give_buff(BT.ACC, 0, bv[1], round_=1, efft=BET.BUFF, desc=desc)
                 p.give_buff(BT.SPD, 1, bv[2], round_=1, efft=BET.BUFF, desc=desc)

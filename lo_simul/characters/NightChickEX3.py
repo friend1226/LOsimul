@@ -34,5 +34,5 @@ class NightChickEX3(Character):
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.IDLE:
             self.give_buff(BT.ACC, 0, bv[0], efft=BET.BUFF, round_=3)
-            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=3)
+            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=3, overlap_type=BOT.RENEW)
             self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=3)

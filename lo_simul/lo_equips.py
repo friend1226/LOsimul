@@ -224,7 +224,7 @@ class OffenseOS(OS):
             desc = "돌격형 전투 OS"
             self.owner.give_buff(BT.ATK, 1, self.val[0][self.rarity][self.lvl], desc=desc)
             self.owner.give_buff(BT.TAKEDMGINC, 1, d('0.25'), desc=desc)
-            self.owner.give_buff(BT.SPD, 0, self.val[1][self.rarity][self.lvl], desc=desc)
+            self.owner.give_buff(BT.SPD, 1, self.val[1][self.rarity][self.lvl], desc=desc)
 
 
 class DefenseOS(OS):

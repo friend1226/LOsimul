@@ -28,8 +28,10 @@ class NightChickSniper1(Character):
                  element: int):
         self.give_buff(BT.EVA, 0, bv[0], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_EVA")
         self.give_buff(BT.CRIT, 0, bv[1], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_CRIT")
-        self.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_TAKEDMGINC")
+        self.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=3, efft=BET.BUFF, tag="NightChickSP_N_A2_TAKEDMGINC",
+                       overlap_type=BOT.RENEW)
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(tag="NightChickSP_N_A2"):
-            self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], round_=1, efft=BET.BUFF, desc="대응 저격")
+            self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], round_=1, efft=BET.BUFF, desc="대응 저격",
+                           overlap_type=BOT.RENEW)

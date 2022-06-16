@@ -46,7 +46,7 @@ class UnderWatcher1(Character):
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             if self.stack_limited_buff_tags[G.UNDER_WATCHER_GENERATOR_B05] >= 4:
-                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF)
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF, overlap_type=BOT.RENEW)
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:

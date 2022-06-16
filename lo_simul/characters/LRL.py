@@ -76,7 +76,7 @@ class LRL(Character):
                     if args["targets"][t] > 1:
                         t.give_buff(BT.TAKEDMGINC, 1, d('.25'), efft=BET.DEBUFF, round_=2, desc=desc)
                         t.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), efft=BET.DEBUFF, round_=2,
-                                    desc=desc, max_stack=1, tag="LRL_P3_IMMUNE_BUFF")
+                                    desc=desc, max_stack=1, tag="LRL_P3_IMMUNE_BUFF", overlap_type=BOT.RENEW)
             if args["skill_no"] == 2:
                 for t in args["targets"]:
                     if args["targets"][t] > 1:

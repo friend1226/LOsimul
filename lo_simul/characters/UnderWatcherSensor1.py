@@ -16,12 +16,13 @@ class UnderWatcherSensor1(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
+        desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3, overlap_type=BOT.RENEW)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3, desc=desc)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3, max_stack=1,
-                            tag="UWS1_A1", desc="록 온")
+                            tag="UWS1_A1", desc=desc)
     
     def _active2(self,
                  targets: Dict['Character', NUM_T],
@@ -29,11 +30,12 @@ class UnderWatcherSensor1(Character):
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
+        desc = "록 온"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3)
-                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3)
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3)
+                t.give_buff(BT.MARKED, 0, 1, efft=BET.DEBUFF, round_=3, overlap_type=BOT.RENEW)
+                t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3, desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], efft=BET.DEBUFF, round_=3, desc=desc)
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

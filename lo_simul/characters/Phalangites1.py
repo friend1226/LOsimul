@@ -27,10 +27,9 @@ class Phalangites1(Character):
                  wr: NUM_T,
                  element: int):
         self.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=3, efft=BET.BUFF)
-        self.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=3, efft=BET.BUFF)
+        self.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=3, efft=BET.BUFF, overlap_type=BOT.RENEW)
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             for p in self.get_passive_targets(targets):
-                p.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF,
-                            desc="밀집 대형", tag="Phalagites1_P1", max_stack=1)
+                p.give_buff(BT.TAKEDMGDEC, 1, bv[0], round_=1, efft=BET.BUFF, desc="밀집 대형", overlap_type=BOT.SINGLE)

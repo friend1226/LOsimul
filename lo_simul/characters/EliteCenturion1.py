@@ -29,7 +29,7 @@ class EliteCenturion1(Character):
         for t in targets:
             desc = "일제 공격 표식"
             t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=2, efft=BET.DEBUFF, desc=desc)
-            t.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc)
+            t.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.RENEW)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -37,7 +37,8 @@ class EliteCenturion1(Character):
             desc = "역습 태세"
             self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_ATK")
             self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_CRIT")
-            self.give_buff(BT.COUNTER_ATTACK, 1, bv[2], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_CNT")
+            self.give_buff(BT.COUNTER_ATTACK, 1, bv[2], efft=BET.BUFF, round_=2, desc=desc, tag="CenturionEX_TU_P1_CNT",
+                           overlap_type=BOT.RENEW)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START and self.find_buff(tag="CenturionEX_TU_P1"):

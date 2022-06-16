@@ -54,21 +54,24 @@ class Emily(Character):
             desc = "출력 강화"
             self.give_buff(BT.CRIT, 0, bv[0], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_CRIT")
             self.give_buff(BT.DEFPEN, 0, bv[1], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_DEFPEN")
-            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_IGN")
+            self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_IGN",
+                           overlap_type=BOT.RENEW)
             self.give_buff(BT.ATK, 1, bv[2], round_=3, efft=BET.BUFF, desc=desc, tag="Emily_P1_ATK")
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ATTACK:
-            if self.find_buff(type_=BT.FOLLOW_ATTACK, efft=BET.BUFF):
-                self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="급속 충전")
-            if self.find_buff(type_=BT.TARGET_PROTECT):
+            if self.find_buff(
+                    func=lambda b:
+                    (b.type == BT.FOLLOW_ATTACK and b.efftype == BET.BUFF) or b.type == BT.TARGET_PROTECT):
                 self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="급속 충전")
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt in {TR.ROUND_START, TR.ATTACK, TR.GET_ATTACKED} and self.hp / self.maxhp <= d('.33'):
             self.give_buff(BT.GIMMICK, 0, 1, max_stack=1, tag=Gimmick.EMILY)
-            self.give_buff(BT.ATK, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_ATK")
-            self.give_buff(BT.SPD, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_SPD")
+            self.give_buff(BT.ATK, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_ATK",
+                           overlap_type=BOT.SINGLE)
+            self.give_buff(BT.SPD, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_SPD",
+                           overlap_type=BOT.SINGLE)
             self.give_buff(BT.EVA, 0, bv[2], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_EVA")
         if tt == TR.ATTACK:
             self.give_buff(BT.DOT_DMG, 0, bv[0], round_=1, desc="과부하")

@@ -760,7 +760,7 @@ class Character:
                     self.give_damage(b.value * element_rate, True)
                 self.dead_judge_process()
             if b.do_print:
-                print(f"[brm] <{self}> - 버프 제거됨: [{b}]", file=self.stream)
+                print(f"[brm] <{self}> - 버프 제거됨: [{b}] (만료)", file=self.stream)
         return result
 
     def dead_judge_process(self,
@@ -921,7 +921,7 @@ class Character:
     def base_passive_before(self, tt, args=None):
         if tt == TR.DEAD:
             if bcbuffs := self.find_buff(BT.BATTLE_CONTINUATION):
-                bcb = bcbuffs[-1]
+                bcb = bcbuffs[0]
                 if bcb.opr:
                     self.hp = bcb.calc(self.maxhp) - self.maxhp
                 else:

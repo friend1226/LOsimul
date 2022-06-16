@@ -29,7 +29,7 @@ class LegionEX1(Character):
         for t in targets:
             if targets[t] > 0:
                 desc = "강화 점착탄"
-                t.give_buff(BT.ROOTED, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.ROOTED, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.EVA, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc, chance=75)
                 t.give_buff(BT.SPD, 1, bv[1], round_=3, efft=BET.DEBUFF, desc=desc, chance=75)
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, round_=3, efft=BET.DEBUFF, desc=desc,

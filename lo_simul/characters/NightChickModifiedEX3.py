@@ -34,6 +34,6 @@ class NightChickModifiedEX3(Character):
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.MOVE:
             desc = "기동 사격"
-            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=4, desc=desc)
+            self.give_buff(BT.RANGE, 0, 1, efft=BET.BUFF, round_=4, desc=desc, overlap_type=BOT.RENEW)
             self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=4, desc=desc)
             self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=4, desc=desc)

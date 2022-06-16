@@ -31,6 +31,10 @@ class Game:
         # Buff 객체: 버프가 추가됨
         # tuple: 피해 정보; 0번은 피해받은 캐릭터, 1번은 데미지(양수=데미지, 0=회피, -1=방어막, -2=피해무효)
         #                   (추가 정보는 해당 코드 참고 바람)
+        self.REAL_TIME = False
+        # 수치 비례 버프에 대해
+        # False = 버프 부여할 때의 수치로 계산
+        # True = 버프 계산할 때의 수치로 계산
 
     @property
     def enemy_all_down(self):
@@ -446,6 +450,9 @@ class Game:
         """
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
+        if not self.REAL_TIME:
+            value *= proportion[0].get_stats(proportion[1])
+            proportion = None
         buff = Buff(type_, opr, value, round_, count, count_trig, efft, max_stack, removable, tag, data, proportion,
                     desc, target, made_by, self, do_print)
         if overlap_type == BOT.SINGLE:
@@ -457,7 +464,7 @@ class Game:
         elif overlap_type == BOT.INSTANCE:
             buff.expired = True
         elif overlap_type == BOT.RENEW:
-            target.remove_buff(type_=type_)
+            target.remove_buff(func=lambda b: b.type == type_ and b.proportion == proportion)
         # 최대 중첩
         if 0 < max_stack <= target.stack_limited_buff_tags[tag]:
             target.remove_buff(tag=tag, force=True, limit=1)
@@ -663,9 +670,6 @@ class Buff:
         if self.type == BT.IMMUNE_DMG:
             self.count_triggers.add(TR.GET_HIT)
             self.count = self.value
-        elif self.type == BT.BATTLE_CONTINUATION:
-            self.count_triggers.add(TR.BATTLE_CONTINUED)
-            self.count = 1
         elif self.type == BT.INSTANT_DMG:
             self.expired = True
 
@@ -721,8 +725,9 @@ class Buff:
                     if self.opr:
                         result += f' {simpl(self.value * (1 if self.type == BT.ACTIVE_RESIST else 100)):+}%'
                     else:
-                        result += f' {simpl(self.value * (100 if self.type in {BT.SKILL_RATE, BT.DEFPEN} else 1)):+}' +\
-                            ('%' if self.type in {
+                        tmul = 100 if self.type in {BT.SKILL_RATE, BT.DEFPEN} else 1
+                        result += \
+                            f' {simpl(self.value * tmul):+}' + ('%' if self.type in {
                                 BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE,
                                 *BT.ELEMENT_RES, BT.SKILL_RATE, BT.DEFPEN
                             } else '')
@@ -771,7 +776,8 @@ class Buff:
             result += f'{self.round}횟수) '
         result += f'[{BET.desc[self.efftype]}]'
         if not self.removable:
-            result += " 해제불가"
+            result += " [해제불가]"
+        result += f" [owner={self.owner}]"
         if self.expired:
             result += " expired"
         result += '>'
