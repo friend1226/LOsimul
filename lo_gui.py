@@ -373,6 +373,9 @@ class MyApp(QWidget):
         try:
             if cmd == "eval":
                 self.print(eval(' '.join(args)))
+            elif cmd == "realtime":
+                self.game.REAL_TIME = not self.game.REAL_TIME
+                self.print(f"[@] REAL_TIME set to {self.game.REAL_TIME}")
             else:
                 if cmd in self.commands:
                     return_str = self.commands[cmd](*args)

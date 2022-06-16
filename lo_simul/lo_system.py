@@ -450,7 +450,7 @@ class Game:
         """
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
-        if not self.REAL_TIME:
+        if not self.REAL_TIME and proportion:
             value *= proportion[0].get_stats(proportion[1])
             proportion = None
         buff = Buff(type_, opr, value, round_, count, count_trig, efft, max_stack, removable, tag, data, proportion,
