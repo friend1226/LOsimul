@@ -23,8 +23,8 @@ class Equip:
     nick: str = "???"
     name: str = "-"
     code: str = "None"
-    BASE_RARITY: int = R.B
-    PROMOTION: int = R.SS
+    BASE_RARITY: R = R.B
+    PROMOTION: R = R.SS
     owner: 'Character'
 
     def __init_subclass__(cls, **kwargs):
@@ -42,12 +42,15 @@ class Equip:
         elif rarity > self.PROMOTION:
             self.rarity = self.PROMOTION
         else:
-            self.rarity = rarity
+            self.rarity = list(R)[rarity]
         self.lvl = lvl
         self.owner = owner
         self.buff = BuffList()
         self.init_buff()
 
+    def isfit(self, char: 'Character'):
+        return True
+        
     def get_icon_filename(self):
         return f"UI_Icon_Equip_{EQUIP_TYPE_CODE[self.EQUIP_TYPE]}_{self.code}_T{self.rarity + 1}"
 
@@ -57,8 +60,11 @@ class Equip:
     def passive(self, tt, args):
         pass
 
+    def __str__(self):
+        return f"{self.nick}[{self.rarity.name}/Lv.{self.lvl}]"
+
     def __repr__(self):
-        return self.nick + '[' + list(R)[self.rarity].name + ']'
+        return f"<{self.name}[{self.rarity.name}/Lv.{self.lvl}] owner={self.owner}>"
 
 
 class Chip(Equip):
@@ -159,8 +165,8 @@ class VaccineChip(Chip):
             desc = "백신 처리"
             value = self.bfval[self.rarity][self.lvl]
             self.owner.give_buff(BT.ACTIVE_RESIST, 1, value, round_=1, max_stack=1, tag=f'vaccine_{value}', desc=desc)
-            if random.random() * 100 <= self.chval[self.rarity][self.lvl]:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=desc,
+                                 chance=self.chval[self.rarity][self.lvl])
 
 
 class SPDChip(Chip):
@@ -263,11 +269,14 @@ class CounterOS(OS):
             (d('0.58'), d('0.6'), d('0.62'), d('0.64'), d('0.66'),
              d('0.68'), d('0.7'), d('0.72'), d('0.74'), d('0.76'), d('0.8')))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.SUPPORTER
+        
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            if random.random() * 100 <= self.val[0][self.rarity][self.lvl]:
-                self.owner.give_buff(BT.COUNTER_ATTACK, 1, self.val[1][self.rarity][self.lvl], round_=1,
-                                     count=1, count_trig={TR.AFTER_COUNTER}, desc="대응형 OS")
+            self.owner.give_buff(BT.COUNTER_ATTACK, 1, self.val[1][self.rarity][self.lvl], round_=1, count=1,
+                                 count_trig={TR.AFTER_COUNTER}, desc="대응형 OS",
+                                 chance=self.val[0][self.rarity][self.lvl])
 
 
 class AssaultOS(OS):
@@ -400,6 +409,9 @@ class Observation(Gear):
     val = [((10, 2), (15, 3), (20, 4), (30, 6)),
            ((5, 5), (15, 5), (35, 5), (55, 5))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.ATTACKER
+        
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ACC, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False)
@@ -408,9 +420,8 @@ class Observation(Gear):
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=self.name)
-            if random.random() * 100 <= self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
-                                     desc=self.name)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=self.name,
+                                 chance = self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl)
 
 
 class SpaceArmor(Gear):
@@ -431,6 +442,9 @@ class SpaceArmor(Gear):
             (1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3),
             (2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_[0] == CT.HEAVY
+        
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.HP, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False)
@@ -460,14 +474,16 @@ class SubBooster(Gear):
             (50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80),
             (62, 65, 68, 71, 74, 77, 80, 85, 90, 95, 100))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_[0] == CT.FLY
+        
     def init_buff(self):
         self.buff = BuffList(Buff(BT.EVA, 0, self.val[0][self.rarity][self.lvl], removable=False))
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            if random.random() * 100 <= self.val[1][self.rarity][self.lvl]:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.EVA, efft=BET.DEBUFF),
-                                     desc="보조 부스터")
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.EVA, efft=BET.DEBUFF),
+                                 desc="보조 부스터", chance=self.val[1][self.rarity][self.lvl])
 
 
 class UltraScope(Gear):
@@ -489,9 +505,8 @@ class UltraScope(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            if random.random() * 100 <= self.val[2][self.rarity][self.lvl]:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
-                                     desc=self.name)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
+                                 desc=self.name, chance=self.val[2][self.rarity][self.lvl])
 
 
 class ArmorPierce(Gear):
@@ -585,6 +600,9 @@ class ExamKit(Gear):
             (42, 45, 48, 51, 54, 57, 60, 63, 67, 71, 75),
             (57, 60, 63, 67, 71, 75, 80, 85, 90, 95, 100))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.HEAVY, CR.ATTACKER)
+        
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ACC, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False),
@@ -593,9 +611,8 @@ class ExamKit(Gear):
 
     def passive(self, tt, args):
         if tt == TR.ATTACK:
-            if random.random() * 100 <= self.val[2][self.rarity][self.lvl]:
-                self.owner.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, count=1, count_trig={TR.AFTER_SKILL},
-                                     desc="방어막 중화")
+            self.owner.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, count=1, count_trig={TR.AFTER_SKILL},
+                                 desc="방어막 중화", chance=self.val[2][self.rarity][self.lvl])
 
 
 class AdvRadar(Gear):
@@ -627,6 +644,9 @@ class AdvRadar(Gear):
             (d('9.5'), d('10'), d('11'), d('12'), d('13'),
              d('14'), d('16'), d('18'), d('20'), d('22'), d('24')))]
 
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.ATTACKER
+        
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
             if self.owner.getposy() == 0:
@@ -658,6 +678,9 @@ class Hologram(Gear):
     name = "더미 홀로그램"
     code = "Hologram"
     val = [(d('5'), d('.5')), (d('7'), d('.7')), (d('9'), d('.9')), (d('12'), d('.12'))]
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.SUPPORTER
 
     def init_buff(self):
         self.buff = BuffList(
@@ -682,6 +705,9 @@ class SpecialRifleBullet(Gear):
            (d('5'), d('5.25'), d('5.5'), d('6'), d('6.75'),
             d('7.75'), d('8.5'), d('10'), d('12'), d('14.5'), d('17.5'))]
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 3
+
     def init_buff(self):
         self.buff = BuffList(Buff(BT.ATK, 0, self.val[0][self.lvl], removable=False),
                              Buff(BT.CRIT, 0, self.val[1][self.lvl], removable=False))
@@ -700,6 +726,9 @@ class AMRAAMPod(Gear):
             d('0.19'), d('0.2'), d('0.21'), d('0.22'), d('0.23'), d('0.25')],
            [d('0.15'), d('0.15'), d('0.17'), d('0.19'), d('0.21'),
             d('0.23'), d('0.25'), d('0.27'), d('0.29'), d('0.31'), d('0.33')]]
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 92
 
     def init_buff(self):
         self.buff = BuffList(Buff(BT.ATK, 0, d('50') + d('5') * self.lvl, removable=False),
@@ -722,6 +751,9 @@ class SuperAlloyArmor(Gear):
     code = "SpAlloyArmor"
     val = [15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30]
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 121
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
@@ -732,8 +764,8 @@ class SuperAlloyArmor(Gear):
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.ACTIVE_RESIST, 1, d('0.15') + d('0.02') * self.lvl, round_=1, desc=self.name)
-            if random.random() * 100 <= self.val[self.lvl]:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=self.name)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=self.name,
+                                 chance=self.val[self.lvl])
 
 
 class DragonSlayer(Gear):
@@ -745,6 +777,9 @@ class DragonSlayer(Gear):
             d('41.85'), d('45.9'), d('54'), d('64.8'), d('78.3'), d('94.5')),
            (d('10'), d('10'), d('11'), d('12'), d('13'),
             d('14'), d('15'), d('16'), d('17'), d('18'), d('20'))]
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 118
 
     def init_buff(self):
         self.buff = BuffList(Buff(BT.CRIT, 0, d('10') + d('2') * self.lvl, removable=False),
@@ -804,6 +839,9 @@ class CounterTerrorismArmor(Gear):
            (d('0.15'), d('0.15'), d('0.17'), d('0.19'), d('0.21'),
             d('0.23'), d('0.25'), d('0.27'), d('0.29'), d('0.31'), d('0.35'))]
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 84
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.HP, 0, d('200') + d('40') * self.lvl, removable=False),
@@ -826,6 +864,9 @@ class DUBullet(Gear):
     nick = "네레이드전장"
     name = "40mm DU탄"
     code = "40mmDUBullet"
+    
+    def isfit(self, char: 'Character'):
+        return char.id_ == 87
 
     def init_buff(self):
         self.buff = BuffList(
@@ -845,6 +886,9 @@ class ATFLIR(Chip):
     name = "ATFLIR 강화 회로"
     code = "ATFLIR"
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 55
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ATK, 0, d('40') + d('4') * self.lvl, removable=False),
@@ -858,6 +902,9 @@ class CM67SpaceBooster(Gear):
     nick = "스팅어전장"
     name = "우주용 확장 부스터"
     code = "CM67SpaceBooster"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 103
 
     def init_buff(self):
         self.buff = BuffList(
@@ -879,6 +926,9 @@ class MG80ModKit(Gear):
     name = "MG80용 개조 키트"
     code = "MG80MODKit"
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
+    
+    def isfit(self, char: 'Character'):
+        return char.id_ == 33
 
     def init_buff(self):
         self.buff = BuffList(
@@ -899,6 +949,9 @@ class Steroid(Gear):
     name = "수상한 보조제"
     code = "STEROID"
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 122
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.SPD, 0, d('.12') + d('.012') * self.lvl, removable=False),
@@ -917,6 +970,9 @@ class SK14ModKit(Gear):
     name = "SK-14 P.C.C"
     code = "SK14MODKit"
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 82
 
     def init_buff(self):
         self.buff = BuffList(
@@ -950,6 +1006,9 @@ class Bombard(Gear):
     name = nick
     code = "Bombard"
 
+    def isfit(self, char: 'Character'):
+        return char.type_[0] == CT.FLY
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.CRIT, 0, d(5) + self.lvl, removable=False),
@@ -981,6 +1040,9 @@ class EyesOfBeholderD(Gear):
     name = "주사위의 눈 D형 OS"
     code = "EyesOfBeholderD"
     dval = [0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15]
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 21
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1080,6 +1142,9 @@ class HManeuver(OS):
            [(d('4'), d('0.8')), (d('6'), d('1.2')), (d('8'), d('1.6')), (d('10'), d('2'))],
            [(d('.1'), d('.02')), (d('.16'), d('.02')), (d('.22'), d('.02')), (d('.28'), d('.02'))]]
 
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.FLY, CR.DEFENDER)
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ACC, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False),
@@ -1155,6 +1220,9 @@ class ASN6G(Gear):
     code = "ASN6G"
     dval = [(0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50), (0, 1, 2, 4, 7, 11, 14, 20, 30, 40, 60)]
 
+    def isfit(self, char: 'Character'):
+        return char.id_ == 88
+
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ATK, 0, d('50') + d('2.5') * self.dval[0][self.lvl], removable=False),
@@ -1218,10 +1286,11 @@ class Interceptor(Gear):
         if tt == TR.ROUND_START:
             desc = "정밀형 관측 장비"
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=desc)
-            if random.random() * 100 <= 50 + 5 * self.lvl:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=desc)
-            if random.random() * 100 <= 50 + 5 * self.lvl:
-                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF), desc=desc)
+            chance = 50 + 5 * self.lvl
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
+                                 desc=desc, chance=chance)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
+                                 desc=desc, chance=chance)
 
 
 class ATKSPDChip(Chip):
@@ -1452,7 +1521,10 @@ class ExoSkeleton(Gear):
     code = "ExoSkeleton"
     val = [((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
            ((d('.02'), d('.002')), (d('.03'), d('.003')), (d('.04'), d('.004')), (d('.05'), d('.005'))),
-           ((d('0'), d('.005')), (d('.015'), d('.005')), (d('.03'), d('.005')), (d('.05'), d('.005'))),]
+           ((d('0'), d('.005')), (d('.015'), d('.005')), (d('.03'), d('.005')), (d('.05'), d('.005')))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_[0] == CT.LIGHT
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1476,7 +1548,7 @@ class ODAmplifier(Gear):
     def passive(self, tt, args):
         if tt == TR.ROUND_START and not self.owner.isags:
             self.owner.give_buff(BT.ATK, 1, d('.15') + d('.075') * self.lvl, round_=1, desc=self.name)
-            self.owner.give_buff(BT.DOTDMG, 0, d(525), round_=1, desc=self.name)
+            self.owner.give_buff(BT.DOT_DMG, 0, d(525), round_=1, desc=self.name)
 
 
 class CMIIShield(Gear):
@@ -1485,6 +1557,9 @@ class CMIIShield(Gear):
     name = "촙 메이커 II"
     code = "CMIIShield"
     dval = (0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15)
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 113
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1504,6 +1579,9 @@ class VerminEliminator(Gear):
     nick = "리제전장"
     name = "해충 파쇄기"
     code = "VerminEliminator"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 7
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1525,6 +1603,9 @@ class GigantesArmor(Gear):
     code = "GigantesArmor"
     dval1 = (0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50)
     dval2 = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15)
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 203
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1551,6 +1632,9 @@ class QMObserver(Gear):
            (d('12'), d('12.6'), d('13.2'), d('14.4'), d('16.2'),
             d('18.6'), d('20.4'), d('24'), d('28.8'), d('34.8'), d('42')),
            ]
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 31
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1715,12 +1799,426 @@ class Precision(Gear):
     nick = "정밀형 관측 장비"
     name = "정밀형 관측 장비"
     code = "Precision"
-    
+
     def passive(self, tt, args):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 2, round_=1, desc=self.name)
-            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), 
-                                 desc=self.name, chance=50+5*self.lvl)
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
+                                 desc=self.name, chance = 50 + 5 * self.lvl)
+
+
+class RangerSet(Gear):
+    BASE_RARITY = R.SS
+    nick = "다크엘븐전장"
+    name = "레인저용 전투장비 세트"
+    code = "RangerSet"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 135
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 75 + d('7.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 10 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.lvl, round_=1, efft=BET.BUFF, desc=self.name)
+            self.owner.give_buff(BT.RANGE, 0, 1, round_=1, efft=BET.BUFF, desc=self.name)
+
+
+class UnevenTerrain(Gear):
+    BASE_RARITY = R.SS
+    nick = "엘븐전장"
+    name = "험지용 특수 프레임"
+    code = "UnevenTerrain"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 133
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.DEF, 0, 95 + d('9.5') * self.lvl, removable=False),
+            Buff(BT.HP, 0, 250 + 25 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=1, efft=BET.BUFF, desc=self.name,
+                                 overlap_type=BOT.RENEW)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.01') * self.lvl, round_=1, efft=BET.BUFF,
+                                 desc=self.name)
+            for i in range(1, 4):
+                self.owner.give_buff(BT.ELEMENT_RES[i], 1, 15 + 2 * self.lvl, round_=1, efft=BET.BUFF, desc=self.name)
+
+
+class ThornNecklace(Gear):
+    BASE_RARITY = R.SS
+    nick = "베로니카전장"
+    name = "특수 대원용 가시 목걸이"
+    code = "ThornNecklace"
+    val = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14)
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 138
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 10 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 5 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.val[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.DOT_DMG, 0, 650, round_=1, desc=self.name)
+
+
+class OverFlow(OS):
+    BASE_RARITY = R.SS
+    nick = "타이런트전장"
+    name = "폭주 유도 시스템 OS"
+    code = "OverFlow"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 224
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 75 + d('7.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 25 + d('2.5') * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ENEMY_DEAD:
+            self.owner.give_buff(BT.ATK, 1, d('.02') + d('.003') * self.lvl, round_=2, efft=BET.BUFF, desc=self.name)
+
+
+class FCS(Gear):
+    BASE_RARITY = R.SS
+    nick = "셀주크전장"
+    name = "F.C.S"
+    code = "FCS"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 202
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 60 + 6 * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 10 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.AP, 0, d('.2') + d('.03') * self.lvl, efft=BET.BUFF, desc=self.name)
+
+
+class ImprovedUltraScope(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전스코프"
+    name = "초정밀 조준기"
+    code = "ImSpSight"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.CRIT, 0, d('12.5') + d('1.25') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 40 + 4 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
+                                 desc=self.name, chance = 50 + 5 * self.lvl)
+
+
+class AntiLightFlyOS(OS):
+    nick = "대경장기동OS"
+    name = "대 경장/기동 전투 시스템"
+    code = "AntiTrooperAir"
+    val = (d('.1'), d('.11'), d('.125'), d('.145'))
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
+            self.owner.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, v, desc="대 경장/기동형 OS")
+            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, v, desc="대 경장/기동형 OS")
+
+
+class AntiFlyHeavyOS(OS):
+    nick = "대기동중장OS"
+    name = "대 기동/중장 전투 시스템"
+    code = "AntiAirArmor"
+    val = (d('.1'), d('.11'), d('.125'), d('.145'))
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
+            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, v, desc="대 기동/중장형 OS")
+            self.owner.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, v, desc="대 기동/중장형 OS")
+
+
+class AntiHeavyLightOS(OS):
+    nick = "대중장경장OS"
+    name = "대 중장/경장 전투 시스템"
+    code = "AntiArmorTrooper"
+    val = (d('.1'), d('.11'), d('.125'), d('.145'))
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
+            self.owner.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, v, desc="대 중장/경장형 OS")
+            self.owner.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, v, desc="대 중장/경장형 OS")
+
+
+class ImprovedEXPOS(OS):
+    BASE_RARITY = R.SS
+    nick = "영전경험치OS"
+    name = "개량형 고속 학습 시스템"
+    code = "ImExp"
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.EXP, 1, d('.155') + d('.011') * self.lvl + d('.01') * (self.lvl == 10),
+                                 desc="개량형 고속 학습 OS")
+            self.owner.give_buff(BT.SPD, 1, d('-.2') + d('-.01') * self.lvl, desc="개량형 고속 학습 OS")
+
+
+class ParticleAcceleratorATK(Gear):
+    BASE_RARITY = R.SS
+    nick = "입자가속기 력"
+    name = "입자 가속기 력"
+    code = "ParticleAcceleratorATK"
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.ATK, 1, d('.15') + d('.02') * self.lvl, round_=1, desc="입자 가속기 [력]")
+            self.owner.give_buff(BT.TAKEDMGINC, 1, d('.1') + d('.01') * self.lvl, round_=1, desc="입자 가속기 [력]")
+
+
+class ImprovedNitro3500(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전부스터"
+    name = "개량형 니트로 EX 3500"
+    code = "ImNitroEx3500"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ELEMENT_RES[E.ICE], 0, 30 + 3 * self.lvl, removable=False),
+            Buff(BT.EVA, 0, d('18') + d('1.8') * self.lvl, removable=False),
+            Buff(BT.SPD, 0, d('.2') + d('.02') * self.lvl, removable=False),
+        )
+
+
+class ImprovedBarrier(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전방어막"
+    name = "개량형 방어 역장"
+    code = "ImBarrier"
+    val = (400, 420, 450, 480, 520, 560, 600, 650, 700, 750, 800)
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.BARRIER, 0, self.val[self.lvl], round_=1, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, d('-.1') + d('-.01') * self.lvl, round_=1, desc=self.name)
+
+
+class DustStorm(Gear):
+    BASE_RARITY = R.SS
+    nick = "더스트스톰(칸)"
+    name = "더스트 스톰"
+    code = "AngelLegs"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 41
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.MARKED, 0, 1, round_=1, desc=self.name)
+            self.owner.give_buff(BT.EVA, 0, 100 + 10 * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.2') + d('.03') * self.lvl, round_=1, desc=self.name)
+
+
+class LRCannon(Gear):
+    BASE_RARITY = R.SS
+    nick = "LRC(칸)"
+    name = "L.R.C 탄환"
+    code = "LRCannon"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 41
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ANTI_OS[CT.LIGHT], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 1, d('.2') + d('.03') * self.lvl, desc=self.name)
+
+
+class OptimizeLightAttackerOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 경장공격OS"
+    name = "경장 공격 최적화 시스템"
+    code = "RogTrooperNukerATK"
+    val = [(d('.135'), 13), (d('.155'), 14), (d('.185'), d('15.5')), (d('.225'), d('17.5')), (d('.275'), 20)]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.LIGHT, CR.ATTACKER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, self.val[self.rarity][0] + d('.1') * self.lvl)
+            self.owner.give_buff(BT.ACC, 0, self.val[self.rarity][1] + d('.5') * self.lvl)
+
+
+class OptimizeFlyAttackerOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 기동공격OS"
+    name = "기동 공격 최적화 시스템"
+    code = "RogMobilityNukerATK"
+    val = [(d('.11'), d('.002')), (d('.13'), d('.006')), (d('.16'), d('.012')),
+           (d('.2'), d('.02')), (d('.25'), d('.03'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.FLY, CR.ATTACKER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, self.val[self.rarity][0] + d('.1') * self.lvl)
+            self.owner.give_buff(BT.SPD, 1, self.val[self.rarity][1] + d('.002') * self.lvl)
+
+
+class OptimizeHeavyAttackerOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 중장공격OS"
+    name = "중장 공격 최적화 시스템"
+    code = "RogArmoredNukerATK"
+    val = [(d('.135'), d('5.2')), (d('.155'), d('5.6')), (d('.185'), d('6.2')), (d('.225'), 7), (d('.275'), 8)]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.HEAVY, CR.ATTACKER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, self.val[self.rarity][0] + d('.1') * self.lvl)
+            self.owner.give_buff(BT.CRIT, 0, self.val[self.rarity][1] + d('.2') * self.lvl)
+
+
+class OptimizeLightDefenderOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 경장보호OS"
+    name = "경장 보호 최적화 시스템"
+    code = "RogTrooperTankerDEF"
+    val = [(d('.13'), d('.03')), (d('.15'), d('.04')), (d('.18'), d('.055')),
+           (d('.22'), d('.075')), (d('.27'), d('.1'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.LIGHT, CR.DEFENDER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.DEF, 1, self.val[self.rarity][0] + d('.1') * self.lvl)
+            self.owner.give_buff(BT.TAKEDMGDEC, 0, self.val[self.rarity][1] + d('.005') * self.lvl)
+
+
+class OptimizeFlyDefenderOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 기동보호OS"
+    name = "기동 보호 최적화 시스템"
+    code = "RogMobilityTankerEVA"
+    val = [(16, d('.052')), (18, d('.056')), (21, d('.062')), (25, d('.07')), (30, d('.08'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.FLY, CR.DEFENDER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.EVA, 0, self.val[self.rarity][0] + self.lvl)
+            self.owner.give_buff(BT.SPD, 1, self.val[self.rarity][1] + d('.002') * self.lvl)
+
+
+class OptimizeHeavyDefenderOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 중장보호OS"
+    name = "중장 보호 최적화 시스템"
+    code = "RogArmoredTankerDEF"
+    val = [(60, d('.16')), (100, d('.18')), (140, d('.21')), (180, d('.25')), (200, d('.3'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.HEAVY, CR.DEFENDER)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, self.val[self.rarity][0] * (1 + d('.2') * self.lvl), removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.DEF, 1, self.val[self.rarity][1] + d('.1') * self.lvl)
+
+
+class OptimizeLightSupporterOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 경장지원OS"
+    name = "경장 지원 최적화 시스템"
+    code = "RogTrooperSupporterSPd"
+    val = [(d('.055'), 32), (d('.065'), 36), (d('.08'), 42), (d('.1'), 50), (d('.125'), 60)]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.LIGHT, CR.SUPPORTER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.SPD, 1, self.val[self.rarity][0] + d('.005') * self.lvl)
+            self.owner.give_buff(BT.ACC, 0, self.val[self.rarity][1] + 2 * self.lvl)
+
+
+class OptimizeFlySupporterOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 기동지원OS"
+    name = "기동 지원 최적화 시스템"
+    code = "RogMobilitySupporterSPd"
+    val = [(d('.08'), 22), (d('.09'), 26), (d('.105'), 32), (d('.125'), 40), (d('.15'), 50)]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.FLY, CR.SUPPORTER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.SPD, 1, self.val[self.rarity][0] + d('.005') * self.lvl)
+            self.owner.give_buff(BT.ACC, 0, self.val[self.rarity][1] + 2 * self.lvl)
+
+
+class OptimizeHeavySupporterOS(OS):
+    PROMOTION = R.SSS
+    nick = "영전 중장지원OS"
+    name = "중장 지원 최적화 시스템"
+    code = "RogArmoredSupporterSPD"
+    val = [(d('.03'), d('.8')), (d('.04'), d('.9')), (d('.055'), d('1.05')),
+           (d('.075'), d('1.25')), (d('.1'), d('1.5'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.HEAVY, CR.SUPPORTER)
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.SPD, 1, self.val[self.rarity][0] + d('.005') * self.lvl)
+            self.owner.give_buff(BT.AP, 0, self.val[self.rarity][1] + d('.05') * self.lvl)
+
+
+class ParticleAcceleratorHP(Gear):
+    BASE_RARITY = R.SS
+    nick = "입자가속기 량"
+    name = "입자 가속기 량"
+    code = "ParticleAcceleratorHP"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 400 + 60 * self.lvl, removable=False)
+        )
 
 
 class AWThruster(Gear):

@@ -723,7 +723,8 @@ class Buff:
             if self.type not in BT_NOVAL:
                 if self.proportion is None:
                     if self.opr:
-                        result += f' {simpl(self.value * (1 if self.type == BT.ACTIVE_RESIST else 100)):+}%'
+                        tmul = 1 if self.type in {BT.ACTIVE_RESIST, BT.REMOVE_BUFF_RESIST} else 100
+                        result += f' {simpl(self.value * tmul):+}%'
                     else:
                         tmul = 100 if self.type in {BT.SKILL_RATE, BT.DEFPEN} else 1
                         result += \

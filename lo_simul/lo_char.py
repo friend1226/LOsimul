@@ -138,7 +138,11 @@ class Character:
             else:
                 continue
             if e.EQUIP_TYPE != self.equip_condition[ei]:
-                print(f'[wre] <!> 경고: 장비 슬롯에 맞지 않는 장비입니다 = {ei+1}번 장비 {e}', file=self.stream)
+                print(f'[wre] <!> 경고: 장비 슬롯에 맞지 않는 장비입니다 = {ei+1}번 장비 {e}',
+                      file=self.stream)
+            if not e.isfit(self):
+                print(f'[wre] <!> 경고: 캐릭터가 이 장비의 장착 조건을 만족하지 않습니다 = {ei+1}번 장비 {e}',
+                      file=self.stream)
             self.baseBuffs += e.buff
 
         if self.affection == 200 or self.pledge:
@@ -577,11 +581,16 @@ class Character:
         remove_chances = []
         if buff.type == BT.REMOVE_BUFF:
             for b in self.specialBuffs.find(type_=BT.REMOVE_BUFF_RESIST):
+                """
                 if b.opr:
                     remove_chances.append(b.value)
                 else:
                     remove_p -= b.value
                     remove_flag = True
+                """
+                # 강화 해제 저항 (모두 기본 확률 증감)
+                remove_p -= b.value
+                remove_flag = True
 
         def m(p):
             if p > 1:
