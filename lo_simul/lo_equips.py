@@ -2221,6 +2221,20 @@ class ParticleAcceleratorHP(Gear):
         )
 
 
+class ImprovedAssaultOS(OS):
+    BASE_RARITY = R.SS
+    nick = "영전사감os"
+    name = "개량 강습형 전투 시스템"
+    code = "ImHighspd"
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            desc = "개량 강습형 전투 OS"
+            self.owner.give_buff(BT.ATK, 1, d('.1') + d('.01') * self.lvl, desc=desc)
+            self.owner.give_buff(BT.RANGE, 0, -2, desc=desc)
+            self.owner.give_buff(BT.CRIT, 0, d('.1') if self.lvl == 0 else d('.5') * self.lvl, desc=desc)
+
+
 class AWThruster(Gear):
     nick = "공중화기용 추력기"
     name = nick

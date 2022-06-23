@@ -1097,3 +1097,51 @@ class CharacterInfo(QDialog):
 
     def show_window(self):
         super().show()
+
+
+class Settings(QDialog):
+    def __init__(self, parents, *args, **kwargs):
+        super().__init__(parents, *args, **kwargs)
+        self.setWindowTitle("설정")
+        self.setMinimumSize(350, 200)
+        self.game = self.parentWidget().app.game
+
+        self.realtime_checkbox = QCheckBox("수치 실시간으로 계산하기")
+        self.realtime_checkbox_helptexts = [
+            QLabel("\"수치 비례 버프\"를 적용할 때 적용 즉시 그 수치를 계산하여 반영합니다.<br>"
+                   "(고정 수치 버프로 대체/표시됩니다)"),
+            QLabel("\"수치 비례 버프\"를 적용할 때 필요할 때마다 그 수치를 계산하여 반영합니다.<br>"
+                   "<span style=\"color:red\"><b>[주의]</b><br>"
+                   "이 게산 방식은 실제 인게임 방식과 다를 수 있으며,<br>"
+                   "일부 상황에서는 비례하는 비율이 일정 수치를 넘어서면<br>"
+                   "수치를 계산할 수 없거나 수치의 부호가 반전될 수 있습니다.</span>")
+        ]
+        for label in self.realtime_checkbox_helptexts:
+            label.setWordWrap(True)
+            label.setTextFormat(Qt.RichText)
+
+        if self.game.REAL_TIME:
+            self.realtime_checkbox.setChecked(True)
+
+        self.last_label = self.realtime_checkbox_helptexts[int(self.realtime_checkbox.isChecked())]
+
+        self.realtime_checkbox.stateChanged.connect(self.realtime_checkbox_checked)
+
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignTop)
+        layout.addWidget(self.realtime_checkbox)
+        layout.addWidget(self.last_label)
+        self.setLayout(layout)
+
+    def realtime_checkbox_checked(self):
+        if self.last_label:
+            layout = self.layout()
+            layout.removeWidget(self.last_label)
+            self.last_label.setParent(None)
+            self.game.REAL_TIME = self.realtime_checkbox.isChecked()
+            self.last_label = self.realtime_checkbox_helptexts[int(self.realtime_checkbox.isChecked())]
+            layout.addWidget(self.last_label)
+            self.setLayout(layout)
+
+    def show_window(self):
+        super().show()

@@ -339,13 +339,15 @@ class Character:
                 for emb in self.specialBuffs.find(type_=bt):
                     result[bt] = max(result[bt], emb.value)
             elif bt in gtdmgdict:
-                result[bt] = [0, 0, 0, 0, 0]
+                result[bt] = [[0, 0, 0, 0] for _ in range(5)]
                 for bf in gtdmgdict[bt]:
                     if bf.data is None:
                         type_ = 0
+                        element = 0
                     else:
                         type_ = bf.data.type_
-                    result[bt][type_] += bf.value
+                        element = bf.data.element
+                    result[bt][type_][element] += bf.value
             elif bt in BT.ANTI_OS:
                 result[bt] = (self.antiOSBuffs.find(type_=bt).getSUM() + propb_mul).calc(bt, 1)
             elif bt == BT.DEFPEN:
@@ -387,7 +389,6 @@ class Character:
             return result
 
     def calculate_cycled_buff(self) -> BuffList:
-        """"""
         history = dict()
         dfs_visited = set()
 
@@ -626,44 +627,56 @@ class Character:
     def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
-        damage = self.get_stats(BT.ATK) * self.get_skill_atk_rate(value=rate[0]) * rate[1]
+        substats = self.get_stats(BT.ATK, BT.DEFPEN, BT.GIVEDMGDEC, BT.GIVEDMGINC, BT.WIDE_GIVEDMG)
+        objstats = obj.get_stats(BT.DEF, BT.TAKEDMGDEC, BT.WIDE_TAKEDMG)
+        objelementres = tuple(obj.get_res_dmgrate(i) for i in range(4))
+        damage = substats[BT.ATK] * self.get_skill_atk_rate(value=rate[0]) * rate[1]
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
             damage = antiosb.getSUM().calc(objtype, damage, True)
         hprate = [1, self.hp / self.maxhp, obj.hp / obj.maxhp, 1 - self.hp / self.maxhp, 1 - obj.hp / obj.maxhp]
         # 적 받피감 (체력 비례 포함) (합연산)
-        dmgdectemp = 0
-        if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):
-            for b in obj.dmgTakeDecBuffs:
-                dmgdectemp += damage - b.calc(damage, hprate[0 if b.data is None else b.data.type_] * -1)
-        # 자신 주는 피해 증가/감소 (체력 비례 포함) (합연산)
-        dmginctemp = 0
-        for b in self.dmgGiveDecBuffs:
-            dmginctemp += b.calc(damage, hprate[0 if b.data is None else b.data.type_] * -1) - damage
-        for b in self.dmgGiveIncBuffs:
-            dmginctemp += b.calc(damage, hprate[0 if b.data is None else b.data.type_]) - damage
-        damage += dmginctemp - dmgdectemp
+        mulpair = lambda p: p[0]*p[1]
+        damage *= reduce(
+            operator.mul,
+            [1 - sum(map(mulpair,
+                         list(zip(objstats[BT.TAKEDMGDEC][i], objelementres))
+                         )) * hprate[i]
+             for i in range(5)]
+        )
 
         if element == 0:
             # 물리 피해
-            objdef = obj.get_stats(BT.DEF)
+            objdef = objstats[BT.DEF]
             # 적 방어력
-            if dpb := self.find_buff(BT.DEFPEN):
-                objdef *= 1 - dpb.getSUM().calc(BT.DEFPEN, 0, True)
-                # 방관 (합연산)
+            objdef *= 1 - max(substats[BT.DEFPEN], 0)
+            # 방관 (합연산)
             damage -= objdef
         else:
-            damage *= obj.get_res_dmgrate(element)
+            damage *= objelementres[element]
 
+        # 자신 주는 피해 증가/감소 (체력 비례 포함) (곱연산)
+        damage *= 1 + reduce(
+            operator.mul,
+            [1 - sum(map(mulpair,
+                         list(zip(substats[BT.GIVEDMGDEC][i], objelementres))
+                         )) * hprate[i]
+             for i in range(5)]
+        )
+        damage *= 1 + reduce(
+            operator.mul,
+            [1 - sum(map(mulpair,
+                         list(zip(substats[BT.GIVEDMGINC][i], objelementres))
+                         )) * hprate[i]
+             for i in range(5)]
+        )
+
+        # 상대 받피증 (곱연산)
         for dtib in obj.dmgTakeIncBuffs:
-            # 상대 받피증 (곱연산)
-            if dtib.data is None or dtib.data.element == 0:
-                # 물리 피해 증가
-                damage = dtib.calc(damage, hprate[0 if dtib.data is None else dtib.data.type_])
-            else:
-                # 속성 피해 증가
-                damage = dtib.calc(
-                    damage, obj.get_res_dmgrate(dtib.data.element))
+            extr = hprate[0 if dtib.data is None else dtib.data.type_]
+            if not (dtib.data is None or dtib.data.element == 0):
+                extr *= objelementres[dtib.data.element]
+            damage = dtib.calc(damage, extr)
 
         damage *= rate[2]
         # 범위 공격 피해량 감소
@@ -675,13 +688,7 @@ class Character:
                 damage = 1
 
         # 광역 피해 분산/집중
-        wrd = 0
-        wri = 0
-        for b in obj.find_buff(BT.WIDE_TAKEDMG):
-            wrd -= b.value * wr
-        for b in self.find_buff(BT.WIDE_GIVEDMG):
-            wri += b.value * (1 - wr)
-        damage *= (1 + wrd) * (1 + wri)
+        damage *= (1 - (objstats[BT.WIDE_TAKEDMG] - 1) * wr) * (1 + (substats[BT.WIDE_GIVEDMG] - 1) * (1 - wr))
         
         return simpl(damage)
 

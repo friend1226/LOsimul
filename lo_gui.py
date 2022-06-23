@@ -14,7 +14,7 @@ from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 defsysstdout = sys.stdout
 lo_simul_output_pattern = re.compile(r"\[(...)] (.*)")
 
-__version__ = "Beta.20220613"
+__version__ = "Beta.20220623"
 
 
 class Pipe:
@@ -464,6 +464,13 @@ class MyWindow(QMainWindow):
         next_round_action.setStatusTip('다음 라운드를 시작합니다. (라운드 종료 + 라운드 시작)')
         next_round_action.triggered.connect(next_round)
 
+        def open_setting():
+            window = lo_gui_subwindows.Settings(self)
+            window.show_window()
+
+        open_setting_action = QAction(QIcon(), '설정', self)
+        open_setting_action.triggered.connect(open_setting)
+
         exit_action = QAction(QIcon(os.path.join(PATH, 'images', 'exit.png')), '종료', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.setStatusTip('프로그램을 종료합니다.')
@@ -489,6 +496,9 @@ class MyWindow(QMainWindow):
         trigmenu.addAction(round_start_action)
         trigmenu.addAction(round_end_action)
         trigmenu.addAction(next_round_action)
+
+        settingmenu = menubar.addMenu('&Setting')
+        settingmenu.addAction(open_setting_action)
 
         helpmenu = menubar.addMenu('&Help')
         helpaction = QAction(QIcon(os.path.join(PATH, 'images', 'question.png')), '도움말', self)

@@ -20,6 +20,7 @@ import sys
 import inspect
 import json
 import math
+import operator
 
 decimal.getcontext().rounding = decimal.ROUND_FLOOR
 d = decimal.Decimal
