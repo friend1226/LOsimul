@@ -18,7 +18,7 @@ class OrangeAde(Character):
         desc = "회로 간섭"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.INSTANT_DMG, 1, bv[0], efft=BET.DEBUFF, data=D.FDmgInfo(subject=self), desc=desc)
+                t.give_buff(BT.INSTANT_DMG, 1, bv[0], efft=BET.DEBUFF, data=D.DmgInfo(subject=self), desc=desc)
                 t.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), efft=BET.DEBUFF, round_=2, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 

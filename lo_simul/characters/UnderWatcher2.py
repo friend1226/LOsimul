@@ -51,4 +51,4 @@ class UnderWatcher2(Character):
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.DEAD:
             for t in self.get_passive_targets(targets):
-                t.give_buff(BT.INSTANT_DMG, 1, bv[0], desc="시스템 정지", data=D.FDmgInfo(self))
+                t.give_buff(BT.INSTANT_DMG, 1, bv[0], desc="시스템 정지", data=D.DmgInfo(self))

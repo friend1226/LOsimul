@@ -18,7 +18,7 @@ class TyrantChallenge1(Character):
         desc = "타이런트 바이트"
         for t in targets:
             if targets[t] > 0:
-                self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.BUFF, data=D.DmgHPInfo(type_=4), desc=desc)
+                self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.BUFF, data=D.DmgInfo(hp_type=4), desc=desc)
                 t.give_buff(BT.DEF, 1, bv[1], round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A1_DEF", desc=desc)
                 if t.hp / t.maxhp >= d(.5):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF),
@@ -83,4 +83,4 @@ class TyrantChallenge1(Character):
                             overlap_type=BOT.RENEW)
         elif tt == TR.DEAD:
             for t in self.get_passive_targets(targets, field=not self.isenemy):
-                t.give_buff(BT.INSTANT_DMG, 1, bv[0], data=D.FDmgInfo(self, E.FIRE), desc="최후의 포효")
+                t.give_buff(BT.INSTANT_DMG, 1, bv[0], data=D.DmgInfo(self, E.FIRE), desc="최후의 포효")

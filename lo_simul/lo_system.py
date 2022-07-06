@@ -299,12 +299,12 @@ class Game:
             if catkr is None and follow is None:
                 subjc.trigger(TR.ATTACK, {"skill_no": skill_no})
                 for t in targ_atkr:
-                    t.trigger(TR.GET_ATTACKED)
+                    t.trigger(TR.GET_ATTACKED, {"attacker": subjc})
             for t in targ_atkr:
                 h_ = subjc.judge_hit(t, skill_data['accbonus'][skillvl_val])
                 if h_ > 0:
                     ishit = True
-                    t.trigger(TR.EXPECT_GET_HIT)
+                    t.trigger(TR.EXPECT_GET_HIT, {"attacker": subjc})
                 targ_hits[t] = h_
                 targ_atkr[t] *= h_
             if ishit and catkr is None and follow is None:
@@ -383,7 +383,8 @@ class Game:
             self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
 
         if followers := subjc.find_buff(BT.FOLLOW_ATTACK):
-            followc = max(map(lambda b: b.data.attacker, followers), key=lambda c: c.get_stats(BT.ATK))
+            followc = max(map(lambda b: b.data.attacker, filter(lambda b: subjc.random() <= b.data.chance, followers)),
+                          key=lambda c: c.get_stats(BT.ATK))
             if grid:
                 followtarg = random.choice(list(damages.keys()))
             else:
@@ -699,14 +700,14 @@ class Buff:
 
     def simpl_str(self):
         result = ''
-        if isinstance(self.data, D.FDmgInfo):
+        if isinstance(self.data, D.DmgInfo):
             if self.data.element == 0 and self.type == BT.INSTANT_DMG:
                 result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
             else:
                 result += f"추가 {E.desc[self.data.element]} 피해 {simpl(self.value*100):+}%"
-        elif isinstance(self.data, D.DmgHPInfo) and self.data.type_:
-            result += f"{'대상' if self.data.type_-1 % 2 else '자신'}의 HP%가 " \
-                      f"{'낮을' if self.data.type_-1 // 2 else '높을'}수록 {self.type} {simpl(self.value*100):+}%"
+        elif isinstance(self.data, D.DmgInfo) and self.data.hp_type:
+            result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
+                      f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 {self.type} {simpl(self.value * 100):+}%"
         else:
             if self.proportion:
                 result += f'{self.proportion[0]}의 {self.proportion[1]}의 {simpl(self.value * 100):+}% 만큼 '
@@ -809,7 +810,7 @@ class Buff:
             self.round -= 1
         elif self.tag == G.PHOSPHIDE and tt == TR.GET_HIT and args['element'] == E.FIRE:
             self.owner.give_buff(BT.INSTANT_DMG, 0, d('.5'), efft=BET.DEBUFF,
-                                 data=D.FDmgInfo(subject=args.attack), desc=G.PHOSPHIDE_DESC)
+                                 data=D.DmgInfo(subject=args.attack), desc=G.PHOSPHIDE_DESC)
         if tt in self.count_triggers:
             self.count -= 1
 

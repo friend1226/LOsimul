@@ -57,7 +57,7 @@ class Equip:
     def init_buff(self):
         pass
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         pass
 
     def __str__(self):
@@ -609,7 +609,7 @@ class ExamKit(Gear):
             Buff(BT.CRIT, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ATTACK:
             self.owner.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, count=1, count_trig={TR.AFTER_SKILL},
                                  desc="방어막 중화", chance=self.val[2][self.rarity][self.lvl])
@@ -647,9 +647,9 @@ class AdvRadar(Gear):
     def isfit(self, char: 'Character'):
         return char.type_[1] == CR.ATTACKER
         
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            if self.owner.getposy() == 0:
+            if self.owner.getposy() == self.owner.isenemy * 2:
                 desc = "망원 조준 장치"
                 self.owner.give_buff(BT.ATK, 1, self.val[0][self.rarity][self.lvl], round_=1, desc=desc)
                 self.owner.give_buff(BT.ACC, 0, self.val[1][self.rarity][self.lvl], round_=1, desc=desc)
@@ -663,7 +663,7 @@ class Stimulant(Gear):
     val = [((d('.025'), d('.005')), (d('.035'), d('.005')), (d('.05'), d('.005')), (d('.07'), d('.005'))),
            ((10, 15), (40, 15), (85, 15), (145, 15))]
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.SPD, 0,
                                  self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, desc=self.name)
@@ -687,7 +687,7 @@ class Hologram(Gear):
             Buff(BT.EVA, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             c = 1
             if self.rarity == R.SS and self.lvl == 10:
@@ -712,7 +712,7 @@ class SpecialRifleBullet(Gear):
         self.buff = BuffList(Buff(BT.ATK, 0, self.val[0][self.lvl], removable=False),
                              Buff(BT.CRIT, 0, self.val[1][self.lvl], removable=False))
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.05') * min(self.lvl, 1), desc=self.name)
 
@@ -735,7 +735,7 @@ class AMRAAMPod(Gear):
                              Buff(BT.ACC, 0, d('20') + d('4') * self.lvl, removable=False),
                              Buff(BT.CRIT, 0, d('5') + d('0.5') * self.lvl, removable=False))
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "AMRAAM"
             self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, self.val[0][self.lvl], desc=desc)
@@ -761,7 +761,7 @@ class SuperAlloyArmor(Gear):
             Buff(BT.ELEMENT_RES[E.ELEC], 0, d('25') + d('2.5') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.ACTIVE_RESIST, 1, d('0.15') + d('0.02') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), desc=self.name,
@@ -785,7 +785,7 @@ class DragonSlayer(Gear):
         self.buff = BuffList(Buff(BT.CRIT, 0, d('10') + d('2') * self.lvl, removable=False),
                              Buff(BT.EVA, 0, self.val[0][self.lvl], removable=False))
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.ACTIVE_RATE, 0, self.val[1][self.lvl], desc=self.name)
 
@@ -849,7 +849,7 @@ class CounterTerrorismArmor(Gear):
             Buff(BT.SPD, 0, d('0.12') + d('0.012') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "대 태러 외장 장갑"
             self.owner.give_buff(BT.ELEMENT_RES[E.FIRE], 0, self.val[1][self.lvl], desc=desc)
@@ -875,7 +875,7 @@ class DUBullet(Gear):
             Buff(BT.ACC, 0, d('10') + d('1') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.05') * min(self.lvl, 1), desc="열화 우라늄탄")
 
@@ -913,7 +913,7 @@ class CM67SpaceBooster(Gear):
             Buff(BT.SPD, 0, d('.1') + d('.01') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             desc = "우주용 부스터"
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.EVA, efft=BET.DEBUFF), desc=desc)
@@ -937,7 +937,7 @@ class MG80ModKit(Gear):
             Buff(BT.SPD, 0, d('.15') + d('.0075') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.ANTI_OS[CT.LIGHT], 1,
                                  d('.15') + d('.01') * self.lvl - (d('.01') if 0 < self.lvl < 10 else 0), desc="LM탄")
@@ -958,7 +958,7 @@ class Steroid(Gear):
             Buff(BT.ATK, 0, d('30') + d('6') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.RANGE, 0, 1, desc=self.name)
@@ -981,7 +981,7 @@ class SK14ModKit(Gear):
             Buff(BT.CRIT, 0, d('5') + d('.25') * self.dval[self.lvl], removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=self.name)
@@ -993,7 +993,7 @@ class SowanLunchBox(Gear):
     name = "소완제 수제 도시락"
     code = "LunchBox"
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START and not self.owner.isags:
             desc = "아니 이 맛은...!"
             self.owner.give_buff(BT.ATK, 1, d('.05') + d('.005') * self.lvl, tag='LunchBox', desc=desc)
@@ -1015,7 +1015,7 @@ class Bombard(Gear):
             Buff(BT.EVA, 0, d(-75), removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START and not self.owner.isags:
             self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.DEFPEN, 0, d('.15') + d('.03') * self.lvl, desc=self.name)
@@ -1049,7 +1049,7 @@ class EyesOfBeholderD(Gear):
             Buff(BT.HP, 0, d('125') + d('12.5') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "E.O.B D형 OS"
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('0.15') + d('0.01') * self.dval[self.lvl], desc=desc)
@@ -1101,7 +1101,7 @@ class AquaModule(Gear):
                  removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START and self.owner.find_buff(tag=G.FLOOD):
             v = self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl
             if self.rarity == R.SS and self.lvl == 10:
@@ -1121,7 +1121,7 @@ class Overclock(Gear):
            [(d('.05'), d('.005')), (d('.065'), d('.005')), (d('.08'), d('.005')), (d('.095'), d('.005'))],
            [(d('-19.5'), d('-.5')), (d('-18'), d('-.5')), (d('-16.5'), d('-.5')), (d('-15'), d('-.5'))]]
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START and self.owner.isags:
             desc = "출력 제한 해제"
             s1 = self.rarity == R.B and self.lvl == 0
@@ -1151,7 +1151,7 @@ class HManeuver(OS):
             Buff(BT.EVA, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1], removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START and self.owner.type_ == (CT.LIGHT, CR.DEFENDER):
             desc = "고기동 메뉴버"
             self.owner.give_buff(
@@ -1170,7 +1170,7 @@ class EXAM(OS):
            [(d('10'), d('.5')), (d('11.5'), d('.5')), (d('13'), d('.5')), (d('14.5'), d('.5'))],
            [(d('.01'), d('.002')), (d('.016'), d('.002')), (d('.022'), d('.002')), (d('.028'), d('.002'))]]
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START and self.owner.find_buff(type_=BT.RACON):
             desc = "전황 분석 OS"
             lvl = self.lvl + (self.rarity == R.SS and self.lvl == 10)
@@ -1192,7 +1192,7 @@ class IcePack(Gear):
             Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ATTACK:
             self.owner.give_buff(BT.AP, 0, d('.5') + d('.05') * self.lvl, desc=self.name)
 
@@ -1208,7 +1208,7 @@ class SunCream(Gear):
             Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.GET_HIT and args == E.FIRE:
             self.owner.give_buff(BT.AP, 0, d('.5') + d('.05') * self.lvl, desc=self.name)
 
@@ -1229,7 +1229,7 @@ class ASN6G(Gear):
             Buff(BT.CRIT, 0, d('5') + d('.25') * self.dval[1][self.lvl], removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('.15') + d('.03') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
@@ -1242,7 +1242,7 @@ class HornOfBADK(Gear):
     code = "HornOfBADK"
     dval = [(0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15), (0, 1, 2, 3, 4, 5, 7, 10, 13, 16, 20)]
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START and not self.owner.isags:
             desc = "뽀끄루...뽀끄루..."
             self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, round_=1, desc=desc)
@@ -1258,7 +1258,7 @@ class MoonCake(Gear):
     name = "달의 마력이 담긴 송편"
     code = "MoonCake"
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             desc = "달의 가호"
             self.owner.give_buff(BT.ATK, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=33)
@@ -1282,7 +1282,7 @@ class Interceptor(Gear):
             Buff(BT.CRIT, 0, d('5') + d('1') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             desc = "정밀형 관측 장비"
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=desc)
@@ -1318,7 +1318,7 @@ class FortuneOrb(Gear):
             Buff(BT.EVA, 0, 5 + self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.RACON, 0, 1, desc=self.name)
             self.owner.give_buff(BT.SPD, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
@@ -1336,7 +1336,7 @@ class ElectroGenerator(Gear):
             Buff(BT.ATK, 0, 25 + 5 * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.AP, 0, d('.44') + d('.2') * self.dval[self.lvl], desc=self.name)
 
@@ -1352,7 +1352,7 @@ class Recycler(Gear):
             Buff(BT.HP, 0, 150 + 15 * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.AP, 0, d('.3') + d('.05') * self.lvl, desc=self.name)
 
@@ -1372,7 +1372,7 @@ class LightWeight(Chip):
             Buff(BT.SPD, 0, self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.ATK, 1, d('-.08'), round_=1, removable=False, max_stack=1,
                                  tag='LightWeight', desc="무장 경량칩")
@@ -1408,7 +1408,7 @@ class Nitro3000(Gear):
             Buff(BT.SPD, 0, d('.1') + d('.02') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START and not self.owner.isags:
             self.owner.give_buff(BT.ACC, 0, -100, round_=1, efft=BET.DEBUFF, desc="속이 안 좋아...",
                                  chance=self.val[self.lvl])
@@ -1426,7 +1426,7 @@ class MiniPerralut(Gear):
             Buff(BT.ACC, 0, d('15') + d('1.5') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ATTACK:
             self.owner.give_buff(BT.AP, 0, d('0.05') * (1 + self.lvl), desc="애옹? 애옹!")
 
@@ -1443,7 +1443,7 @@ class MiniHachiko(Gear):
             Buff(BT.DEF, 0, d('30') + d('3') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, 100 + 50 * self.lvl, desc="민트 미트파이 드세여!",
                                  max_stack=1, tag="MiniHachiko_BC")
@@ -1461,7 +1461,7 @@ class MiniLilith(Gear):
             Buff(BT.ACC, 0, d('15') + d('1.5') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.TAKEDMGDEC, 1, min(d('.005'), d('.01') * self.lvl), desc="착한 리리스가 가욧!")
 
@@ -1474,7 +1474,7 @@ class EnhancedCombatOS(OS):
     val = [d('.005'), d('.0075'), d('.01'), d('.015'), d('.02'),
            d('.025'), d('.03'), d('.035'), d('.04'), d('.045'), d('.05')]
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.ATK, 1, d('.04') + d('.008') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.005') * self.lvl, round_=1, desc=self.name)
@@ -1496,7 +1496,7 @@ class GrandCruChocolate(Gear):
             Buff(BT.EVA, 0, d('5') + d('1') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.AP, 0, self.val[self.lvl], desc="녹아내릴 듯한 달콤함")
 
@@ -1532,7 +1532,7 @@ class ExoSkeleton(Gear):
             Buff(BT.SPD, 0, self.val[1][self.rarity][0] * self.val[1][self.rarity][1] * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.TAKEDMGDEC, 1,
                                  max(d('.0025'), self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl),
@@ -1545,7 +1545,7 @@ class ODAmplifier(Gear):
     name = "O.D 증폭기"
     code = "Odamplifier"
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START and not self.owner.isags:
             self.owner.give_buff(BT.ATK, 1, d('.15') + d('.075') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.DOT_DMG, 0, d(525), round_=1, desc=self.name)
@@ -1568,7 +1568,7 @@ class CMIIShield(Gear):
             Buff(BT.ELEMENT_RES[E.ELEC], 0, d('20') + d('4') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('50') + d('5') * self.dval[self.lvl], round_=1, desc=self.name)
             self.owner.give_buff(BT.DEF, 1, d('.1') + d('.025') * self.lvl, round_=1, desc="강화 티타늄 실드")
@@ -1590,7 +1590,7 @@ class VerminEliminator(Gear):
             Buff(BT.ACC, 0, d('10') + d('2') * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('0.25') + d('0.04') * self.lvl, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF), desc=self.name)
@@ -1613,7 +1613,7 @@ class GigantesArmor(Gear):
             Buff(BT.SPD, 0, d('.1') + d('.005') * self.dval1[self.lvl], removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.5') + d('.005') * self.dval2[self.lvl], desc=self.name)
             self.owner.give_buff(BT.ELEMENT_RES[E.FIRE], 0, d('20') + self.dval1[self.lvl], desc=self.name)
@@ -1642,7 +1642,7 @@ class QMObserver(Gear):
             Buff(BT.EVA, 0, self.val[1][self.lvl], removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.RACON, 0, 1, desc=self.name)
 
@@ -1800,7 +1800,7 @@ class Precision(Gear):
     name = "정밀형 관측 장비"
     code = "Precision"
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 2, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
@@ -1823,7 +1823,7 @@ class RangerSet(Gear):
             Buff(BT.CRIT, 0, 10 + self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.lvl, round_=1, efft=BET.BUFF, desc=self.name)
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, efft=BET.BUFF, desc=self.name)
@@ -1844,7 +1844,7 @@ class UnevenTerrain(Gear):
             Buff(BT.HP, 0, 250 + 25 * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.COLUMN_PROTECT, 0, 1, round_=1, efft=BET.BUFF, desc=self.name,
                                  overlap_type=BOT.RENEW)
@@ -1870,7 +1870,7 @@ class ThornNecklace(Gear):
             Buff(BT.CRIT, 0, 5 + self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.val[self.lvl], desc=self.name)
             self.owner.give_buff(BT.DOT_DMG, 0, 650, round_=1, desc=self.name)
@@ -1891,7 +1891,7 @@ class OverFlow(OS):
             Buff(BT.ACC, 0, 25 + d('2.5') * self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ENEMY_DEAD:
             self.owner.give_buff(BT.ATK, 1, d('.02') + d('.003') * self.lvl, round_=2, efft=BET.BUFF, desc=self.name)
 
@@ -1912,7 +1912,7 @@ class FCS(Gear):
             Buff(BT.CRIT, 0, 10 + self.lvl, removable=False),
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.AP, 0, d('.2') + d('.03') * self.lvl, efft=BET.BUFF, desc=self.name)
 
@@ -2055,7 +2055,7 @@ class LRCannon(Gear):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.ANTI_OS[CT.LIGHT], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
-            self.owner.give_buff(BT.DEFPEN, 1, d('.2') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('.2') + d('.03') * self.lvl, desc=self.name)
 
 
 class OptimizeLightAttackerOS(OS):
@@ -2235,6 +2235,300 @@ class ImprovedAssaultOS(OS):
             self.owner.give_buff(BT.CRIT, 0, d('.1') if self.lvl == 0 else d('.5') * self.lvl, desc=desc)
 
 
+class TuinStone(Gear):
+    BASE_RARITY = R.SS
+    nick = "타치전장 화염"
+    name = "투인석"
+    code = "FlameStone"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 206
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 5 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 5 + d('.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+        )
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.GIVEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                 data=D.DmgInfo(element=E.FIRE), desc=self.name)
+
+
+class SumaStone(Gear):
+    BASE_RARITY = R.SS
+    nick = "타치전장 냉기"
+    name = "수마석"
+    code = "FrostStone"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 206
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 5 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 5 + d('.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.GIVEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                 data=D.DmgInfo(element=E.ICE), desc=self.name)
+
+
+class JowiStone(Gear):
+    BASE_RARITY = R.SS
+    nick = "타치전장 전기"
+    name = "조위석"
+    code = "ThunderStone"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 206
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 5 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 5 + d('.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.GIVEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                 data=D.DmgInfo(element=E.ELEC), desc=self.name)
+
+
+class LRAD(OS):
+    BASE_RARITY = R.SS
+    nick = "드라큐리나OS"
+    name = "LRAD 강화 시스템"
+    code = "LRAD"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 141
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            val = d('14.5') + d('.5') * (self.lvl + (self.lvl == 10))
+            for antios in BT.ANTI_OS:
+                self.owner.give_buff(antios, 1, val, desc="LRAD 강화")
+            self.owner.give_buff(BT.RANGE, 0, 1, desc="LRAD 강화")
+
+
+class S42Adlib(Chip):
+    BASE_RARITY = R.SS
+    nick = "골타전장"
+    name = "S#.42 ad-lib 회로"
+    code = "S42Adlib"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 128
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 10 * self.lvl, removable=False),
+            Buff(BT.HP, 0, -30 - 3 * self.lvl, removable=False),
+            Buff(BT.DEF, 0, 27 + d('.27') * self.lvl, removable=False),
+        )
+
+
+class ASEARadar(Gear):
+    BASE_RARITY = R.SS
+    nick = "블하전장"
+    name = "능동형 항공 레이더"
+    code = "ASEARadar"
+    val = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
+    
+    def isfit(self, char: 'Character'):
+        return char.id_ == 95
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.EVA, 0, 12 + d('1.2') * self.lvl + (self.lvl == 0), removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.AP, 0, d('.44') + d('.02') * self.val[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('.5') + d('.05') * self.lvl, round_=1, desc=self.name)
+
+
+class MKEngine(Gear):
+    BASE_RARITY = R.SS
+    nick = "린트불룸전장"
+    name = "개량형 MK 엔진"
+    code = "MKEngine"
+    val = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
+    
+    def isfit(self, char: 'Character'):
+        return char.id_ == 96
+    
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.AP, 0, d('.44') + d('.02') * self.val[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.DEFPEN, 0, d('.05') + d('.03') * self.lvl, round_=1, desc=self.name)
+            self.owner.give_buff(BT.FOLLOW_ATTACK, 0, 1, round_=1, desc=self.name)
+
+
+class PileBunker(Gear):
+    BASE_RARITY = R.SS
+    nick = "불가사리벙커"
+    name = "전격형 파일벙커"
+    code = "BulgasariPileBunker"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 84
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
+
+
+class ImprovedOverclock(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전글카"
+    name = "개량형 출력 제한 해제 장치"
+    code = "ImOverclock"
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START and self.owner.isags:
+            self.owner.give_buff(BT.ATK, 1, d('.2') + d('.015') * (self.lvl + (self.lvl == 0)), desc=self.name[:-3])
+            self.owner.give_buff(BT.SPD, 1, d('.15') + d('.01') * (self.lvl - (0 < self.lvl < 10)), desc=self.name[:-3])
+
+
+class HQ1Commander(OS):
+    BASE_RARITY = R.SS
+    nick = "알바OS"
+    name = "HQ1 커맨더 시스템"
+    code = "HQ1Commander"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 201
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.AP, 0, 1, desc=self.name)
+            self.owner.give_buff(BT.EVA, 0, d(15) + d('2.5') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.1') + d('.005') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, count=1, count_trig={TR.IDLE, }, desc=self.name)
+
+
+class TuinOrellia(Gear):
+    BASE_RARITY = R.SS
+    nick = "오렐리아전장 화염"
+    name = "원소의 심장(화염)"
+    code = "TuinOrellia"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 205
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 30 + 3 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+        elif tt == TR.HIT:
+            if args.get("skill_no") == 2:
+                targets = args.get("targets")
+                for t in targets:
+                    if targets[t]:
+                        t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                    data=D.DmgInfo(element=E.FIRE), round_=0, desc=self.name)
+                        t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -50 - 3 * self.lvl,
+                                    efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
+
+
+class SumaOrellia(Gear):
+    BASE_RARITY = R.SS
+    nick = "오렐리아전장 냉기"
+    name = "원소의 심장(냉기)"
+    code = "SumaOrellia"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 205
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 30 + 3 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+        elif tt == TR.HIT:
+            if args.get("skill_no") == 2:
+                targets = args.get("targets")
+                for t in targets:
+                    if targets[t]:
+                        t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                    data=D.DmgInfo(element=E.ICE), round_=0, desc=self.name)
+                        t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -50 - 3 * self.lvl,
+                                    efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
+
+
+class ZoweOrellia(Gear):
+    BASE_RARITY = R.SS
+    nick = "오렐리아전장 전기"
+    name = "원소의 심장(전기)"
+    code = "ZoweOrellia"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 205
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 30 + 3 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+        elif tt == TR.HIT:
+            if args.get("skill_no") == 2:
+                targets = args.get("targets")
+                for t in targets:
+                    if targets[t]:
+                        t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
+                                    data=D.DmgInfo(element=E.ELEC), round_=0, desc=self.name)
+                        t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -50 - 3 * self.lvl,
+                                    efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
+
+
+class LWLoader(Gear):
+    nick = "경화기용 장전기"
+    name = nick
+    code = "LWLoader"
+    val = [((d('8'), d('.8')), (d('12'), d('1.2')), (d('16'), d('1.6')), (d('20'), d('2'))),
+           ((d('2'), d('.4')), (d('3'), d('.6')), (d('4'), d('.8')), (d('5'), d('1'))),
+           (50, 55, 60, d('72.5'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_ == (CT.LIGHT, CR.ATTACKER)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ATTACK:
+            chance = self.val[2][self.rarity] + d('2.5') * self.lvl
+            if self.rarity == R.SS and self.lvl > 5:
+                chance += d('.5') * (self.lvl - 5)
+            self.owner.give_buff(BT.FOLLOW_ATTACK, 0, 1, data=D.FollowAttack(attacker=self, chance=chance),
+                                 round_=1, max_stack=1, tag="LWLoader_FA", desc=self.name)
+
+
 class AWThruster(Gear):
     nick = "공중화기용 추력기"
     name = nick
@@ -2249,7 +2543,362 @@ class AWThruster(Gear):
             Buff(BT.CRIT, 0, self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl, removable=False)
         )
 
-    def passive(self, tt, args):
+    def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.SKILL_RATE, 0,
                                  self.val[2][self.rarity][0] + self.val[2][self.rarity][1] * self.lvl, desc=self.name)
+
+
+class CMDProtocol(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전구슬"
+    name = "응용 지휘 프로토콜"
+    code = "CMDProtocol"
+
+    def isfit(self, char: 'Character'):
+        return char.type_[0] == CT.LIGHT
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 15 + 3 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.RANGE_1SKILL, 0, -1, round_=1, desc=self.name)
+            self.owner.give_buff(BT.RANGE_2SKILL, 0, 1, round_=1, desc=self.name)
+
+
+class ImprovedAdvRadar(Gear):
+    BASE_RARITY = R.SS
+    nick = "영전망원조준"
+    name = "시작형 망원 조준장치"
+    code = "ImAdvRadar"
+    val = [(0, 1, 2, 3, 4, 5, 7, 9, 11, 15, 19), (0, 1, 3, 5, 7, 9, 13, 17, 21, 25, 29)]
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.ATTACKER
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            if self.owner.getposy() == self.owner.isenemy * 2:
+                self.owner.give_buff(BT.ACC, 0, 50 + 50 * self.val[0][self.lvl], round_=2, desc=self.name)
+                self.owner.give_buff(BT.CRIT, 0, d('9.5') + d('.5') * self.val[1][self.lvl], desc=self.name)
+                self.owner.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
+                                     round_=2, desc=self.name)
+
+
+class BattleAssist(Gear):
+    BASE_RARITY = R.SS
+    nick = "목뼈"
+    name = "강행 전투 보조장치"
+    code = "BattleASST"
+    val = (0, 1, 2, 3, 4, 5, 10, 15, 20, 30, 45)
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.SPD, 0, d('.1') + d('.01') * self.val[self.lvl], removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, d('-.2') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.ACT_PER_TURN, 0, 1, desc=self.name)
+
+
+class SpikeShield(Gear):
+    BASE_RARITY = R.SS
+    nick = "변소방패"
+    name = "스파이크 실드"
+    code = "SpikeShield"
+    val = [(0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16),
+           (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14),
+           (d('.3'), d('.6'), d('.9'), d('1.2'), d('1.5'), d('1.8'), d('2.1'), d('2.5'), d('3'), d('3.5'), d('4'))]
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 200 + 50 * self.val[0][self.lvl], removable=False),
+            Buff(BT.DEF, 0, 50 + 5 * self.val[1][self.lvl], removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.SKILL_RATE, 1, self.val[2][self.lvl] / 100,
+                                 proportion=(self, BT.DEF), desc=self.name)
+
+
+class Backstab(OS):
+    BASE_RARITY = R.SS
+    nick = "암습OS"
+    name = "암습형 전투 시스템"
+    code = "Backstab"
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.ATTACKER
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ATK, 1, d('.05') + d('.015') * self.lvl, round_=1 + (self.lvl == 10),
+                                 desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, d('-.2') + d('.025') * self.lvl, round_=2, desc=self.name)
+            self.owner.give_buff(BT.IGNORE_PROTECT, 0, 1, round_=1, desc=self.name)
+
+
+class RebootAlpha(OS):
+    BASE_RARITY = R.SS
+    nick = "변소알파OS"
+    name = "전장 리부트 시스템 알파"
+    code = "RebootAlpha"
+    
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.DEF, 0, 100 + 10 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 5 + d('.5') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 10 + self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            if self.owner.hp / self.owner.maxhp >= 1:
+                self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc=self.name)
+                self.owner.give_buff(BT.DOT_DMG, 0, 10, round_=1, desc=self.name)
+
+
+class RebootBeta(OS):
+    BASE_RARITY = R.SS
+    nick = "변소베타OS"
+    name = "전장 리부트 시스템 베타"
+    code = "RebootBeta"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.DEF, 0, 120 + 12 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 6 + d('.6') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 12 + d('1.2') * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            if self.owner.game.round % 2:  # ROUND_START 트리거는 Game.round 값이 증가하기 전에 발동됨
+                self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc=self.name)
+
+
+class RebootGamma(OS):
+    BASE_RARITY = R.SS
+    nick = "변소감마OS"
+    name = "전장 리부트 시스템 감마"
+    code = "RebootGamma"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.DEF, 0, 120 + 12 * self.lvl, removable=False),
+            Buff(BT.CRIT, 0, 6 + d('.6') * self.lvl, removable=False),
+            Buff(BT.ACC, 0, 12 + d('1.2') * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            if not self.owner.game.round % 2:  # ROUND_START 트리거는 Game.round 값이 증가하기 전에 발동됨
+                self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc=self.name)
+
+
+class WRII(OS):
+    BASE_RARITY = R.SS
+    nick = "WRII"
+    name = "W.R.I.I 시스템"
+    code = "Circulation"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+    
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 150 + 15 * self.lvl, removable=False),
+            Buff(BT.DEF, 0, 100 + 10 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.GET_ATTACKED:
+            attacker = args.get("attacker")
+            if attacker.get_stats(BT.DEF) < self.owner.get_stats(BT.DEF):
+                attacker.give_buff(BT.ATK, 1, d('-.1') + d('-.03') * self.lvl, count=1, count_trig={TR.AFTER_SKILL, },
+                                   desc=self.name)
+
+
+class HotPack(Gear):
+    BASE_RARITY = R.SS
+    nick = "핫팩"
+    name = nick
+    code = "HotPack"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ELEMENT_RES[E.ICE], 0, 25 + d('2.5') * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.ELEMENT_MIN[E.ICE], 0, 10 + 2 * self.lvl, round_=3, desc=self.name)
+
+
+class SEyePatch(Gear):
+    BASE_RARITY = R.SS
+    nick = "찐조전장"
+    name = "핏빛안대 -혈화요란-"
+    code = "SEyePatch"
+
+    def isfit(self, char: 'Character'):
+        return char.id_ == 240
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.CRIT, 0, 10 + self.lvl, removable=False),
+            Buff(BT.ACC, 0, 20 + 2 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.4') + d('.05') * self.lvl, desc="혈화요란")
+            self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('.5') + d('.06') * self.lvl, desc="혈화요란")
+
+
+class SuperHeavyComplexArmor(Gear):
+    BASE_RARITY = R.SS
+    nick = "변소장갑"
+    name = "초중량 복합장갑"
+    code = "SHCA"
+    val = [(0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16),
+           (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 12),]
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 200 + 50 * self.val[0][self.lvl], removable=False),
+            Buff(BT.DEF, 0, 30 + 10 * self.val[1][self.lvl], removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.ROOTED, 0, 1, round_=1, desc=self.name)
+            self.owner.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(type_=BT.FORCE_MOVE, efft=BET.DEBUFF),
+                                 round_=1, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, d('-.3') + d('.015') * self.lvl, round_=1, desc=self.name)
+
+
+class MiniFenrir(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 펜리르"
+    name = nick
+    code = "MiniFenrir"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ACC, 0, 5 + 4 * self.lvl, removable=False),
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ATTACK:
+            self.owner.give_buff(BT.AP, 0, d('.5') + d('.05') * self.lvl, desc="고기 먹자, 고기!")
+
+
+class MiniSnowFeather(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 페더"
+    name = "미니 스노우 페더"
+    code = "MiniSnowFeather"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.EVA, 0, 10 + 5 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.MINIMIZE_DMG, 0, 9999999, count=1, count_trig={TR.GET_HIT, },
+                                 overlap_type=BOT.RENEW, desc="얼어붙은 날개")
+
+
+class MiniPoi(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 포이"
+    name = nick
+    code = "MiniPoi"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.ATTACKER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.CRIT, 0, 10 + self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.DEFPEN, 0, d('.18') + d('.02') * self.lvl, desc="주인님의 옷!")
+
+
+class MiniFrigga(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 프리가"
+    name = nick
+    code = "MiniFrigga"
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 500 + 50 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.TAKEDMGDEC, 1, (d('.01') * self.lvl) or d('.005'), desc="꼬옥(?) 안기")
+
+
+class MiniHirume(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 히루메"
+    name = nick
+    code = "MiniHirume"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.EVA, 0, 10 + 2 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            desc = "가..간지럽다앗!"
+            self.owner.give_buff(BT.RACON, 0, 1, desc=desc)
+            self.owner.give_buff(BT.SPD, 1, d('.05') + d('.005') * self.lvl, desc=desc)
+
+
+class MiniBlackWyrm(Gear):
+    BASE_RARITY = R.SS
+    nick = "미니 블랙 웜"
+    name = nick
+    code = "MiniBlackWyrm"
+
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.DEFENDER
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.HP, 0, 250 + 25 * self.lvl, removable=False)
+        )
+
+    def passive(self, tt, args=None):
+        if tt == TR.GET_HIT:
+            attacker = args.get('attacker')
+            if attacker.get_stats(BT.SPD) > self.owner.get_stats(BT.SPD):
+                attacker.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -10 - self.lvl, round_=1, efft=BET.DEBUFF,
+                                   max_stack=1, tag=f"{self.code}_ER", desc="사전 제압")

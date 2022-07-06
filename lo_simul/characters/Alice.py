@@ -39,7 +39,7 @@ class Alice(Character):
             if self.hp / self.maxhp >= d('.5'):
                 desc = "강자의 품격"
                 self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
-                self.give_buff(BT.GIVEDMGINC, 1, bv[1], efft=BET.BUFF, round_=1, data=D.DmgHPInfo(type_=4), desc=desc)
+                self.give_buff(BT.GIVEDMGINC, 1, bv[1], efft=BET.BUFF, round_=1, data=D.DmgInfo(hp_type=4), desc=desc)
                 self.give_buff(BT.CRIT, 0, bv[2], efft=BET.BUFF, round_=1, desc=desc)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

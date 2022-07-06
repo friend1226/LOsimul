@@ -936,6 +936,8 @@ class CharacterInfo(QDialog):
         self.setWindowTitle(f"{self.character}의 정보")
         self.setMinimumWidth(500)
 
+        show_eqname_type = parents.SHOW_EQNAME_TYPE
+
         infogroupbox = QGroupBox('정보')
         statgroupbox = QGroupBox('능력치')
         equigroupbox = QGroupBox('장비')
@@ -1039,8 +1041,14 @@ class CharacterInfo(QDialog):
                     eqiconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', equip_icon + '.png'))
                                           .scaledToWidth(EQ_ICON_SIZE))
                 efl.addWidget(eqiconlabel)
-                efl.addWidget(QLabel(e.nick))
-                efl.addWidget(QLabel(f"({e.name})"))
+                if show_eqname_type:
+                    if show_eqname_type == 1:
+                        efl.addWidget(QLabel(e.nick))
+                    else:
+                        efl.addWidget(QLabel(e.name))
+                else:
+                    efl.addWidget(QLabel(e.nick))
+                    efl.addWidget(QLabel(f"({e.name})"))
                 efl.addWidget(QLabel(f"[{list(R)[e.rarity].name}] Lv.{e.lvl}"))
             ef.setLayout(efl)
             for label in [efl.itemAt(i).widget() for i in range(efl.count())]:
@@ -1053,7 +1061,7 @@ class CharacterInfo(QDialog):
         bltextbox = QTextBrowser()
         bltextbox.setMinimumHeight(200)
         bltextbox.setAcceptRichText(True)
-        bltextbox.setFont(QFont("consolas", pointSize=7))
+        bltextbox.setFont(QFont("consolas", pointSize=9))
         bltextbox.setLineWrapMode(QTextEdit.WidgetWidth)
         buffcolors = ['green', 'red', 'black']
         for bl in self.character.buff_iter[1:]:
@@ -1104,7 +1112,13 @@ class Settings(QDialog):
         super().__init__(parents, *args, **kwargs)
         self.setWindowTitle("설정")
         self.setMinimumSize(350, 200)
-        self.game = self.parentWidget().app.game
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        self.app = self.parentWidget().app
+        self.game = self.app.game
+
+        self.realtime_frame = QFrame()
+        rtlayout = QVBoxLayout(self.realtime_frame)
+        rtlayout.setAlignment(Qt.AlignTop)
 
         self.realtime_checkbox = QCheckBox("수치 실시간으로 계산하기")
         self.realtime_checkbox_helptexts = [
@@ -1125,23 +1139,60 @@ class Settings(QDialog):
 
         self.last_label = self.realtime_checkbox_helptexts[int(self.realtime_checkbox.isChecked())]
 
+        rtlayout.addWidget(self.realtime_checkbox)
+        rtlayout.addWidget(self.last_label)
+        self.realtime_frame.setLayout(rtlayout)
+        self.realtime_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.show_eqname_type_frame = QFrame()
+        eqlayout = QHBoxLayout(self.show_eqname_type_frame)
+        self.eqnametype_combobox = QComboBox(self.show_eqname_type_frame)
+        sizepolicy = self.eqnametype_combobox.sizePolicy()
+        sizepolicy.setHorizontalPolicy(QSizePolicy.Expanding)
+        self.eqnametype_combobox.setSizePolicy(sizepolicy)
+        eqlayout.addWidget(QLabel("장비 이름 표시 방식 : "))
+        eqlayout.addWidget(self.eqnametype_combobox)
+        self.show_eqname_type_frame.setLayout(eqlayout)
+
+        self.eqnametype_combobox.addItem("별명과 이름 모두 표시")
+        self.eqnametype_combobox.addItem("별명만 표시")
+        self.eqnametype_combobox.addItem("이름만 표시")
+
+        self.eqnametype_combobox.setCurrentIndex(self.app.SHOW_EQNAME_TYPE)
+
         self.realtime_checkbox.stateChanged.connect(self.realtime_checkbox_checked)
+        self.eqnametype_combobox.currentIndexChanged.connect(self.eqnametype_combobox_valuechanged)
+
+        tiplabel = QLabel("<b>[ 변경점은 즉시 적용됩니다 ]</b>")
+        tiplabel.setTextFormat(Qt.RichText)
+        sizepolicy = tiplabel.sizePolicy()
+        sizepolicy.setHorizontalPolicy(QSizePolicy.Expanding)
+        tiplabel.setSizePolicy(sizepolicy)
+        tiplabel.setAlignment(Qt.AlignHCenter)
 
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignTop)
-        layout.addWidget(self.realtime_checkbox)
-        layout.addWidget(self.last_label)
+        layout.addWidget(tiplabel)
+        layout.addSpacing(10)
+        layout.addWidget(self.realtime_frame)
+        layout.addWidget(self.show_eqname_type_frame)
         self.setLayout(layout)
 
     def realtime_checkbox_checked(self):
         if self.last_label:
-            layout = self.layout()
+            layout = self.realtime_frame.layout()
             layout.removeWidget(self.last_label)
             self.last_label.setParent(None)
             self.game.REAL_TIME = self.realtime_checkbox.isChecked()
             self.last_label = self.realtime_checkbox_helptexts[int(self.realtime_checkbox.isChecked())]
             layout.addWidget(self.last_label)
-            self.setLayout(layout)
+            self.realtime_frame.setLayout(layout)
+            self.realtime_frame.updateGeometry()
+            QApplication.processEvents()
+            self.adjustSize()
+
+    def eqnametype_combobox_valuechanged(self):
+        self.app.SHOW_EQNAME_TYPE = self.eqnametype_combobox.currentIndex()
 
     def show_window(self):
         super().show()

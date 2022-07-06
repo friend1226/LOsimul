@@ -45,6 +45,8 @@ class BuffType:
     AP = "AP"
     CHANGE_AP = "AP 변경"
     RANGE = "사거리"
+    RANGE_1SKILL = "1번 액티브 스킬 사거리"
+    RANGE_2SKILL = "2번 액티브 스킬 사거리"
     SKILL_RATE = "스킬 위력"
 
     GIVEDMGINC = "주는 피해 증가"

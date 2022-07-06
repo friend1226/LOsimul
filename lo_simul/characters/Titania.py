@@ -19,7 +19,7 @@ class Titania(Character):
             if targets[t] > 0:
                 desc = "차가운 고통"
                 t.give_buff(BT.DOT_DMG, 0, bv[0], round_=2, efft=BET.DEBUFF,
-                            data=D.FDmgInfo(element=E.ICE), desc=desc)
+                            data=D.DmgInfo(element=E.ICE), desc=desc)
                 t.give_buff(BT.ROOTED, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.RENEW)
                 t.give_buff(BT.ELEMENT_RES[E.ICE], 0, bv[1], round_=2, efft=BET.DEBUFF,
                             max_stack=2, tag="Titania_A1_RES", desc=desc)
@@ -34,7 +34,7 @@ class Titania(Character):
         desc = "서리 폭풍"
         for t in targets:
             if targets[t] > 0 and t.find_buff(type_=BT.ELEMENT_RES[E.ICE], efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, data=D.FDmgInfo(element=E.ICE), desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, data=D.DmgInfo(element=E.ICE), desc=desc)
         self.give_buff(BT.SPD, 1, d('-.55'), round_=2, desc=desc, tag="Titania_A2_SPD_DEC")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     

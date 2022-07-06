@@ -287,6 +287,8 @@ class Datas:
         # 다음 버프에 사용됨 : FOLLOW_ATTACK
         attacker: 'Character'
         """지원 공격 시전자"""
+        chance: NUM_T = 100
+        """지원 공격 확률"""
 
     class CoopAttack(NamedTuple):
         """협동 공격 버프의 정보를 저장합니다."""
@@ -323,33 +325,24 @@ class Datas:
         chance: NUM_T = 100
         """(버프 검색에 사용) 모든 조건을 충족한 경우, ``chance`` %의 확률로 :obj:`True` 를 반환합니다."""
 
-    class DmgHPInfo(NamedTuple):
-        """HP% 비례 정보를 저장합니다.
-        HP% 비례 주는/받는 피해 버프에 사용됩니다."""
-        # HP비례 데미지 정보; HP비례의 타깃과 비례 타입, 데미지 속성(E)
+    class DmgInfo(NamedTuple):
+        """추가/고정 피해 비율 및 HP% 비례 정보를 저장합니다.
+        속성 추가 피해 / 공격력% 고정 피해 버프 / HP% 비례 주는/받는 피해 버프에 사용됩니다.
+        추가로 ``Trigger.GET_HIT`` (`피격 시`) 트리거를 발동할 때에도 사용되는데, 이는 인화물 버프 발동을 위함입니다."""
+        # 공격력% & HP비례 & 속성 데미지 정보; 공격력을 계산할 캐릭터, HP비례의 타깃과 비례 타입, 데미지 속성(E)
         # (0=없음, 1=자신/높을수록, 2=대상/높을수록, 3=자신/낮을수록, 4=대상/낮을수록)
-        # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC
-        # (나/대상의 HP%가 낮을/높을수록 피해량 증가/감소)
-        type_: int = 0
+        # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC, INSTANT_DMG
+        # 공격력% 고정피해 (INSTANT_DMG) / 속성 추가 피해, (나/대상의 HP%가 낮을/높을수록 피해량 증가/감소) (나머지)
+        # GET_HIT를 트리거할 때에도 사용됨; 인화물 기믹 작동 목적
+        subject: 'Character' = None
+        """고정 피해를 입힐 때 계산될 공격력을 가지는 캐릭터를 넣으세요."""
+        hp_type: int = 0
         """비례 유형입니다. 다음 숫자 중 하나를 입력해야 하며, 이외의 숫자들은 오류를 일으킬 수 있습니다.
             `0` = 비례하지 않음 (기본값)
             `1` = 자신의 HP%가 높을수록
             `2` = 대상의 HP%가 높을수록
             `3` = 자신의 HP%가 낮을수록
             `4` = 대상의 HP%가 낮을수록"""
-        element: int = 0
-        """`0`, `1`, `2` 중 하나; ``Element`` 를 참고하세요."""
-
-    class FDmgInfo(NamedTuple):
-        """추가/고정 피해 비율 정보를 저장합니다.
-        속성 추가 피해 / 공격력% 고정 피해 버프에 사용됩니다.
-        추가로 ``Trigger.GET_HIT`` (`피격 시`) 트리거를 발동할 때에도 사용되는데, 이는 인화물 버프 발동을 위함입니다."""
-        # 공격력% & 속성 데미지 정보; 공격력을 계산할 캐릭터, 데미지 속성(E)
-        # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC, INSTANT_DMG
-        # 공격력% 고정피해 (INSTANT_DMG) / 속성 추가 피해 (나머지)
-        # GET_HIT를 트리거할 때에도 사용됨; 인화물 기믹 작동 목적
-        subject: 'Character' = None
-        """고정 피해를 입힐 때 계산될 공격력을 가지는 캐릭터를 넣으세요."""
         element: int = 0
         """`0`, `1`, `2` 중 하나; ``Element`` 를 참고하세요."""
 

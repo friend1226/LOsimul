@@ -14,7 +14,7 @@ from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 defsysstdout = sys.stdout
 lo_simul_output_pattern = re.compile(r"\[(...)] (.*)")
 
-__version__ = "Beta.20220623"
+__version__ = "Beta.20220706"
 
 
 class Pipe:
@@ -86,6 +86,11 @@ class MyApp(QWidget):
         self.commands = {
             'exit': self.exit_,
         }
+
+        self.SHOW_EQNAME_TYPE = 0
+        # 0 = 장비의 별명, 이름 모두 보여주기
+        # 1 = 장비의 별명만 보여주기
+        # 2 = 장비의 이름만 보여주기
 
         vbox = QVBoxLayout()
         vbox.setSpacing(0)

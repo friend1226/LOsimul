@@ -345,7 +345,7 @@ class Character:
                         type_ = 0
                         element = 0
                     else:
-                        type_ = bf.data.type_
+                        type_ = bf.data.hp_type
                         element = bf.data.element
                     result[bt][type_][element] += bf.value
             elif bt in BT.ANTI_OS:
@@ -538,11 +538,14 @@ class Character:
         return r
 
     def get_skill_range(self, skill_no):
-        return self.find_buff(BT.RANGE).getSUM().calc(
-            BT.RANGE, 
-            d(self.get_skill(skill_no-1)['range'][self.skillvl[(skill_no-1) % 5]]),
-            True
-        )
+        skill_no -= 1
+        rangesum = self.find_buff({BT.RANGE, BT.RANGE_1SKILL, BT.RANGE_2SKILL}).getSUM()
+        _range = rangesum.calc(BT.RANGE, d(self.get_skill(skill_no)['range'][self.skillvl[skill_no % 5]]), True)
+        if skill_no % 5:
+            _range = rangesum.calc(BT.RANGE_2SKILL, _range, True)
+        else:
+            _range = rangesum.calc(BT.RANGE_1SKILL, _range, True)
+        return _range
 
     def get_skill_cost(self, skill_no):
         return self.get_skill(skill_no-1)['apcost'][self.skillvl[(skill_no-1) % 5]]
@@ -637,13 +640,14 @@ class Character:
         hprate = [1, self.hp / self.maxhp, obj.hp / obj.maxhp, 1 - self.hp / self.maxhp, 1 - obj.hp / obj.maxhp]
         # 적 받피감 (체력 비례 포함) (합연산)
         mulpair = lambda p: p[0]*p[1]
-        damage *= reduce(
-            operator.mul,
-            [1 - sum(map(mulpair,
-                         list(zip(objstats[BT.TAKEDMGDEC][i], objelementres))
-                         )) * hprate[i]
-             for i in range(5)]
-        )
+        if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):
+            damage *= reduce(
+                operator.mul,
+                [1 - sum(map(mulpair,
+                             list(zip(objstats[BT.TAKEDMGDEC][i], objelementres))
+                             )) * hprate[i]
+                 for i in range(5)]
+            )
 
         if element == 0:
             # 물리 피해
@@ -656,16 +660,17 @@ class Character:
             damage *= objelementres[element]
 
         # 자신 주는 피해 증가/감소 (체력 비례 포함) (곱연산)
-        damage *= 1 + reduce(
+        damage *= reduce(
             operator.mul,
             [1 - sum(map(mulpair,
                          list(zip(substats[BT.GIVEDMGDEC][i], objelementres))
                          )) * hprate[i]
              for i in range(5)]
         )
-        damage *= 1 + reduce(
+
+        damage *= reduce(
             operator.mul,
-            [1 - sum(map(mulpair,
+            [1 + sum(map(mulpair,
                          list(zip(substats[BT.GIVEDMGINC][i], objelementres))
                          )) * hprate[i]
              for i in range(5)]
