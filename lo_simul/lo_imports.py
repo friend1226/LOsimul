@@ -22,6 +22,8 @@ import json
 import math
 import operator
 
+from lo_enum import *
+
 decimal.getcontext().rounding = decimal.ROUND_FLOOR
 d = decimal.Decimal
 NUMBER = (int, d)
@@ -308,8 +310,8 @@ class Datas:
         # 다음 버프에 사용됨 : IMMUNE_BUFF, REMOVE_BUFF
         type_: Union[str, Iterable] = None
         """버프 문자열 또는 그 문자열의 리스트; ``BuffType`` 을 참고하세요."""
-        efft: int = None
-        """`0`, `1`, `2` 중 하나; ``BuffEffectType`` 을 참고하세요."""
+        efft: BET = BET.BUFF | BET.DEBUFF | BET.NORMAL
+        """`0~7` 중 하나; ``BuffEffectType`` 을 참고하세요."""
         tag: str = None
         """찾고자 하는 태그 또는 그 태그의 접두어"""
         func: Callable = None
@@ -324,6 +326,16 @@ class Datas:
         """(버프 제거에 사용) 강제 제거 여부"""
         chance: NUM_T = 100
         """(버프 검색에 사용) 모든 조건을 충족한 경우, ``chance`` %의 확률로 :obj:`True` 를 반환합니다."""
+
+        def __contains__(self, item):
+            if self.__class__ is item.__class__:
+                return (self.type_ is None or (item.type_ is not None and self.type_ <= item.type_)) and \
+                       (self.efft in item.efft) and \
+                       (self.tag is None or (item.tag is not None and item.tag.startswith(self.tag))) and \
+                       (self.id_ is None or self.id_ == item.id_) and \
+                       (self.val_sign is None and self.val_sign == item.val_sign) and \
+                       (item.limit <= self.limit)
+            return super().__contains__(item)
 
     class DmgInfo(NamedTuple):
         """추가/고정 피해 비율 및 HP% 비례 정보를 저장합니다.

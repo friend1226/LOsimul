@@ -479,6 +479,9 @@ class Character:
 
         return tempbuffs
 
+    def get_hp_rate(self):
+        return self.hp / self.maxhp
+
     def get_res_dmgrate(self, element: int):
         if element == 0:
             return 1
@@ -585,6 +588,8 @@ class Character:
         remove_chances = []
         if buff.type == BT.REMOVE_BUFF:
             for b in self.specialBuffs.find(type_=BT.REMOVE_BUFF_RESIST):
+                if buff.data in b.data:
+                    continue
                 """
                 if b.opr:
                     remove_chances.append(b.value)
@@ -916,9 +921,9 @@ class Character:
 
     def get_passive_targets(self,
                             aoe: List[Union[Tuple[int, int], int, 'Pos']],
-                            field: Union[NUM_T, bool] = None
+                            enemy: bool = False
                             ) -> List['Character']:
-        return sorted(self.game.get_chars(aoe, self.isenemy if field is None else field).values(),
+        return sorted(self.game.get_chars(aoe, int(self.isenemy ^ enemy)).values(),
                       key=lambda c: c.getposn())
 
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

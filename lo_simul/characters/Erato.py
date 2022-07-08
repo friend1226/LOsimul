@@ -1,9 +1,9 @@
 from ..lo_char import *
 
 
-class EratoOld(Character):
+class Erato(Character):
     id_ = 208
-    name = "에라토(구)"
+    name = "에라토"
     code = "PECS_Erato"
     group = Group.AMUSE_ATTENDANT
     isenemy = False
@@ -68,6 +68,10 @@ class EratoOld(Character):
                            round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(type_=BT.AP, efft=BET.DEBUFF),
                            round_=1, efft=BET.BUFF, desc=desc)
+        if tt == TR.ROUND_START or tt == TR.HIT:
+            self.give_buff(BT.REMOVE_BUFF, 0, 1,
+                           data=D.BuffCond(type_=BT.ATK, func=lambda b:
+                           b.proportion is not None and b.proportion[1] == BT.ATK), desc="솔로 라이브!")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

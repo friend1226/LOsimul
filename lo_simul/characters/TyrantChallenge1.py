@@ -78,9 +78,9 @@ class TyrantChallenge1(Character):
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.WAVE_START:
-            for t in self.get_passive_targets(targets, field=not self.isenemy):
+            for t in self.get_passive_targets(targets, True):
                 t.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=2, efft=BET.DEBUFF, desc="폭군의 포효", chance=50,
                             overlap_type=BOT.RENEW)
         elif tt == TR.DEAD:
-            for t in self.get_passive_targets(targets, field=not self.isenemy):
+            for t in self.get_passive_targets(targets, True):
                 t.give_buff(BT.INSTANT_DMG, 1, bv[0], data=D.DmgInfo(self, E.FIRE), desc="최후의 포효")

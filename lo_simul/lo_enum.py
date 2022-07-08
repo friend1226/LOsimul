@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 
 
 class Rarity(IntEnum):
@@ -234,11 +234,17 @@ class EquipType:
     desc = ['칩', 'OS', '보조']
 
 
-class BuffEffectType:
-    BUFF = 0
-    DEBUFF = 1
-    NORMAL = 2
-    desc = ['강화 효과', '해로운 효과', '일반 효과']
+class BuffEffectType(IntFlag):
+    BUFF = 1
+    DEBUFF = 2
+    NORMAL = 4
+
+
+BuffEffectType.desc = {
+    BuffEffectType.BUFF: '강화 효과',
+    BuffEffectType.DEBUFF: '해로운 효과',
+    BuffEffectType.NORMAL: '일반 효과'
+}
 
 
 class Gimmick:
@@ -284,4 +290,4 @@ ET = EquipType
 BET = BuffEffectType
 G = Gimmick
 
-del IntEnum
+del IntEnum, IntFlag

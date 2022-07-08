@@ -34,8 +34,10 @@ if __name__ != "__main__":
     from .EliteCenturion1 import EliteCenturion1
     from .Ellie import Ellie
     from .Emily import Emily
+    from .Erato import Erato
     from .EratoOld import EratoOld
     from .Fotia import Fotia
+    from .Glacias import Glacias
     from .Goltarion import Goltarion
     from .Labiata import Labiata
     from .LegionEX1 import LegionEX1
@@ -47,6 +49,7 @@ if __name__ != "__main__":
     from .NightChickShielder3 import NightChickShielder3
     from .NightChickSniper1 import NightChickSniper1
     from .OrangeAde import OrangeAde
+    from .OrangeAdeOld import OrangeAdeOld
     from .Peregrinus import Peregrinus
     from .Phalangites1 import Phalangites1
     from .Rhea import Rhea

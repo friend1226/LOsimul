@@ -548,7 +548,7 @@ class Game:
             return
         self.battle_log.append(D.BattleLogInfo(TR.ROUND_START, f"{self.wave}-{self.round}라운드시작",
                                                self.random.getstate()))
-        self.trigger(TR.ROUND_START)
+        self.trigger(TR.ROUND_START)  # 라운드 어트리뷰트 증가 이전 ROUND_START 트리거됨에 주의
         if self.round == 0:
             while True:
                 characters = self.get_act_order()
