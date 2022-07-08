@@ -22,14 +22,14 @@ import json
 import math
 import operator
 
-from lo_enum import *
+from .lo_enum import BET
 
 decimal.getcontext().rounding = decimal.ROUND_FLOOR
 d = decimal.Decimal
 NUMBER = (int, d)
 NUM_T = TypeVar('NUM_T', *NUMBER)
 
-sys.setrecursionlimit(100)
+sys.setrecursionlimit(150)
 
 
 def simpl(x):
@@ -308,6 +308,7 @@ class Datas:
         # 타입("버프" 또는 {"버프1", "버프2", ...}), 이로운/해로운/기타 효과(BET), 태그, 판별 함수(lambda b: ...),
         # ID, 수치 부호(-1, 0, 또는 1), (제거 시) 개수 제한, (제거 시) 강제 제거 여부, 확률
         # 다음 버프에 사용됨 : IMMUNE_BUFF, REMOVE_BUFF
+
         type_: Union[str, Iterable] = None
         """버프 문자열 또는 그 문자열의 리스트; ``BuffType`` 을 참고하세요."""
         efft: BET = BET.BUFF | BET.DEBUFF | BET.NORMAL
@@ -335,7 +336,7 @@ class Datas:
                        (self.id_ is None or self.id_ == item.id_) and \
                        (self.val_sign is None and self.val_sign == item.val_sign) and \
                        (item.limit <= self.limit)
-            return super().__contains__(item)
+            return tuple(self).__contains__(item)
 
     class DmgInfo(NamedTuple):
         """추가/고정 피해 비율 및 HP% 비례 정보를 저장합니다.

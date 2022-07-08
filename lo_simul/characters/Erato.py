@@ -70,8 +70,9 @@ class Erato(Character):
                            round_=1, efft=BET.BUFF, desc=desc)
         if tt == TR.ROUND_START or tt == TR.HIT:
             self.give_buff(BT.REMOVE_BUFF, 0, 1,
-                           data=D.BuffCond(type_=BT.ATK, func=lambda b:
-                           b.proportion is not None and b.proportion[1] == BT.ATK), desc="솔로 라이브!")
+                           data=D.BuffCond(
+                               type_=BT.ATK, func=lambda b: b.proportion is not None and b.proportion[1] == BT.ATK),
+                           desc="솔로 라이브!")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
