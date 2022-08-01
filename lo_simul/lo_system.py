@@ -840,7 +840,7 @@ class Buff:
             if isinstance(type_, Iterable) and self.type not in type_:
                 return False
         if efft:
-            if self.efftype != efft:
+            if efft in self.efftype:
                 return False
         if tag:
             if self.tag is None or not self.tag.startswith(tag):
