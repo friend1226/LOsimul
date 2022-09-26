@@ -2918,7 +2918,7 @@ class NapalmRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.FIRE), 
+                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.FIRE), 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
                 t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -bv, 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
@@ -2938,7 +2938,7 @@ class CryogenicRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.ICE), 
+                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.ICE), 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
                 t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -bv, 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
@@ -2958,7 +2958,7 @@ class ArcDischargeRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.ELEC), 
+                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.ELEC), 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
                 t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -bv, 
                             round_=2, efft=BET.DEBUFF, desc=self.name)
