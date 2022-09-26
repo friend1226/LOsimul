@@ -700,8 +700,8 @@ class Buff:
 
     def simpl_str(self):
         result = ''
-        if isinstance(self.data, D.DmgInfo):
-            if self.data.element == 0 and self.type == BT.INSTANT_DMG:
+        if isinstance(self.data, D.DmgInfo) and self.type == BT.INSTANT_DMG:
+            if self.data.element == 0:
                 result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
             else:
                 result += f"추가 {E.desc[self.data.element]} 피해 {simpl(self.value*100):+}%"
