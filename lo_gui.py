@@ -14,7 +14,7 @@ from PyQt5.QtGui import QTextCursor, QFont, QColor, QIcon
 defsysstdout = sys.stdout
 lo_simul_output_pattern = re.compile(r"\[(...)] (.*)")
 
-__version__ = "Beta.20220706"
+__version__ = "0b.20220706.1"
 
 
 class Pipe:

@@ -401,7 +401,7 @@ class CreateCharacter(QDialog):
             eqraritylabel = QLabel("등급")
             eqlvlbox = QSpinBox()
             eqlvlbox.setMinimumWidth(35)
-            eqlvlbox.setMinimum(1)
+            eqlvlbox.setMinimum(0)
             eqlvlbox.setMaximum(10)
             eqlvlbox.setSingleStep(1)
             eqlvlbox.setValue(eqlvlbox.minimum())
