@@ -2902,3 +2902,63 @@ class MiniBlackWyrm(Gear):
             if attacker.get_stats(BT.SPD) > self.owner.get_stats(BT.SPD):
                 attacker.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -10 - self.lvl, round_=1, efft=BET.DEBUFF,
                                    max_stack=1, tag=f"{self.code}_ER", desc="사전 제압")
+
+
+class NapalmRounds(Gear):
+    BASE_RARITY = R.SS
+    nick = "화염탄"
+    name = "네이팜 탄환"
+    code = "NapalmRounds"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.SUPPORTER
+    
+    def passive(self, tt, args=None):
+        if tt == TR.HIT:
+            targets = args.get("targets")
+            for t in targets:
+                bv = d("10") + self.lvl
+                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.FIRE), 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -bv, 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)
+
+
+class CryogenicRounds(Gear):
+    BASE_RARITY = R.SS
+    nick = "냉기탄"
+    name = "초저온액화 탄환"
+    code = "CryogenicRounds"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.SUPPORTER
+    
+    def passive(self, tt, args=None):
+        if tt == TR.HIT:
+            targets = args.get("targets")
+            for t in targets:
+                bv = d("10") + self.lvl
+                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.ICE), 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -bv, 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)
+
+
+class ArcDischargeRounds(Gear):
+    BASE_RARITY = R.SS
+    nick = "전기탄"
+    name = "아크방전유도 탄환"
+    code = "ArcDischargeRounds"
+    
+    def isfit(self, char: 'Character'):
+        return char.type_[1] == CR.SUPPORTER
+    
+    def passive(self, tt, args=None):
+        if tt == TR.HIT:
+            targets = args.get("targets")
+            for t in targets:
+                bv = d("10") + self.lvl
+                t.give_buff(BT.DOT_DMG, 0, bv*100, data=D.DmgInfo(element=E.ELEC), 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -bv, 
+                            round_=2, efft=BET.DEBUFF, desc=self.name)

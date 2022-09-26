@@ -257,6 +257,9 @@ class Pos:
 
     def __repr__(self):
         return f"({self._x}, {self._y})"
+    
+    def __hash__(self):
+        return hash((self._x, self._y))
 
 
 if TYPE_CHECKING:
@@ -340,11 +343,11 @@ class Datas:
 
     class DmgInfo(NamedTuple):
         """추가/고정 피해 비율 및 HP% 비례 정보를 저장합니다.
-        속성 추가 피해 / 공격력% 고정 피해 버프 / HP% 비례 주는/받는 피해 버프에 사용됩니다.
+        지속 피해 / 속성 추가 피해 / 공격력% 고정 피해 버프 / HP% 비례 주는/받는 피해 버프에 사용됩니다.
         추가로 ``Trigger.GET_HIT`` (`피격 시`) 트리거를 발동할 때에도 사용되는데, 이는 인화물 버프 발동을 위함입니다."""
         # 공격력% & HP비례 & 속성 데미지 정보; 공격력을 계산할 캐릭터, HP비례의 타깃과 비례 타입, 데미지 속성(E)
         # (0=없음, 1=자신/높을수록, 2=대상/높을수록, 3=자신/낮을수록, 4=대상/낮을수록)
-        # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC, INSTANT_DMG
+        # 다음 버프에 사용됨 : TAKEDMGINC, TAKEDMGDEC, GIVEDMGINC, GIVEDMGDEC, INSTANT_DMG, DOT_DMG
         # 공격력% 고정피해 (INSTANT_DMG) / 속성 추가 피해, (나/대상의 HP%가 낮을/높을수록 피해량 증가/감소) (나머지)
         # GET_HIT를 트리거할 때에도 사용됨; 인화물 기믹 작동 목적
         subject: 'Character' = None

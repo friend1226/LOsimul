@@ -479,7 +479,8 @@ class Character:
 
         return tempbuffs
 
-    def get_hp_rate(self):
+    @property
+    def hp_rate(self):
         return self.hp / self.maxhp
 
     def get_res_dmgrate(self, element: int):
@@ -642,7 +643,7 @@ class Character:
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
             damage = antiosb.getSUM().calc(objtype, damage, True)
-        hprate = [1, self.hp / self.maxhp, obj.hp / obj.maxhp, 1 - self.hp / self.maxhp, 1 - obj.hp / obj.maxhp]
+        hprate = [1, self.hp_rate, obj.hp_rate, 1 - self.hp_rate, 1 - obj.hp_rate]
         # 적 받피감 (체력 비례 포함) (합연산)
         mulpair = lambda p: p[0]*p[1]
         if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):

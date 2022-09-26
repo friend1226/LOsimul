@@ -20,7 +20,7 @@ class Glacias(Character):
             if targets[t] > 0:
                 desc = "고룡의 숨결"
                 self.give_buff(BT.GIVEDMGINC, 1, bv[0], data=D.DmgInfo(hp_type=4), round_=0, efft=BET.BUFF, desc=desc)
-                if t.get_hp_rate() <= d('.5'):
+                if t.hp_rate <= d('.5'):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC), desc=desc)
                 if t.find_buff(tag=G.FLOOD):
                     t.give_buff(BT.INABILLITY_ACT, 0, 1, round_=2, efft=BET.DEBUFF, desc=desc)

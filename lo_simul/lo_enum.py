@@ -1,4 +1,9 @@
-from enum import IntEnum, IntFlag
+from enum import IntEnum, IntFlag, Enum
+
+
+class StrEnum(str, Enum):
+    def __str__(self):
+        return self.value
 
 
 class Rarity(IntEnum):
@@ -9,26 +14,32 @@ class Rarity(IntEnum):
     SSS = 4
 
 
-class CharType:
+class CharType(IntEnum):
     LIGHT = 0
     HEAVY = 1
     FLY = 2
-    desc = ["경장형", "중장형", "기동형"]
 
 
-class CharRole:
+CharType.desc = ["경장형", "중장형", "기동형"]
+
+
+class CharRole(IntEnum):
     ATTACKER = 0
     DEFENDER = 1
     SUPPORTER = 2
-    desc = ["공격기", "방어기", "지원기"]
 
 
-class Element:
+CharRole.desc = ["공격기", "방어기", "지원기"]
+
+
+class Element(IntEnum):
     PHYSICAL = 0
     FIRE = 1
     ICE = 2
     ELEC = 3
-    desc = ["물리", "화염", "냉기", "전기"]
+
+
+Element.desc = ["물리", "화염", "냉기", "전기"]
 
 
 class BuffType:
@@ -130,8 +141,8 @@ class BuffOverlapType(IntEnum):
     NORMAL = 0  # 기본
     SINGLE = 1  # 단일
     UPDATE = 2  # 갱신
-    RENEW = 3  # 즉발
-    INSTANCE = 4  # 재생성
+    RENEW = 3  # 재생성
+    INSTANCE = 4  # 즉발
 
 
 class BasicData:
@@ -152,7 +163,7 @@ class BasicData:
     prange_all_rel = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1))
 
 
-class Trigger:
+class Trigger(StrEnum):
     ROUND_START = "라운드 시작 시"
     ROUND_END = "라운드 종료 시"
     WAVE_START = "전투 시작 시"
@@ -194,7 +205,7 @@ for x in dir(Trigger):
     del x
 
 
-class Group:
+class Group(StrEnum):
     AGENCY_080 = '080팀'
     GOLDEN_WORKERS = '골든 워커즈'
     DOOM_BRINGER = '둠 브링어'
@@ -227,11 +238,13 @@ class Group:
     SUMMON = '소환물'
 
 
-class EquipType:
+class EquipType(IntEnum):
     CHIP = 0
     OS = 1
     GEAR = 2
-    desc = ['칩', 'OS', '보조']
+
+
+EquipType.desc = ['칩', 'OS', '보조']
 
 
 class BuffEffectType(IntFlag):
@@ -247,7 +260,7 @@ BuffEffectType.desc = {
 }
 
 
-class Gimmick:
+class Gimmick(StrEnum):
     PHOSPHIDE = "인화물 부착"
     PHOSPHIDE_DESC = "인화물 폭발"
 
@@ -290,4 +303,4 @@ ET = EquipType
 BET = BuffEffectType
 G = Gimmick
 
-del IntEnum, IntFlag
+del IntEnum, IntFlag, Enum, StrEnum
