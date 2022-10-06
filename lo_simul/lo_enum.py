@@ -28,6 +28,7 @@ _BuffEffectType_desc = {
 class CharType(IntEnum):
     def __new__(cls, value):
         obj = int.__new__(cls, value)
+        obj._value_ = value
         obj.desc = _CharType_desc[obj.value]
         return obj
 
@@ -39,6 +40,7 @@ class CharType(IntEnum):
 class CharRole(IntEnum):
     def __new__(cls, value):
         obj = int.__new__(cls, value)
+        obj._value_ = value
         obj.desc = _CharRole_desc[obj.value]
         return obj
 
@@ -50,6 +52,7 @@ class CharRole(IntEnum):
 class Element(IntEnum):
     def __new__(cls, value):
         obj = int.__new__(cls, value)
+        obj._value_ = value
         obj.desc = _Element_desc[obj.value]
         return obj
 
@@ -273,6 +276,7 @@ class Group(StrEnum):
 class EquipType(IntEnum):
     def __new__(cls, value):
         obj = int.__new__(cls, value)
+        obj._value_ = value
         obj.desc = _EquipType_desc[obj.value]
         return obj
 
@@ -284,6 +288,7 @@ class EquipType(IntEnum):
 class BuffEffectType(IntFlag):
     def __new__(cls, value):
         obj = int.__new__(cls, value)
+        obj._value_ = value
         obj.desc = _BuffEffectType_desc[obj.value]
         return obj
 
