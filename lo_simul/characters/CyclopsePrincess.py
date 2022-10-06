@@ -59,7 +59,7 @@ class CyclopsePrincess(Character):
                                tag="CyclopsePrincess_P1_CRIT", desc=f"<{desc} : 사안>")
                 if not self.find_buff(type_=BT.TARGET_PROTECT):
                     self.give_buff(BT.IGNORE_PROTECT, 0, 1, efft=BET.BUFF, round_=1, max_stack=1, 
-                               tag="CyclopsePrincess_P1_IP", desc=f"<{desc} : 운명조작>")
+                                   tag="CyclopsePrincess_P1_IP", desc=f"<{desc} : 운명조작>")
         elif tt == TR.KILL:
             self.give_buff(BT.BATTLE_CONTINUATION, 0, bv[1], max_stack=3, 
                            tag="CyclopsePrincess_P1_BC", desc=f"<{desc} : 불사>")

@@ -190,7 +190,7 @@ class Character:
                 "icon_name": cls.icon_name,
             }
         info = UNITDATA[cls.code][0]
-        type_ = info[:2]
+        type_ = (CharType(info[0]), CharRole(info[1]))
         isags = info[2]
         link_bonus = []
         full_link_bonuses = [None]
@@ -226,7 +226,7 @@ class Character:
         return f"{self.name}_{self.extra_num}"
 
     def get_type_str(self):
-        return f"{CharType.desc[self.type_[0]]} {CharRole.desc[self.type_[1]]}"
+        return f"{self.type_[0].desc} {self.type_[1].desc}"
 
     def getpos(self):
         return self.pos
@@ -447,8 +447,8 @@ class Character:
                 if pbf.proportion in index:
                     if (char, pbf.type) == pbf.proportion:
                         mulv[idx] *= 1 + pbf.value
-                        if not (temppropbs := char.find_buff(tag=f"Prop_{pbf.getID()}_")):
-                            tempbuff = Buff(pbf.type, 1, pbf.value, tag=f"Prop_{pbf.getID()}_",
+                        if not (temppropbs := char.find_buff(tag=f"Prop_{pbf.id}_")):
+                            tempbuff = Buff(pbf.type, 1, pbf.value, tag=f"Prop_{pbf.id}_",
                                             owner=char, do_print=False)
                             char.proportionBuffs.append(tempbuff)
                             tempbuffs.append(tempbuff)
@@ -645,7 +645,10 @@ class Character:
             damage = antiosb.getSUM().calc(objtype, damage, True)
         hprate = [1, self.hp_rate, obj.hp_rate, 1 - self.hp_rate, 1 - obj.hp_rate]
         # 적 받피감 (체력 비례 포함) (합연산)
-        mulpair = lambda p: p[0]*p[1]
+        
+        def mulpair(p: Tuple[NUM_T, NUM_T]) -> NUM_T:
+            return p[0] * p[1]
+        
         if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):
             damage *= reduce(
                 operator.mul,
@@ -953,7 +956,7 @@ class Character:
                     self.hp = bcb.calc(self.maxhp) - self.maxhp
                 else:
                     self.hp = bcb.value
-                self.remove_buff(id_=bcb.getID(), force=True)
+                self.remove_buff(id_=bcb.id, force=True)
                 self.trigger(TR.BATTLE_CONTINUED)
                 print(f"[bcn] <{self}> - 전투속행 발동!", file=self.stream)
 
@@ -964,7 +967,7 @@ class Character:
             self.game.remove_char(self, msg=True)
         elif tt == TR.IDLE:
             if idleb := self.find_buff(tag='Maria_p1_ForceIDLE'):
-                self.remove_buff(id_=idleb[-1].getID(), force=True)
+                self.remove_buff(id_=idleb[-1].id, force=True)
         elif tt == TR.WAVE_END:
             self.remove_buff(func=lambda b: b.type != BT.RACON, log=False)
             self.give_ap(-MAX)

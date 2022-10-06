@@ -421,7 +421,7 @@ class Observation(Gear):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 1, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF), desc=self.name,
-                                 chance = self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl)
+                                 chance=self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl)
 
 
 class SpaceArmor(Gear):
@@ -1804,7 +1804,7 @@ class Precision(Gear):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.RANGE, 0, 2, round_=1, desc=self.name)
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.RANGE, efft=BET.DEBUFF),
-                                 desc=self.name, chance = 50 + 5 * self.lvl)
+                                 desc=self.name, chance=50 + 5 * self.lvl)
 
 
 class RangerSet(Gear):
@@ -1932,7 +1932,7 @@ class ImprovedUltraScope(Gear):
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
             self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.ACC, efft=BET.DEBUFF),
-                                 desc=self.name, chance = 50 + 5 * self.lvl)
+                                 desc=self.name, chance=50 + 5 * self.lvl)
 
 
 class AntiLightFlyOS(OS):
@@ -2525,7 +2525,7 @@ class LWLoader(Gear):
             chance = self.val[2][self.rarity] + d('2.5') * self.lvl
             if self.rarity == R.SS and self.lvl > 5:
                 chance += d('.5') * (self.lvl - 5)
-            self.owner.give_buff(BT.FOLLOW_ATTACK, 0, 1, data=D.FollowAttack(attacker=self, chance=chance),
+            self.owner.give_buff(BT.FOLLOW_ATTACK, 0, 1, data=D.FollowAttack(attacker=self.owner, chance=chance),
                                  round_=1, max_stack=1, tag="LWLoader_FA", desc=self.name)
 
 
@@ -2771,7 +2771,7 @@ class SuperHeavyComplexArmor(Gear):
     name = "초중량 복합장갑"
     code = "SHCA"
     val = [(0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16),
-           (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 12),]
+           (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 12), ]
 
     def isfit(self, char: 'Character'):
         return char.type_[1] == CR.DEFENDER

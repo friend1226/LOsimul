@@ -67,4 +67,4 @@ class DummyEnemy(Character):
     
     def extra_passive(self, tt, args=None):
         if tt == TR.IDLE:
-            self.give_buff(BT.RANGE, 0, 2, efft=0, round_=2)
+            self.give_buff(BT.RANGE, 0, 2, round_=2)

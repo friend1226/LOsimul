@@ -39,7 +39,8 @@ class UnderWatcher1(Character):
         if tt == TR.ROUND_START:
             if self.find_buff(tag=G.UNDER_WATCHER_GENERATOR_B05):
                 self.give_buff(BT.DEF, 1, bv[0], round_=1, efft=BET.BUFF, tag="UWB05_P1_DEF", desc=desc)
-                self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=1, efft=BET.BUFF, tag="UWB05_P1_ACTIVE_RES", desc=desc)
+                self.give_buff(BT.ACTIVE_RESIST, 1, bv[1], round_=1, efft=BET.BUFF,
+                               tag="UWB05_P1_ACTIVE_RES", desc=desc)
         elif tt == TR.ATTACK:
             self.remove_buff(tag="UWB05_P1")
     

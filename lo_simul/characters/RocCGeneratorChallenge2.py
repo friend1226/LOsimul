@@ -18,7 +18,8 @@ class RocCGeneratorChallenge2(Character):
         desc = "전하 충전"
         for t in targets:
             if t.type_ == (CT.FLY, CR.ATTACKER) and t.isags:
-                t.give_buff(BT.ATK, 1, d('.06'), efft=BET.BUFF, round_=99, max_stack=5, tag=f"{self.code}_A1_ATK", desc=desc)
+                t.give_buff(BT.ATK, 1, d('.06'), efft=BET.BUFF, round_=99,
+                            max_stack=5, tag=f"{self.code}_A1_ATK", desc=desc)
                 t.give_buff(BT.AP, 0, 1, efft=BET.BUFF, desc=desc)
         return {}
     

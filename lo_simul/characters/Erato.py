@@ -93,7 +93,7 @@ class Erato(Character):
                 if fan_stack >= 1:
                     t.give_buff(BT.SPD, 1, bv[0] * (4 - colpos) / 4, round_=1, desc=desc[2:])
                 if fan_stack >= 2:
-                    t.give_buff(BT.TAKEDMGINC, bv[0] * (4 - colpos) / 2, round_=1, desc=desc[1:])
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0] * (4 - colpos) / 2, round_=1, desc=desc[1:])
                 if fan_stack >= 3:
                     t.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(efft=BET.BUFF), round_=1, desc=desc)
                     if colpos == 0:

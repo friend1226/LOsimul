@@ -1063,7 +1063,7 @@ class CharacterInfo(QDialog):
         bltextbox.setAcceptRichText(True)
         bltextbox.setFont(QFont("consolas", pointSize=9))
         bltextbox.setLineWrapMode(QTextEdit.WidgetWidth)
-        buffcolors = ['green', 'red', 'black']
+        buffcolors = {BET.BUFF: "green", BET.DEBUFF: "red", BET.NORMAL: "black"}
         for bl in self.character.buff_iter[1:]:
             for b in bl:
                 bltextbox.setTextColor(QColor(buffcolors[b.efftype]))

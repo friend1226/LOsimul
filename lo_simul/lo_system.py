@@ -154,11 +154,11 @@ class Game:
                         if (pc := tb.data.target) == c:
                             continue
                         elif tarprot.get(pc):
-                            tarprot[pc].add((c, tb.getID()))
+                            tarprot[pc].add((c, tb.id))
                         else:
-                            tarprot[pc] = {(c, tb.getID())}
+                            tarprot[pc] = {(c, tb.id)}
                 if colb := c.find_buff(BT.COLUMN_PROTECT):
-                    colprot[c.getposy()].add((c, colb[-1].getID()))
+                    colprot[c.getposy()].add((c, colb[-1].id))
                 if c.find_buff(BT.ROW_PROTECT):
                     if (prevc := rowprot[c.getposx()]) is None or (prevc.getposy() < c.getposy() ^ field):
                         # 자신보다 앞에 있는 행 보호 시전자(열 번호가 아군의 경우 크면, 적의 경우 작으면)가 있는 경우
@@ -277,7 +277,7 @@ class Game:
             objpos = subjc.getposn()  # 자기 자신 지정인 경우 (range=0) objpos를 subjc.getposn()으로 변경
         aoe = subjc.get_aoe(objpos, skill_no)
         aoetemp = {i[:2]: i[2] for i in aoe}
-        targets = self.get_targets(aoe, ignp|(not isatk)|bool(subjc.find_buff(type_=BT.IGNORE_PROTECT)), field=tf)
+        targets = self.get_targets(aoe, ignp | (not isatk) | bool(subjc.find_buff(type_=BT.IGNORE_PROTECT)), field=tf)
         targ_atkr: Dict['Character', NUM_T] = {i[1]: 1 for i in targets.values()}
         targ_aoe_rate: Dict['Character', NUM_T] = {i[1]: aoetemp[p] for p, i in targets.items()}
         temp_protect_types: Dict['Character', str] = dict()
@@ -304,7 +304,7 @@ class Game:
                 h_ = subjc.judge_hit(t, skill_data['accbonus'][skillvl_val])
                 if h_ > 0:
                     ishit = True
-                    t.trigger(TR.EXPECT_GET_HIT, {"attacker": subjc})
+                    t.trigger(TR.EXPECT_GET_HIT, {"attacker": subjc, "element": subjc.get_skill_element(skill_no)})
                 targ_hits[t] = h_
                 targ_atkr[t] *= h_
             if ishit and catkr is None and follow is None:
@@ -430,24 +430,25 @@ class Game:
                   made_by: Optional['Character'] = None,
                   do_print: bool = True) -> Optional['Buff']:
         """
-        :param target: Character
-        :param type_: BT.type_name
-        :param opr: "+" = 0, "*" = 1
-        :param value: NUM_T
-        :param round_: int (=MAX)
-        :param count: int (=MAX)
-        :param count_trig: Set[str]
+        :param target: A target of this buff
+        :param type_: Buff type
+        :param opr: Buff operator ("+" = 0, "*" = 1)
+        :param value: Buff value
+        :param round_: Lasting round (=MAX)
+        :param count: Lasting count (=MAX)
+        :param count_trig: Triggers for counting
         :param efft: BET.BUFF/DEBUFF/ETC (=ETC)
         :param max_stack: int (=0=no limit)
-        :param removable: bool
-        :param tag: str
+        :param removable: If True, this buff can only be removed by remove_buff(force=True)
+        :param tag: A tag for seperating some specific buffs
         :param data: NamedTuple in Datas
-        :param proportion: tuple (Character, BuffType)
-        :param desc: str
-        :param overlap_type: BOT
-        :param force: bool
-        :param chance: number between 0 and 100
-        :param made_by: Character giving this buff
+        :param proportion: (Character, BuffType)
+        :param desc: Description of this buff
+        :param overlap_type: Overlapping type of this buff (BOT)
+        :param force: If True, this buff is not effected by ACTIVE_RESIST, IMMUNE_BUFF, etc.
+        :param chance: Chance to activate this buff. Between 0 and 100
+        :param made_by: A character giving this buff
+        :param do_print: Whether to log
         """
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
@@ -504,7 +505,7 @@ class Game:
                 target.give_ap(value)
             elif type_ == BT.CHANGE_AP:
                 target.ap = value
-            elif type_ in BT.ANIT_OS_SET:
+            elif type_ in BT.ANTI_OS:
                 target.antiOSBuffs.append(buff)
             elif type_ == BT.TAKEDMGINC:
                 target.dmgTakeIncBuffs.append(buff)
@@ -674,7 +675,8 @@ class Buff:
         elif self.type == BT.INSTANT_DMG:
             self.expired = True
 
-    def getID(self):
+    @property
+    def id(self):
         return self.__id
 
     def __copy__(self):
@@ -700,14 +702,17 @@ class Buff:
 
     def simpl_str(self):
         result = ''
-        if isinstance(self.data, D.DmgInfo) and self.type == BT.INSTANT_DMG:
-            if self.data.element == 0:
-                result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
-            else:
-                result += f"추가 {E.desc[self.data.element]} 피해 {simpl(self.value*100):+}%"
-        elif isinstance(self.data, D.DmgInfo) and self.data.hp_type:
-            result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
-                      f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 {self.type} {simpl(self.value * 100):+}%"
+        if isinstance(self.data, D.DmgInfo):
+            if self.type == BT.INSTANT_DMG:
+                if self.data.element == 0:
+                    result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
+                else:
+                    result += f"추가 {self.data.element.desc} 피해 {simpl(self.value*100):+}%"
+            elif self.type == BT.DOT_DMG:
+                result += f"지속 {self.data.element.desc} 피해 {simpl(self.value*100):+}%"
+            elif self.data.hp_type:
+                result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
+                        f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 {self.type} {simpl(self.value * 100):+}%"
         else:
             if self.proportion:
                 result += f'{self.proportion[0]}의 {self.proportion[1]}의 {simpl(self.value * 100):+}% 만큼 '
@@ -760,7 +765,7 @@ class Buff:
             result += '99+횟수) '
         else:
             result += f'{self.count}횟수) '
-        result += f'{{{BET.desc[self.efftype]}}}'
+        result += f'{{{self.efftype.desc}}}'
         if not self.removable:
             result += " <해제 불가>"
         return result
@@ -776,7 +781,7 @@ class Buff:
             result += '99+횟수) '
         else:
             result += f'{self.round}횟수) '
-        result += f'[{BET.desc[self.efftype]}]'
+        result += f'[{self.efftype.desc}]'
         if not self.removable:
             result += " [해제불가]"
         result += f" [owner={self.owner}]"
@@ -819,10 +824,10 @@ class Buff:
     
     def issatisfy(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None, chance=100,
                   **kwargs):
-        if self.random and self.random() > chance:
+        if self.random is not None and self.random() > chance:
             return False
         if id_:
-            if self.getID() != id_:
+            if self.id != id_:
                 return False
         if val_sign is not None:
             if self.value == 0:
