@@ -198,9 +198,9 @@ class Character:
             link_bonus.append((b[0], b[1], d(b[2])))
         for b in info[4]:
             full_link_bonuses.append((b[0], b[1], d(b[2])))
-        equip_condition = info[5]
-        base_rarity = info[6]
-        promotable = info[7]
+        equip_condition = tuple(map(EquipType, info[5]))
+        base_rarity = Rarity(info[6])
+        promotable = Rarity(info[7])
         icon_name = info[8]
         return {
             "type": type_, 

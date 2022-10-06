@@ -34,11 +34,13 @@ if __name__ != "__main__":
     from .EliteCenturion1 import EliteCenturion1
     from .Ellie import Ellie
     from .Emily import Emily
+    from .Empress import Empress
     from .Erato import Erato
     from .EratoOld import EratoOld
     from .Fotia import Fotia
     from .Glacias import Glacias
     from .Goltarion import Goltarion
+    from .Ignis import Ignis
     from .Labiata import Labiata
     from .LegionEX1 import LegionEX1
     from .Lise import Lise

@@ -637,7 +637,7 @@ class CreateCharacter(QDialog):
         equipcond = klassinfo["equip_condition"]
         for i in range(4):
             eqlabel, eqklassbox = self.equips[i][:2]
-            eqlabel.setText(f"장비{i+1} ({ET.desc[equipcond[i]]})")
+            eqlabel.setText(f"장비{i+1} ({equipcond[i].desc})")
             eqklassbox.clear()
             eqklassbox.addItem("없음")
             eqklassbox.addItems(list(EquipPools.ALL_NAME_LIST[equipcond[i]].keys()))

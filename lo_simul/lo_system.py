@@ -709,7 +709,7 @@ class Buff:
                 else:
                     result += f"추가 {self.data.element.desc} 피해 {simpl(self.value*100):+}%"
             elif self.type == BT.DOT_DMG:
-                result += f"지속 {self.data.element.desc} 피해 {simpl(self.value*100):+}%"
+                result += f"지속 {self.data.element.desc} 피해 {self.value:+}"
             elif self.data.hp_type:
                 result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
                         f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 {self.type} {simpl(self.value * 100):+}%"
