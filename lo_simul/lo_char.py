@@ -26,13 +26,13 @@ class Character:
         Tuple[Tuple[Optional[MappingProxyType]], Tuple[Optional[MappingProxyType]], Optional[MappingProxyType]],
         Tuple[Union[Tuple, MappingProxyType], ...]
     ]
-    type_: tuple
+    type_: Tuple[CharType, CharRole]
     isags: int
     link_bonus: BuffList
     full_link_bonuses: list
-    equip_condition: tuple = (0, 0, 1, 2)
-    base_rarity: int = R.B
-    promotion: int = base_rarity
+    equip_condition: Tuple[EquipType, EquipType, EquipType, EquipType] = (ET.CHIP, ET.CHIP, ET.OS, ET.GEAR)
+    base_rarity: Rarity = R.B
+    promotion: Rarity = base_rarity
 
     extra_num: str = ''
 
@@ -158,6 +158,8 @@ class Character:
             self.hp = self.maxhp
         self.__ap = d(0)
 
+        self.rarity = Rarity(self.rarity)
+
     def random(self, r=100, offset=0):
         return self.game.random.uniform(offset, offset+r)
 
@@ -180,13 +182,13 @@ class Character:
     def get_info(cls):
         if cls.code not in UNITDATA:
             return {
-                "type": cls.type_, 
+                "type": (CharType(cls.type_[0]), CharRole(cls.type_[1])),
                 "isags": cls.isags, 
                 "link_bonus": cls.link_bonus, 
                 "full_link_bonuses": cls.full_link_bonuses,
-                "equip_condition": cls.equip_condition, 
-                "base_rarity": cls.base_rarity, 
-                "promotion": cls.promotion, 
+                "equip_condition": tuple(map(EquipType, cls.equip_condition)),
+                "base_rarity": Rarity(cls.base_rarity),
+                "promotion": Rarity(cls.promotion),
                 "icon_name": cls.icon_name,
             }
         info = UNITDATA[cls.code][0]
@@ -687,7 +689,7 @@ class Character:
 
         # 상대 받피증 (곱연산)
         for dtib in obj.dmgTakeIncBuffs:
-            extr = hprate[0 if dtib.data is None else dtib.data.type_]
+            extr = hprate[0 if dtib.data is None else dtib.data.hp_type]
             if not (dtib.data is None or dtib.data.element == 0):
                 extr *= objelementres[dtib.data.element]
             damage = dtib.calc(damage, extr)
@@ -696,9 +698,9 @@ class Character:
         # 범위 공격 피해량 감소
 
         # 피해 최소화
-        if minib := self.find_buff(type_=BT.MINIMIZE_DMG):
+        if minib := obj.find_buff(type_=BT.MINIMIZE_DMG):
             if minib[-1].value >= damage:
-                print(f"[amd] <{self}>의 피해 최소화 발동.", file=self.stream)
+                print(f"[amd] <{obj}>의 피해 최소화 발동.", file=self.stream)
                 damage = 1
 
         # 광역 피해 분산/집중

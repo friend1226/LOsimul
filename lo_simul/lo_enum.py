@@ -150,7 +150,7 @@ for _x in dir(BuffType):
     if _x.startswith('__') and _x.endswith('__'):
         continue
     _temp = getattr(BuffType, _x)
-    if isinstance(_temp, list):
+    if isinstance(_temp, tuple):
         bufftypes.extend(_temp)
     elif isinstance(_temp, str):
         bufftypes.append(_temp)
@@ -162,7 +162,8 @@ BuffType.ANIT_OS_SET = frozenset(BuffType.ANTI_OS)
 BT_NOVAL = set()
 for _typestr in ('ROOTED', 'MARKED', 'PROVOKED', 'ROW_PROTECT', 'COLUMN_PROTECT', 'TARGET_PROTECT',
                  'FOLLOW_ATTACK', 'COOP_ATTACK', 'IGNORE_BARRIER_DMGDEC', 'MINIMIZE_DMG', 'IMMUNE_DMG',
-                 'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF'):
+                 'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF',
+                 'IGNORE_PROTECT'):
     BT_NOVAL.add(getattr(BuffType, _typestr))
 BT_NOVAL = frozenset(BT_NOVAL)
 

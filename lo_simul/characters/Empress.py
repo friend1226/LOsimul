@@ -36,7 +36,7 @@ class Empress(Character):
         for t in targets:
             if targets[t] > 0:
                 if targets[t] > 1:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], data=D.DmgInfo(element=E.ICE), desc="서프라이즈!")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, data=D.DmgInfo(element=E.ICE), desc="서프라이즈!")
                 if t.find_buff(tag=G.FLOOD):
                     t.give_buff(BT.ROOTED, 0, 1, efft=BET.DEBUFF, round_=2, 
                                 tag=G.FREEZE, desc=G.FREEZE, overlap_type=BOT.RENEW)

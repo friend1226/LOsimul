@@ -702,18 +702,23 @@ class Buff:
 
     def simpl_str(self):
         result = ''
+        _flag = True
         if isinstance(self.data, D.DmgInfo):
+            _flag = False
+            if self.data.hp_type:
+                result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
+                          f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 " \
+                          f"{self.type} {simpl(self.value * 100):+}%"
             if self.type == BT.INSTANT_DMG:
-                if self.data.element == 0:
-                    result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% 고정 피해"
-                else:
-                    result += f"추가 {self.data.element.desc} 피해 {simpl(self.value*100):+}%"
+                result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% " \
+                          f"고정 {self.data.element.desc} 피해"
             elif self.type == BT.DOT_DMG:
                 result += f"지속 {self.data.element.desc} 피해 {self.value:+}"
-            elif self.data.hp_type:
-                result += f"{'대상' if self.data.hp_type - 1 % 2 else '자신'}의 HP%가 " \
-                        f"{'낮을' if self.data.hp_type - 1 // 2 else '높을'}수록 {self.type} {simpl(self.value * 100):+}%"
-        else:
+            elif self.type in {BT.TAKEDMGINC, BT.TAKEDMGDEC, BT.GIVEDMGINC, BT.GIVEDMGDEC} and self.data.element:
+                result += f"추가 {self.data.element.desc} 피해 {simpl(self.value * 100):+}%"
+            else:
+                _flag = True
+        if _flag:
             if self.proportion:
                 result += f'{self.proportion[0]}의 {self.proportion[1]}의 {simpl(self.value * 100):+}% 만큼 '
             if self.type == BT.ACTIVE_RESIST:

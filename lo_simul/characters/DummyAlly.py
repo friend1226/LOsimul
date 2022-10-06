@@ -38,7 +38,7 @@ class DummyAlly(Character):
         },
         None, None, None
     ], [None, None, None, None, None], None]
-    type_ = (0, 0)
+    type_ = (CharType.LIGHT, CharRole.DEFENDER)
     isags = 0
     link_bonus = BuffList()
     full_link_bonuses = [None]

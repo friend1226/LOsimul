@@ -961,7 +961,7 @@ class CharacterInfo(QDialog):
         templabel = QLabel(self.character.get_type_str())
         templabel.setAlignment(Qt.AlignCenter)
         ilayout.addWidget(templabel, alignment=Qt.AlignCenter)
-        templabel = QLabel(f"Lv. {self.character.lvl}")
+        templabel = QLabel(f"{self.character.rarity.name}등급 / Lv. {self.character.lvl}")
         templabel.setAlignment(Qt.AlignCenter)
         ilayout.addWidget(templabel, alignment=Qt.AlignCenter)
         templabel = QLabel(f"{'적' if self.character.isenemy else '아'}군 {self.character.getposn()}번 위치")
