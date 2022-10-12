@@ -98,19 +98,23 @@ class BuffType:
     ANTI_HEAVY = "대 중장 피해량"
     ANTI_FLY = "대 기동 피해량"
     ANTI_OS = (ANTI_LIGHT, ANTI_HEAVY, ANTI_FLY)
-    
+    ANIT_OS_SET = frozenset(ANTI_OS)
+
+    PHYSICAL_RES = "물리 저항"
     FIRE_RES = "화염 저향"
     ICE_RES = "냉기 저항"
     ELEC_RES = "전기 저항"
+    PHYSICAL_REV = "물리 저항 반전"
     FIRE_REV = "화염 저향 반전"
     ICE_REV = "냉기 저항 반전"
     ELEC_REV = "전기 저항 반전"
+    PHYSICAL_MIN = "물리 저항 최소"
     FIRE_MIN = "화염 저향 최소"
     ICE_MIN = "냉기 저항 최소"
     ELEC_MIN = "전기 저항 최소"
-    ELEMENT_RES = ("물리 저항", FIRE_RES, ICE_RES, ELEC_RES)
-    ELEMENT_REV = ("물리 저항 반전", FIRE_REV, ICE_REV, ELEC_REV)
-    ELEMENT_MIN = ("물리 저항 최소", FIRE_MIN, ICE_MIN, ELEC_MIN)
+    ELEMENT_RES = (PHYSICAL_RES, FIRE_RES, ICE_RES, ELEC_RES)
+    ELEMENT_REV = (PHYSICAL_REV, FIRE_REV, ICE_REV, ELEC_REV)
+    ELEMENT_MIN = (PHYSICAL_MIN, FIRE_MIN, ICE_MIN, ELEC_MIN)
 
     ROW_PROTECT = "행 보호"
     COLUMN_PROTECT = "열 보호"
@@ -150,20 +154,15 @@ for _x in dir(BuffType):
     if _x.startswith('__') and _x.endswith('__'):
         continue
     _temp = getattr(BuffType, _x)
-    if isinstance(_temp, tuple):
-        bufftypes.extend(_temp)
-    elif isinstance(_temp, str):
+    if isinstance(_temp, str):
         bufftypes.append(_temp)
-    elif _temp is None:
-        continue
 bufftypes = tuple(bufftypes)
-BuffType.ANIT_OS_SET = frozenset(BuffType.ANTI_OS)
 
 BT_NOVAL = set()
 for _typestr in ('ROOTED', 'MARKED', 'PROVOKED', 'ROW_PROTECT', 'COLUMN_PROTECT', 'TARGET_PROTECT',
-                 'FOLLOW_ATTACK', 'COOP_ATTACK', 'IGNORE_BARRIER_DMGDEC', 'MINIMIZE_DMG', 'IMMUNE_DMG',
+                 'FOLLOW_ATTACK', 'COOP_ATTACK', 'IGNORE_BARRIER_DMGDEC', 'IMMUNE_DMG',
                  'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF',
-                 'IGNORE_PROTECT'):
+                 'IGNORE_PROTECT', 'GIMMICK'):
     BT_NOVAL.add(getattr(BuffType, _typestr))
 BT_NOVAL = frozenset(BT_NOVAL)
 
@@ -225,20 +224,11 @@ class Trigger(StrEnum):
 
     AFTER_SKILL = "스킬 사용 후"
     AFTER_COUNTER = "반격 후"
+    AFTER_FOLLOW = "공격 지원 후"
+    AFTER_COOP = "협동 공격 후"
+    AFTER_HIT = "공격 적중 후"
     ACT = "행동 시"
     DUMMY = "DUMMY"
-
-
-TRIGGERS = []
-TRIGGERS_REV = dict()
-for _x in dir(Trigger):
-    if _x.startswith('__') and _x.endswith('__'):
-        continue
-    if _x == "DUMMY":
-        continue
-    TRIGGERS.append(_x)
-    TRIGGERS_REV[getattr(Trigger, _x)] = _x
-TRIGGERS = frozenset(TRIGGERS)
 
 
 class Group(StrEnum):
@@ -268,7 +258,7 @@ class Group(StrEnum):
     AGS = 'AGS 로보테크'
     D_ENTERTAINMENT = 'D-엔터테이먼트'
     BISMARK = '비스마르크 코퍼레이션'
-    SMART_ENJOY = "스마트엔조이"
+    SMART_ENJOY = '스마트엔조이'
 
     PARASITE = '철충'
     SUMMON = '소환물'
@@ -323,6 +313,8 @@ class Gimmick(StrEnum):
     GOLTARION = "불사의 장갑"
     
     FREEZE = "빙결"
+
+    AUSGJROWJS = "면허개전"
 
 
 GIMMICKS = set()

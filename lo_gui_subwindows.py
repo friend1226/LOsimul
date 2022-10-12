@@ -628,11 +628,11 @@ class CreateCharacter(QDialog):
                 self.flbbox.addItem(Buff(flb[0], flb[1], d(flb[2])).simpl_str())
         self.raritybox.setCurrentIndex(0)
         self.flbbox.setCurrentIndex(0)
-        character_icon = klass.get_icon_filename()
-        if character_icon is None or character_icon + '.png' not in os.listdir(os.path.join(PATH, 'data', 'icons')):
+        character_icon = f'{klassinfo["icon_name"]}.png'
+        if character_icon not in os.listdir(os.path.join(PATH, 'data', 'icons')):
             self.iconlabel.setText(f"<font color='red'>{character_icon}</font>")
         else:
-            self.iconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
+            self.iconlabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon))
                                      .scaledToHeight(CH_ICON_SIZE))
         equipcond = klassinfo["equip_condition"]
         for i in range(4):
@@ -664,7 +664,7 @@ class Trigger(QDialog):
         self.setWindowTitle("트리거 발동")
 
         self.trigbox = QComboBox()
-        self.trigbox.addItems(list(TRIGGERS_REV.keys()))
+        self.trigbox.addItems(list(map(lambda tr: tr.name, Trigger)))
         self.trigbox.setFixedWidth(200)
 
         self.selected_characters = set()
@@ -948,11 +948,11 @@ class CharacterInfo(QDialog):
         templabel = QLabel()
         templabel.setAlignment(Qt.AlignCenter)
         templabel.setMinimumHeight(81)
-        character_icon = self.character.get_icon_filename()
-        if character_icon is None or character_icon + '.png' not in os.listdir(os.path.join(PATH, 'data', 'icons')):
+        character_icon = f'{self.character.get_info()["icon_name"]}.png'
+        if character_icon not in os.listdir(os.path.join(PATH, 'data', 'icons')):
             templabel.setText(f"<font color='red'>{character_icon}</font>")
         else:
-            templabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon + '.png'))
+            templabel.setPixmap(QPixmap(os.path.join(PATH, 'data', 'icons', character_icon))
                                 .scaledToHeight(CH_ICON_SIZE))
         ilayout.addWidget(templabel, alignment=Qt.AlignCenter)
         templabel = QLabel(self.character.name)

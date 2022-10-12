@@ -10,6 +10,17 @@ class CharacterPools:
     ENEMY: Dict[str, Type['Character']] = {}
     ALL: Dict[str, Type['Character']] = {}
 
+    @classmethod
+    def get(cls, s: str):
+        if s in cls.ALL_CODES:
+            return cls.ALL_CODES[s]
+        if s in cls.ALL:
+            return cls.ALL[s]
+        return None
+
+
+CP = CharacterPools
+
 
 class Character:
     id_: int
@@ -37,6 +48,8 @@ class Character:
     extra_num: str = ''
 
     equips: List[Optional[Equip]]
+
+    is_custom: bool = False
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
@@ -91,7 +104,7 @@ class Character:
                 self.rarity = self.base_rarity
         if self.base_rarity > self.promotion:
             raise ValueError(f"승급 가능한 최대 등급이 태생 등급보다 낮습니다. "
-                             f"(태생 {list(R)[self.base_rarity].name}급 > 최대 {list(R)[self.promotion].name}승급)")
+                             f"(태생 {self.base_rarity.name}급 > 최대 {self.promotion.name}승급)")
         if self.rarity >= len(self.stats) or self.stats[self.rarity] is None:
             raise ValueError(f"해당 등급의 스탯이 존재하지 않습니다.")
 
@@ -180,7 +193,7 @@ class Character:
 
     @classmethod
     def get_info(cls):
-        if cls.code not in UNITDATA:
+        if cls.code not in UNITDATA or cls.is_custom:
             return {
                 "type": (CharType(cls.type_[0]), CharRole(cls.type_[1])),
                 "isags": cls.isags, 
@@ -214,12 +227,6 @@ class Character:
             "promotion": promotable, 
             "icon_name": icon_name,
         }
-
-    @classmethod
-    def get_icon_filename(cls):
-        from data.icons import icon_list
-        temp = icon_list.get(cls.code)
-        return temp if temp else f"TbarIcon_{cls.code}_N"
 
     def __repr__(self):
         return f"<{self.name}_{self.extra_num}({self.getposx()}, {self.getposy()}, {'E' if self.isenemy else 'A'})>"
@@ -302,7 +309,7 @@ class Character:
         return {i: self.getOrigStatFuncs[i]() for i in BT.BASE_STATS}
 
     def get_base_stats(self) -> Dict[str, d]:
-        base_buff_sum = self.baseBuffs.getSUM()
+        base_buff_sum = self.baseBuffs.get_sum()
         orig_stats = self.get_orig_stats()
         return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.BASE_STATS}
 
@@ -311,10 +318,10 @@ class Character:
             return dict()
         bufftypes = set(bt for bt in bufftypes if bt not in BT_NOVAL)
         tempbuffs = self.calculate_cycled_buff()
-        propb_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).getSUM()
-        propb_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None).getSUM(True)
-        stat_buff_sum = self.statBuffs.getSUM()
-        special_buff_sum = self.specialBuffs.getSUM()
+        propb_add = self.proportionBuffs.find(opr=0, func=lambda b: b.proportion is None).get_sum()
+        propb_mul = self.proportionBuffs.find(opr=1, func=lambda b: b.proportion is None).get_sum(True)
+        stat_buff_sum = self.statBuffs.get_sum()
+        special_buff_sum = self.specialBuffs.get_sum()
         pstp = propb_add * stat_buff_sum * propb_mul
         psppm = propb_add * special_buff_sum * propb_mul
         psppp = propb_add + special_buff_sum + propb_mul
@@ -351,7 +358,7 @@ class Character:
                         element = bf.data.element
                     result[bt][type_][element] += bf.value
             elif bt in BT.ANTI_OS:
-                result[bt] = (self.antiOSBuffs.find(type_=bt).getSUM() + propb_mul).calc(bt, 1)
+                result[bt] = (self.antiOSBuffs.find(type_=bt).get_sum() + propb_mul).calc(bt, 1)
             elif bt == BT.DEFPEN:
                 result[bt] = psppp.calc(bt, 0, True)
             elif bt == BT.ACTIVE_RESIST:
@@ -428,11 +435,11 @@ class Character:
             if bt == BT.DEFPEN:
                 basev[idx] = char.find_buff(
                     type_=bt, func=lambda b: b.proportion is None and b not in char.baseBuffs
-                ).getSUM().calc(bt, 0, True)
+                ).get_sum().calc(bt, 0, True)
             else:
                 mulv[idx] = char.find_buff(
                     type_=bt, opr=1, func=lambda b: b.proportion is None and b not in char.baseBuffs
-                ).getSUM().calc(bt, 1)
+                ).get_sum().calc(bt, 1)
                 bv = 0
                 if bt in BT.BASE_STATS_SET:
                     bv = char.get_base_stats()[bt]
@@ -444,7 +451,7 @@ class Character:
                     bv = char.ap
                 basev[idx] = char.find_buff(
                     type_=bt, opr=0, func=lambda b: b.proportion is None and b not in char.baseBuffs
-                ).getSUM().calc(bt, bv)
+                ).get_sum().calc(bt, bv)
             for pbf in char.proportionBuffs.find(type_=bt, func=lambda b: b.proportion):
                 if pbf.proportion in index:
                     if (char, pbf.type) == pbf.proportion:
@@ -528,11 +535,11 @@ class Character:
             value = d(self.get_skill(skill_no-1)['atkrate'][self.skillvl[(skill_no-1) % 5]])
         if value is None:
             return 0
-        return self.find_buff(BT.SKILL_RATE).getSUM().calc(BT.SKILL_RATE, value, True)
+        return self.find_buff(BT.SKILL_RATE).get_sum().calc(BT.SKILL_RATE, value, True)
 
     def get_skill_buff_value(self, skill_no):
         skill_no -= 1
-        lvl = self.find_buff(BT.BUFFLVL).getSUM().calc(BT.BUFFLVL, self.skillvl[skill_no % 5], True) - 1
+        lvl = self.find_buff(BT.BUFFLVL).get_sum().calc(BT.BUFFLVL, self.skillvl[skill_no % 5], True) - 1
         r = []
         for x in self.get_skill(skill_no)['buff']:
             if isinstance(x, str):
@@ -545,7 +552,7 @@ class Character:
 
     def get_skill_range(self, skill_no):
         skill_no -= 1
-        rangesum = self.find_buff({BT.RANGE, BT.RANGE_1SKILL, BT.RANGE_2SKILL}).getSUM()
+        rangesum = self.find_buff({BT.RANGE, BT.RANGE_1SKILL, BT.RANGE_2SKILL}).get_sum()
         _range = rangesum.calc(BT.RANGE, d(self.get_skill(skill_no)['range'][self.skillvl[skill_no % 5]]), True)
         if skill_no % 5:
             _range = rangesum.calc(BT.RANGE_2SKILL, _range, True)
@@ -572,7 +579,7 @@ class Character:
             return d('1')
 
     def judge_active(self, chance: NUM_T = 100):
-        chance = self.specialBuffs.getSUM().calc(BT.ACTIVE_RATE, chance, True)
+        chance = self.specialBuffs.get_sum().calc(BT.ACTIVE_RATE, chance, True)
         return self.random() <= chance
         # True = 발동 성공
         # False = 발동 실패
@@ -644,7 +651,7 @@ class Character:
         damage = substats[BT.ATK] * self.get_skill_atk_rate(value=rate[0]) * rate[1]
         # 자신 대타입 피증/피감 (합연산)
         if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
-            damage = antiosb.getSUM().calc(objtype, damage, True)
+            damage = antiosb.get_sum().calc(objtype, damage, True)
         hprate = [1, self.hp_rate, obj.hp_rate, 1 - self.hp_rate, 1 - obj.hp_rate]
         # 적 받피감 (체력 비례 포함) (합연산)
         

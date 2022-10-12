@@ -41,6 +41,9 @@ if __name__ != "__main__":
     from .Glacias import Glacias
     from .Goltarion import Goltarion
     from .Ignis import Ignis
+    from .KunoichiEnrai import KunoichiEnrai
+    from .KunoichiKaen import KunoichiKaen
+    from .KunoichiZero import KunoichiZero
     from .Labiata import Labiata
     from .LegionEX1 import LegionEX1
     from .Lise import Lise

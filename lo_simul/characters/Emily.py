@@ -67,7 +67,7 @@ class Emily(Character):
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt in {TR.ROUND_START, TR.ATTACK, TR.GET_ATTACKED} and self.hp / self.maxhp <= d('.33'):
-            self.give_buff(BT.GIMMICK, 0, 1, max_stack=1, tag=Gimmick.EMILY)
+            self.give_buff(BT.GIMMICK, 0, 1, max_stack=1, tag=Gimmick.EMILY, desc="폼 체인지")
             self.give_buff(BT.ATK, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_ATK",
                            overlap_type=BOT.SINGLE)
             self.give_buff(BT.SPD, 1, bv[1], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_SPD",

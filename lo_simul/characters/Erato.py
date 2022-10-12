@@ -81,7 +81,8 @@ class Erato(Character):
                 self.give_buff(BT.SPD, 1, bv[1], round_=1, efft=BET.BUFF, desc="성대 준비 완료!")
         elif tt == TR.ENEMY_DEAD:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag='Erato_A2_ATK_DOWN'))
-        elif tt == TR.WAVE_START and 209 in {ch.id_ for ch in self.game.get_chars(field=self.isenemy).values()}:
+        elif tt == TR.WAVE_START and \
+                CP.get("PECS_Muse").id_ in {ch.id_ for ch in self.game.get_chars(field=self.isenemy).values()}:
             self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], desc="작곡가님...!")
 
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

@@ -97,7 +97,7 @@ class Game:
         else:
             raise ValueError(f"{c}라는 캐릭터가 없음")
     
-    def trigger(self, trigtype=TR.DUMMY, ally_pos=None, enemy_pos=None):
+    def trigger(self, trigtype=TR.DUMMY, ally_pos=None, enemy_pos=None, args=None):
         if trigtype == TR.DUMMY and self.enemy_all_down:
             self.wave_end()
         if ally_pos is None:
@@ -106,13 +106,13 @@ class Game:
             enemy_pos = BasicData.passive_order
         for i in ally_pos:
             if c := self.get_char(i):
-                c.trigger(trigtype)
+                c.trigger(trigtype, args)
         for i in enemy_pos:
             if c := self.get_char(i, field=1):
-                c.trigger(trigtype)
-        self.passive(trigtype)
+                c.trigger(trigtype, args)
+        self.passive(trigtype, args)
 
-    def passive(self, tt=TR.DUMMY):
+    def passive(self, tt=TR.DUMMY, args=None):
         pass
 
     def get_chars(self, aoe: Iterable[Union[Pos, Tuple[int, int], int]] = None, field=0) \
@@ -361,6 +361,8 @@ class Game:
             return
 
         subjc.trigger(TR.AFTER_SKILL, {"skill_no": skill_no})
+        if ishit:
+            subjc.trigger(TR.AFTER_HIT, {"skill_no": skill_no, "targets": targ_hits})
             
         counters = {t: t.find_buff(BT.COUNTER_ATTACK) for t in damages if t.attackable(subjc, 1) and t.hp > 0}
         if any(counters.values()):
@@ -377,20 +379,22 @@ class Game:
             coopb = coopb[-1]
             coopc, coopsk = coopb.data
             if grid:
-                cooptarg = random.choice(list(damages.keys()))
+                cooptarg = self.random.choice(list(damages.keys()))
             else:
                 cooptarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
             self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
+            coopc.trigger(TR.AFTER_COOP)
 
         if followers := subjc.find_buff(BT.FOLLOW_ATTACK):
             followc = max(map(lambda b: b.data.attacker, filter(lambda b: subjc.random() <= b.data.chance, followers)),
                           key=lambda c: c.get_stats(BT.ATK))
             if grid:
-                followtarg = random.choice(list(damages.keys()))
+                followtarg = self.random.choice(list(damages.keys()))
             else:
                 followtarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
             if followc.attackable(followtarg, 1):
                 self._use_skill(followc, 1, followtarg.getposn(), follow=subjc)
+                followc.trigger(TR.AFTER_FOLLOW)
 
     def use_impact_skills(self):
         tempskills = []
@@ -472,24 +476,23 @@ class Game:
             target.remove_buff(tag=tag, force=True, limit=1)
         # 효과 저항 / 강화 해제 관련 메커니즘은 다음을 참고함
         # https://arca.live/b/lastorigin/47046451
-        if not force:
-            if efft != BET.NORMAL:
-                for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
-                    if buff.issatisfy(**immune_buff.data._asdict()):
-                        if do_print:
-                            print(f"[bim] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
-                        return None
-                if target.judge_resist_buff(buff, chance):
+        if not force and efft != BET.NORMAL:
+            for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
+                if buff.issatisfy(**immune_buff.data._asdict()):
                     if do_print:
-                        print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
-                              ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                        print(f"[bim] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
                     return None
-            else:
-                if target.random() > chance:
-                    if do_print:
-                        print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
-                              ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
-                    return None
+            if target.judge_resist_buff(buff, chance):
+                if do_print:
+                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                return None
+        else:
+            if target.random() > chance:
+                if do_print:
+                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                return None
         if do_print:
             print(f"[bad] <{target}> - 버프 추가됨: [{buff}]" + ("" if chance == 100 else f" ({chance}% 확률)"),
                   file=self.stream)
@@ -720,7 +723,11 @@ class Buff:
                 _flag = True
         if _flag:
             if self.proportion:
-                result += f'{self.proportion[0]}의 {self.proportion[1]}의 {simpl(self.value * 100):+}% 만큼 '
+                result += f'{self.proportion[0]}의 {self.proportion[1]}의 {simpl(self.value * 100):+}% 만큼'
+                if self.type == BT.MINIMIZE_DMG:
+                    result += "의 수치"
+                else:
+                    result += " "
             if self.type == BT.ACTIVE_RESIST:
                 if self.opr:
                     result += "효과 저항"
@@ -731,7 +738,11 @@ class Buff:
                     result += "방어 관통 수치"
                 else:
                     result += self.type
-            if self.type not in BT_NOVAL:
+            if self.type == BT.MINIMIZE_DMG:
+                if self.proportion is None:
+                    result += f"{self.value}"
+                result += " 이하 피해 최소화"
+            elif self.type not in BT_NOVAL:
                 if self.proportion is None:
                     if self.opr:
                         tmul = 1 if self.type in {BT.ACTIVE_RESIST, BT.REMOVE_BUFF_RESIST} else 100
@@ -992,7 +1003,7 @@ class BuffList:
                     self.buffs.append(b)
         return result
     
-    def getSUM(self, mul=False):
+    def get_sum(self, mul=False):
         return BuffSUM(self, mul)
 
 

@@ -44,7 +44,7 @@ class Goltarion(Character):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True),
                                desc="내부 부품 손상")
         if tt == TR.ROUND_START:
-            if 171 in set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values())):  # 뽀끄루
+            if CP.get("DS_Faucre").id_ in set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values())):
                 desc = "세뇌의 파동"
                 self.give_buff(BT.ATK, 1, bv[1], efft=BET.BUFF, round_=1, max_stack=1,
                                tag="Goltarion_P1_ATK", desc=desc)
@@ -62,7 +62,7 @@ class Goltarion(Character):
                 if t.type_[0] == CharType.LIGHT:
                     t.give_buff(BT.TARGET_PROTECT, 0, 1, efft=BET.BUFF, round_=1,
                                 data=D.TargetProtect(self), desc=desc)
-            if 127 in set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values())):  # 백토
+            if CP.get("DS_Baekto").id_ in set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values())):
                 for t in self.get_passive_targets(targets):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(func=lambda b: b.desc == desc, limit=5),
                                 desc="네놈은 뭐냐?!")
@@ -75,13 +75,16 @@ class Goltarion(Character):
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         ally_ids = set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values()))
-        momo = 123 in ally_ids
-        baekto = 127 in ally_ids
-        faucre = 171 in ally_ids
+        momo_id = CP.get("DS_MoMo").id_
+        baekto_id = CP.get("DS_Baekto").id_
+        faucre_id = CP.get("DS_Faucre").id_
+        momo = momo_id in ally_ids
+        baekto = baekto_id in ally_ids
+        faucre = faucre_id in ally_ids
         if tt == TR.ROUND_START:
             desc = "마왕님의 명이라면...!"
             for t in self.get_passive_targets(targets):
-                if t.id_ == 123 or t.id_ == 127:
+                if t.id_ == momo_id or t.id_ == baekto_id:
                     t.give_buff(BT.TARGET_PROTECT, 0, 1, efft=BET.BUFF, round_=1,
                                 data=D.TargetProtect(self), desc=desc)
             if faucre:

@@ -72,7 +72,7 @@ class Empress(Character):
             self.give_buff(BT.SPD, 1, bv[0], efft=BET.BUFF, round_=1, desc="남극 대모험")
             if self.find_buff(tag="Empress_P1_MD"):
                 self.give_buff(BT.IGNORE_PROTECT, 0, 1, efft=BET.BUFF, round_=1, desc="의태")
-            for t in self.get_passive_targets(targets, not self.isenemy):
+            for t in self.get_passive_targets(targets, True):
                 if t.find_buff(tag=G.FREEZE):
                     t.give_buff(BT.ELEMENT_RES[E.ICE], 0, bv[1], efft=BET.DEBUFF, round_=1, desc="얼음땡")
         elif tt == TR.HIT:
