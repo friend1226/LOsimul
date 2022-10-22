@@ -19,7 +19,7 @@ class Ignis(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.DEF, 1, bv[0], efft=BET.DEBUFF, round_=2, desc=desc)
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[0]*100, efft=BET.DEBUFF, round_=2, desc=desc)
+                t.give_buff(BT.FIRE_RES, 0, bv[0]*100, efft=BET.DEBUFF, round_=2, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -31,8 +31,8 @@ class Ignis(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.CRIT, 0, -bv[0]*40, efft=BET.DEBUFF, round_=2, desc="인화물 부착")
-                t.give_buff(BT.DOT_DMG, 0, bv[0]*400, efft=BET.DEBUFF, round_=2, desc="점화")
-                if t.find_buff(type_=BT.ELEMENT_RES[E.FIRE], efft=BET.DEBUFF):
+                t.give_buff(BT.FIRE_DOT_DMG, 0, bv[0]*400, efft=BET.DEBUFF, round_=2, desc="점화")
+                if t.find_buff(type_=BT.FIRE_RES, efft=BET.DEBUFF):
                     t.give_buff(BT.INSTANT_DMG, 1, bv[0], data=D.DmgInfo(subject=self, element=E.FIRE), 
                                 efft=BET.DEBUFF, desc="잔불")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
@@ -41,12 +41,12 @@ class Ignis(Character):
         if tt == TR.ROUND_START:
             desc = "적응형 방호복"
             self.give_buff(BT.DEF, 1, bv[0]/100, efft=BET.BUFF, round_=1, desc=desc)
-            self.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+            self.give_buff(BT.FIRE_RES, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)
             self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
         if tt == TR.GET_HIT:
             desc = "환경 적응"
             if args["element"]:
-                self.give_buff(BT.ELEMENT_RES[args["element"]], 0, bv[0], 
+                self.give_buff(BT_ELEMENT_RES[args["element"]], 0, bv[0], 
                                efft=BET.BUFF, round_=2, max_stack=1, tag=f"Ignis_P1_{args['element']}RES", desc=desc)
             else:
                 self.give_buff(BT.DEF, 1, bv[0]/100, efft=BET.BUFF, round_=2,
@@ -78,6 +78,6 @@ class Ignis(Character):
                     self.give_buff(BT.COUNTER_ATTACK, 1, bv[0], efft=BET.BUFF, desc="분멸", tag="Ignis_P3_CA")
         elif tt == TR.ROUND_START:
             for element in Element:
-                if self.find_buff(type_=BT.ELEMENT_RES[element]):
-                    self.give_buff(BT.ELEMENT_MIN[element], 0, bv[1], efft=BET.BUFF, round_=1, 
+                if self.find_buff(type_=BT_ELEMENT_RES[element]):
+                    self.give_buff(BT_ELEMENT_MIN[element], 0, bv[1], efft=BET.BUFF, round_=1, 
                                    desc=f"{element.desc} 차폐")

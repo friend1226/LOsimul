@@ -31,7 +31,7 @@ class Alice(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_={BT.ROOTED, BT.MARKED}, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="정밀 폭격")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="정밀 폭격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -52,7 +52,7 @@ class Alice(Character):
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "학살 본능"
         if tt == TR.ROUND_START:
-            self.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
+            self.give_buff(BT_ANTI_OS[CharType.LIGHT], 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
         elif tt == TR.WAVE_START or tt == TR.IDLE:
             self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, count=2+(self.skillvl[4] == 10),
                            desc=desc, count_trig={TR.AFTER_SKILL}, overlap_type=BOT.RENEW)

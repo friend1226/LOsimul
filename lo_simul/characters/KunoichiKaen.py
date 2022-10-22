@@ -20,9 +20,9 @@ class KunoichiKaen(Character):
             if targets[t] > 0:
                 t.give_buff(BT.ACTIVE_RESIST, 0, bv[0], round_=2, max_stack=1, tag="Kaen_A1_AR", desc=desc)
                 if targets[t] > 1:
-                    t.give_buff(BT.DOT_DMG, 0, bv[1], round_=2, efft=BET.DEBUFF, overlap_type=BOT.SINGLE, desc=desc)
+                    t.give_buff(BT.FIRE_DOT_DMG, 0, bv[1], round_=2, efft=BET.DEBUFF, overlap_type=BOT.SINGLE, desc=desc)
                 if self.find_buff(type_=BT.GIMMICK, tag="Kaen_P2_일격필살"):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=0, data=D.DmgInfo(element=E.FIRE), desc="일격필살")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], overlap_type=BOT.INSTANCE, data=D.DmgInfo(element=E.FIRE), desc="일격필살")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -37,9 +37,9 @@ class KunoichiKaen(Character):
             if targets[t] > 0:
                 t.give_buff(BT.FIRE_RES, 0, bv[0], round_=2, efft=BET.DEBUFF, max_stack=1, tag="Kaen_A2_FR", desc=desc)
                 if t.find_buff(type_={BT.ICE_RES, BT.ELEC_RES}, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[1], round_=0, data=D.DmgInfo(element=E.FIRE), desc=desc)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[1], overlap_type=BOT.INSTANCE, data=D.DmgInfo(element=E.FIRE), desc=desc)
                 if gflag:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=0, data=D.DmgInfo(element=E.FIRE), desc="일격필살")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], overlap_type=BOT.INSTANCE, data=D.DmgInfo(element=E.FIRE), desc="일격필살")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

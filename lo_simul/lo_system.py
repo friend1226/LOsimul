@@ -278,7 +278,7 @@ class Game:
         aoe = subjc.get_aoe(objpos, skill_no)
         aoetemp = {i[:2]: i[2] for i in aoe}
         targets = self.get_targets(aoe, ignp | (not isatk) | bool(subjc.find_buff(type_=BT.IGNORE_PROTECT)), field=tf)
-        targ_atkr: Dict['Character', NUM_T] = {i[1]: 1 for i in targets.values()}
+        targ_atkr: tuple['Character', ...] = tuple(dict.fromkeys(map(lambda ttup: ttup[1], targets.values())))
         targ_aoe_rate: Dict['Character', NUM_T] = {i[1]: aoetemp[p] for p, i in targets.items()}
         temp_protect_types: Dict['Character', str] = dict()
         for ptemp, ctemp in targets.items():
@@ -297,7 +297,7 @@ class Game:
         ishit = False
         if isatk:
             if catkr is None and follow is None:
-                subjc.trigger(TR.ATTACK, {"skill_no": skill_no})
+                subjc.trigger(TR.ATTACK, {"skill_no": skill_no, "targets": targ_atkr})
                 for t in targ_atkr:
                     t.trigger(TR.GET_ATTACKED, {"attacker": subjc})
             for t in targ_atkr:
@@ -306,7 +306,6 @@ class Game:
                     ishit = True
                     t.trigger(TR.EXPECT_GET_HIT, {"attacker": subjc, "element": subjc.get_skill_element(skill_no)})
                 targ_hits[t] = h_
-                targ_atkr[t] *= h_
             if ishit and catkr is None and follow is None:
                 subjc.trigger(TR.HIT, {"skill_no": skill_no, "targets": targ_hits})
         else:
@@ -320,7 +319,7 @@ class Game:
             damages = subjc.active(
                 skill_no, 
                 targ_hits,
-                {k: (atkr, targ_hits[k], targ_aoe_rate[k]) for k in targ_atkr},
+                {k: (atkr, targ_hits[t], targ_aoe_rate[k]) for k in targ_atkr},
                 len(aoe)
             )
             if damages is None:
@@ -328,7 +327,7 @@ class Game:
         else:
             damages = {
                 t: (subjc.calc_damage(t,
-                                      targ_atkr[t],
+                                      (atkr, targ_hits[t], targ_aoe_rate[t]),
                                       subjc.get_skill_element(skill_no),
                                       d(len(targets) - 1) / d(len(aoe) - 1) if len(aoe) > 1 else 0)
                     if targ_hits[t] > 0 else 0)
@@ -381,7 +380,7 @@ class Game:
             if grid:
                 cooptarg = self.random.choice(list(damages.keys()))
             else:
-                cooptarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
+                cooptarg = self.get_char(targets[Pos(objpos).xy()][1].getpos(), field=tf)
             self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
             coopc.trigger(TR.AFTER_COOP)
 
@@ -480,17 +479,17 @@ class Game:
             for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
                 if buff.issatisfy(**immune_buff.data._asdict()):
                     if do_print:
-                        print(f"[bim] <{target}> - 버프 무효됨: [{buff}]", file=self.stream)
+                        print(f"[bim] <{target}> - 버프 무효됨 (무효 버프 존재) : [{buff}]", file=self.stream)
                     return None
             if target.judge_resist_buff(buff, chance):
                 if do_print:
-                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                    print(f"[brs] <{target}> - 버프 추가 실패 (저항) : [{buff}]" +
                           ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
                 return None
         else:
             if target.random() > chance:
                 if do_print:
-                    print(f"[brs] <{target}> - 버프 저항함: [{buff}]" +
+                    print(f"[brs] <{target}> - 버프 추가 실패 (확률) : [{buff}]" +
                           ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
                 return None
         if do_print:
@@ -502,13 +501,13 @@ class Game:
         else:
             if proportion:
                 target.proportionBuffs.append(buff)
-            elif type_ in BT.BASE_STATS_SET:
+            elif type_ in BT_BASE_STATS_SET:
                 target.statBuffs.append(buff)
             elif type_ == BT.AP:
                 target.give_ap(value)
             elif type_ == BT.CHANGE_AP:
                 target.ap = value
-            elif type_ in BT.ANTI_OS:
+            elif type_ in BT_ANTI_OS_SET:
                 target.antiOSBuffs.append(buff)
             elif type_ == BT.TAKEDMGINC:
                 target.dmgTakeIncBuffs.append(buff)
@@ -645,6 +644,12 @@ class Buff:
         # BT.ACTIVE_RESIST의 경우
         # "효과 저항 감소" 로직(기본 확률 증감)으로는 0,
         # "효과 저항"      로직(독립시행)으로는 1을 입력하세요.
+        
+        # 적중, 회피, 치명의 경우 %증가라도 합연산이므로 opr=0, 수치는 %수치 그대로
+        # (예: 적중 +30% => Buff(BT.ACC, 0, 30))
+        # opr=1일 경우 적중 수치 자체에 곱연산됨
+        # 효저, 강화 해제 저항, 속성 저항도 %수치 그대로
+        # 나머지는 %증가의 곱연산인 경우 퍼센트 적용된(100으로 나눈) 수치로
         self.value: NUM_T = value
         self.round: int = round_
         self.count: int = count
@@ -715,8 +720,6 @@ class Buff:
             if self.type == BT.INSTANT_DMG:
                 result += f"{self.data.subject}의 공격력의 {simpl(self.value*100):+}% " \
                           f"고정 {self.data.element.desc} 피해"
-            elif self.type == BT.DOT_DMG:
-                result += f"지속 {self.data.element.desc} 피해 {self.value:+}"
             elif self.type in {BT.TAKEDMGINC, BT.TAKEDMGDEC, BT.GIVEDMGINC, BT.GIVEDMGDEC} and self.data.element:
                 result += f"추가 {self.data.element.desc} 피해 {simpl(self.value * 100):+}%"
             else:
@@ -736,7 +739,7 @@ class Buff:
             else:
                 if self.type == BT.DEFPEN and self.opr:
                     result += "방어 관통 수치"
-                else:
+                elif self.type != BT.MINIMIZE_DMG:
                     result += self.type
             if self.type == BT.MINIMIZE_DMG:
                 if self.proportion is None:
@@ -752,7 +755,7 @@ class Buff:
                         result += \
                             f' {simpl(self.value * tmul):+}' + ('%' if self.type in {
                                 BT.EVA, BT.CRIT, BT.ACC, BT.ACTIVE_RESIST, BT.ACTIVE_RATE,
-                                *BT.ELEMENT_RES, BT.SKILL_RATE, BT.DEFPEN
+                                *BT_ELEMENT_RES, BT.SKILL_RATE, BT.DEFPEN
                             } else '')
                 else:
                     result += " 증가"
@@ -784,6 +787,8 @@ class Buff:
         result += f'{{{self.efftype.desc}}}'
         if not self.removable:
             result += " <해제 불가>"
+        if self.expired:
+            result += " <즉발>"
         return result
 
     def __repr__(self):
@@ -811,10 +816,10 @@ class Buff:
             extra_rate = d('1')
         if self.proportion:
             targ, bt = self.proportion
-            if bt in {*BT.BASE_STATS, *BT.ELEMENT_RES, BT.SPD, BT.AP}:
+            if bt in {*BT_BASE_STATS, *BT_ELEMENT_RES, BT.SPD, BT.AP}:
                 extra_rate *= targ.get_stats(bt)
         if self.opr:
-            if self.type == BT.DOT_DMG:
+            if self.type in BT_DOT_DMG_SET:
                 r = self.value*extra_rate*v
             else:
                 r = (d('1')+extra_rate*self.value)*v
@@ -843,7 +848,9 @@ class Buff:
         if self.random is not None and self.random() > chance:
             return False
         if id_:
-            if self.id != id_:
+            if isinstance(id_, int) and self.id != id_:
+                return False
+            if isinstance(id_, Iterable) and self.id not in id_:
                 return False
         if val_sign is not None:
             if self.value == 0:
@@ -856,12 +863,12 @@ class Buff:
             if self.opr != opr:
                 return False
         if type_:
-            if isinstance(type_, str) and self.type != type_:
+            if isinstance(type_, BT) and self.type != type_:
                 return False
             if isinstance(type_, Iterable) and self.type not in type_:
                 return False
         if efft:
-            if efft in self.efftype:
+            if self.efftype not in efft:
                 return False
         if tag:
             if self.tag is None or not self.tag.startswith(tag):
@@ -964,8 +971,8 @@ class BuffList:
                     (battlecontinue_activated and b.type == BT.BATTLE_CONTINUATION and tt == TR.BATTLE_CONTINUED):
                 continue
             b.trigger(tt, args)
-            if b.owner is not None and b.type == BT.DOT_DMG and tt == TR.ROUND_END and b.owner.hp > 0:
-                b.owner.give_damage(b.value * b.owner.get_res_dmgrate(0 if b.data is None else b.data.element), True)
+            if b.owner is not None and b.type in BT_DOT_DMG_SET and tt == TR.ROUND_END and b.owner.hp > 0:
+                b.owner.give_damage(b.value * b.owner.get_res_dmgrate(b.type.element), True)
             if b.round > 0 and b.count > 0 and not (tt == TR.DUMMY and b.expired):
                 self.buffs.append(b)
             else:
@@ -997,7 +1004,6 @@ class BuffList:
                     continue
                 if (b.removable or force) and b.issatisfy(type_, efft, tag, func, id_, val_sign, opr):
                     result.append(b)
-                    b.expired = True
                     limit -= 1
                 else:
                     self.buffs.append(b)
@@ -1009,7 +1015,7 @@ class BuffList:
 
 class BuffSUM:
     def __init__(self, buffs: BuffList, mul=False):
-        self.values = dict([(i, [d('0'), d('1')]) for i in bufftypes])
+        self.values = dict([(i, [d('0'), d('1')]) for i in BuffType])
         for b in buffs:
             if mul and b.opr:
                 self.values[b.type][b.opr] *= b.calc(1) - 1

@@ -14,8 +14,8 @@ class EquipPools:
     ALL_NAME: Dict[str, Type['Equip']] = {}
 
 
-EQUIP_TYPE_CODE = ['Chip', 'System', 'Sub']
-META_CLASS_SET = {"Chip", "OS", "Gear"}
+_EQUIP_TYPE_CODE = ['Chip', 'System', 'Sub']
+_META_CLASS_SET = {"Chip", "OS", "Gear"}
 
 
 class Equip:
@@ -29,7 +29,7 @@ class Equip:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
-        if cls.__name__ in META_CLASS_SET:
+        if cls.__name__ in _META_CLASS_SET:
             return
         EquipPools.ALL_NAME_LIST[cls.EQUIP_TYPE][cls.nick] = cls
         EquipPools.ALL_NAME[cls.nick] = cls
@@ -52,7 +52,7 @@ class Equip:
         return True
         
     def get_icon_filename(self):
-        return f"UI_Icon_Equip_{EQUIP_TYPE_CODE[self.EQUIP_TYPE]}_{self.code}_T{self.rarity + 1}"
+        return f"UI_Icon_Equip_{_EQUIP_TYPE_CODE[self.EQUIP_TYPE]}_{self.code}_T{self.rarity + 1}"
 
     def init_buff(self):
         pass
@@ -333,7 +333,7 @@ class AntiFlyOS(OS):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, self.val[self.rarity][self.lvl], desc="대 기동형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.FLY], 1, self.val[self.rarity][self.lvl], desc="대 기동형 OS")
 
 
 class AntiLightOS(OS):
@@ -351,7 +351,7 @@ class AntiLightOS(OS):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, self.val[self.rarity][self.lvl], desc="대 경장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.LIGHT], 1, self.val[self.rarity][self.lvl], desc="대 경장형 OS")
 
 
 class AntiHeavyOS(OS):
@@ -369,7 +369,7 @@ class AntiHeavyOS(OS):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, self.val[self.rarity][self.lvl], desc="대 중장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.HEAVY], 1, self.val[self.rarity][self.lvl], desc="대 중장형 OS")
 
 
 class EXPOS(OS):
@@ -738,7 +738,7 @@ class AMRAAMPod(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "AMRAAM"
-            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, self.val[0][self.lvl], desc=desc)
+            self.owner.give_buff(BT_ANTI_OS[CharType.FLY], 1, self.val[0][self.lvl], desc=desc)
             self.owner.give_buff(BT.DEFPEN, 0, self.val[1][self.lvl], desc=desc)
             if self.lvl == 10:
                 self.owner.give_buff(BT.RANGE, 0, 1, desc=desc)
@@ -756,9 +756,9 @@ class SuperAlloyArmor(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
-            Buff(BT.ELEMENT_RES[E.ICE], 0, d('25') + d('2.5') * self.lvl, removable=False),
-            Buff(BT.ELEMENT_RES[E.ELEC], 0, d('25') + d('2.5') * self.lvl, removable=False)
+            Buff(BT.FIRE_RES, 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.ICE_RES, 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.ELEC_RES, 0, d('25') + d('2.5') * self.lvl, removable=False)
         )
 
     def passive(self, tt, args=None):
@@ -798,7 +798,7 @@ class FireSpray(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.FIRE], 0, self.val[self.rarity][0] * self.val[self.rarity][1] * self.lvl,
+            Buff(BT.FIRE_RES, 0, self.val[self.rarity][0] * self.val[self.rarity][1] * self.lvl,
                  removable=False, tag=self.name)
         )
 
@@ -811,7 +811,7 @@ class IceSpray(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ICE], 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
+            Buff(BT.ICE_RES, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
                  removable=False, tag=self.name)
         )
 
@@ -824,7 +824,7 @@ class ElectricSpray(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ELEC], 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
+            Buff(BT.ELEC_RES, 0, self.val[self.rarity][0] + self.val[self.rarity][1] * self.lvl,
                  removable=False, tag=self.name)
         )
 
@@ -852,9 +852,9 @@ class CounterTerrorismArmor(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             desc = "대 태러 외장 장갑"
-            self.owner.give_buff(BT.ELEMENT_RES[E.FIRE], 0, self.val[1][self.lvl], desc=desc)
-            self.owner.give_buff(BT.ELEMENT_RES[E.ICE], 0, self.val[1][self.lvl], desc=desc)
-            self.owner.give_buff(BT.ELEMENT_RES[E.ELEC], 0, self.val[1][self.lvl], desc=desc)
+            self.owner.give_buff(BT.FIRE_RES, 0, self.val[1][self.lvl], desc=desc)
+            self.owner.give_buff(BT.ICE_RES, 0, self.val[1][self.lvl], desc=desc)
+            self.owner.give_buff(BT.ELEC_RES, 0, self.val[1][self.lvl], desc=desc)
             self.owner.give_buff(BT.TAKEDMGDEC, 1, self.val[1][self.lvl]+d('.1'), desc=desc)
             self.owner.give_buff(BT.ROW_PROTECT, 0, 1, desc=desc)
 
@@ -939,7 +939,7 @@ class MG80ModKit(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CT.LIGHT], 1,
+            self.owner.give_buff(BT_ANTI_OS[CT.LIGHT], 1,
                                  d('.15') + d('.01') * self.lvl - (d('.01') if 0 < self.lvl < 10 else 0), desc="LM탄")
 
 
@@ -960,7 +960,7 @@ class Steroid(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT_ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.RANGE, 0, 1, desc=self.name)
 
 
@@ -1097,7 +1097,7 @@ class AquaModule(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ICE], 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl,
+            Buff(BT.ICE_RES, 0, self.val[0][self.rarity][0] + self.val[0][self.rarity][1] * self.lvl,
                  removable=False)
         )
 
@@ -1189,7 +1189,7 @@ class IcePack(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.FIRE_RES, 0, d('25') + d('2.5') * self.lvl, removable=False),
         )
 
     def passive(self, tt, args=None):
@@ -1205,7 +1205,7 @@ class SunCream(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.FIRE], 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.FIRE_RES, 0, d('25') + d('2.5') * self.lvl, removable=False),
         )
 
     def passive(self, tt, args=None):
@@ -1232,7 +1232,7 @@ class ASN6G(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('.15') + d('.03') * self.lvl, desc=self.name)
-            self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT_ANTI_OS[CT.HEAVY], 1, d('.15') + d('.01') * self.lvl, desc=self.name)
 
 
 class HornOfBADK(Gear):
@@ -1240,16 +1240,15 @@ class HornOfBADK(Gear):
     nick = "뽀끄루전장"
     name = "뽀끄루 대마왕의 뿔"
     code = "HornOfBADK"
-    dval = [(0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15), (0, 1, 2, 3, 4, 5, 7, 10, 13, 16, 20)]
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START and not self.owner.isags:
             desc = "뽀끄루...뽀끄루..."
-            self.owner.give_buff(BT.ATK, 1, d('.05') + d('.01') * self.lvl, round_=1, desc=desc)
-            self.owner.give_buff(BT.ACC, 0, d('5') + self.dval[1][self.lvl], round_=1, desc=desc)
-            self.owner.give_buff(BT.CRIT, 0, d('2.5') + d('.5') * self.dval[0][self.lvl], round_=1, desc=desc)
-            self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.dval[0][self.lvl], round_=1, desc=desc)
-            self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc="뽀끄루...?", chance=10)
+            self.owner.give_buff(BT.CRIT, 0, 10 + 2 * self.lvl, round_=1, efft=BET.BUFF, 
+                                 tag=f"{self.code}_CRIT", desc=desc)
+            self.owner.give_buff(BT.SPD, 1, d('.1') + d('.01') * self.lvl, round_=1, efft=BET.BUFF, 
+                                 tag=f"{self.code}_SPD", desc=desc)
+            self.owner.give_buff(BT.ACT_PER_TURN, 0, -99, round_=1, tag=f"{self.code}_APT", desc="뽀끄루...?", chance=20)
 
 
 class MoonCake(Gear):
@@ -1260,14 +1259,21 @@ class MoonCake(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            desc = "달의 가호"
-            self.owner.give_buff(BT.ATK, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=33)
-            self.owner.give_buff(BT.ACC, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc, chance=33)
-            self.owner.give_buff(BT.EVA, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc, chance=25)
-            self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=15)
-            self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, round_=1, desc=desc,
-                                 data=D.BuffCond(type_=BT.ATK, efft=BET.DEBUFF),
-                                 chance=10+2*self.lvl+(self.lvl == 10)*3)
+            if self.owner.code == "DS_Baekto" and self.owner.find_buff(tag="Baekto_P3"):
+                desc = "완전한 달의 가호"
+                self.owner.give_buff(BT.ATK, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc)
+                self.owner.give_buff(BT.ACC, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc)
+                self.owner.give_buff(BT.EVA, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc)
+                self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc)
+                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, round_=1, desc=desc, data=D.BuffCond(efft=BET.DEBUFF))
+            else:
+                desc = "달의 가호"
+                self.owner.give_buff(BT.ATK, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=33)
+                self.owner.give_buff(BT.ACC, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc)
+                self.owner.give_buff(BT.EVA, 0, d('25') + d('5') * self.lvl, round_=1, desc=desc, chance=25)
+                self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.15') + d('.03') * self.lvl, round_=1, desc=desc, chance=15)
+                self.owner.give_buff(BT.REMOVE_BUFF, 0, 1, round_=1, desc=desc, data=D.BuffCond(efft=BET.DEBUFF),
+                                     chance=10+2*self.lvl+(self.lvl == 10)*3)
 
 
 class Interceptor(Gear):
@@ -1403,7 +1409,7 @@ class Nitro3000(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ICE], 0, d('25') + d('2.5') * self.lvl, removable=False),
+            Buff(BT.ICE_RES, 0, d('25') + d('2.5') * self.lvl, removable=False),
             Buff(BT.EVA, 0, d('10') + d('2') * self.lvl, removable=False),
             Buff(BT.SPD, 0, d('.1') + d('.02') * self.lvl, removable=False),
         )
@@ -1548,7 +1554,7 @@ class ODAmplifier(Gear):
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START and not self.owner.isags:
             self.owner.give_buff(BT.ATK, 1, d('.15') + d('.075') * self.lvl, round_=1, desc=self.name)
-            self.owner.give_buff(BT.DOT_DMG, 0, d(525), round_=1, desc=self.name)
+            self.owner.give_buff(BT.PHYSICAL_DOT_DMG, 0, d(525), round_=1, desc=self.name)
 
 
 class CMIIShield(Gear):
@@ -1564,8 +1570,8 @@ class CMIIShield(Gear):
     def init_buff(self):
         self.buff = BuffList(
             Buff(BT.ATK, 0, d('30') + d('6') * self.lvl, removable=False),
-            Buff(BT.ELEMENT_RES[E.FIRE], 0, d('20') + d('4') * self.lvl, removable=False),
-            Buff(BT.ELEMENT_RES[E.ELEC], 0, d('20') + d('4') * self.lvl, removable=False),
+            Buff(BT.FIRE_RES, 0, d('20') + d('4') * self.lvl, removable=False),
+            Buff(BT.ELEC_RES, 0, d('20') + d('4') * self.lvl, removable=False),
         )
 
     def passive(self, tt, args=None):
@@ -1616,8 +1622,8 @@ class GigantesArmor(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.5') + d('.005') * self.dval2[self.lvl], desc=self.name)
-            self.owner.give_buff(BT.ELEMENT_RES[E.FIRE], 0, d('20') + self.dval1[self.lvl], desc=self.name)
-            self.owner.give_buff(BT.ELEMENT_RES[E.ICE], 0, d('20') + self.dval1[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.FIRE_RES, 0, d('20') + self.dval1[self.lvl], desc=self.name)
+            self.owner.give_buff(BT.ICE_RES, 0, d('20') + self.dval1[self.lvl], desc=self.name)
             self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('.8') + d('.05') * self.lvl, desc=self.name)
 
 
@@ -1851,7 +1857,7 @@ class UnevenTerrain(Gear):
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.05') + d('.01') * self.lvl, round_=1, efft=BET.BUFF,
                                  desc=self.name)
             for i in range(1, 4):
-                self.owner.give_buff(BT.ELEMENT_RES[i], 1, 15 + 2 * self.lvl, round_=1, efft=BET.BUFF, desc=self.name)
+                self.owner.give_buff(BT_ELEMENT_RES[i], 1, 15 + 2 * self.lvl, round_=1, efft=BET.BUFF, desc=self.name)
 
 
 class ThornNecklace(Gear):
@@ -1873,7 +1879,7 @@ class ThornNecklace(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.DEFPEN, 0, d('.1') + d('.01') * self.val[self.lvl], desc=self.name)
-            self.owner.give_buff(BT.DOT_DMG, 0, 650, round_=1, desc=self.name)
+            self.owner.give_buff(BT.PHYSICAL_DOT_DMG, 0, 650, round_=1, desc=self.name)
 
 
 class OverFlow(OS):
@@ -1944,8 +1950,8 @@ class AntiLightFlyOS(OS):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
-            self.owner.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, v, desc="대 경장/기동형 OS")
-            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, v, desc="대 경장/기동형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.LIGHT], 1, v, desc="대 경장/기동형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.FLY], 1, v, desc="대 경장/기동형 OS")
 
 
 class AntiFlyHeavyOS(OS):
@@ -1957,8 +1963,8 @@ class AntiFlyHeavyOS(OS):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
-            self.owner.give_buff(BT.ANTI_OS[CharType.FLY], 1, v, desc="대 기동/중장형 OS")
-            self.owner.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, v, desc="대 기동/중장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.FLY], 1, v, desc="대 기동/중장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.HEAVY], 1, v, desc="대 기동/중장형 OS")
 
 
 class AntiHeavyLightOS(OS):
@@ -1970,8 +1976,8 @@ class AntiHeavyLightOS(OS):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             v = self.val[self.rarity] + d('.005') * (self.lvl + (self.rarity == R.SS and self.lvl == 10))
-            self.owner.give_buff(BT.ANTI_OS[CharType.HEAVY], 1, v, desc="대 중장/경장형 OS")
-            self.owner.give_buff(BT.ANTI_OS[CharType.LIGHT], 1, v, desc="대 중장/경장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.HEAVY], 1, v, desc="대 중장/경장형 OS")
+            self.owner.give_buff(BT_ANTI_OS[CharType.LIGHT], 1, v, desc="대 중장/경장형 OS")
 
 
 class ImprovedEXPOS(OS):
@@ -2007,7 +2013,7 @@ class ImprovedNitro3500(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ICE], 0, 30 + 3 * self.lvl, removable=False),
+            Buff(BT.ICE_RES, 0, 30 + 3 * self.lvl, removable=False),
             Buff(BT.EVA, 0, d('18') + d('1.8') * self.lvl, removable=False),
             Buff(BT.SPD, 0, d('.2') + d('.02') * self.lvl, removable=False),
         )
@@ -2053,8 +2059,8 @@ class LRCannon(Gear):
     
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ANTI_OS[CT.LIGHT], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
-            self.owner.give_buff(BT.ANTI_OS[CT.HEAVY], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT_ANTI_OS[CT.LIGHT], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT_ANTI_OS[CT.HEAVY], 1, d('.2') + d('.01') * self.lvl, desc=self.name)
             self.owner.give_buff(BT.DEFPEN, 0, d('.2') + d('.03') * self.lvl, desc=self.name)
 
 
@@ -2313,7 +2319,7 @@ class LRAD(OS):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             val = d('14.5') + d('.5') * (self.lvl + (self.lvl == 10))
-            for antios in BT.ANTI_OS:
+            for antios in BT_ANTI_OS:
                 self.owner.give_buff(antios, 1, val, desc="LRAD 강화")
             self.owner.give_buff(BT.RANGE, 0, 1, desc="LRAD 강화")
 
@@ -2441,7 +2447,7 @@ class TuinOrellia(Gear):
                     if targets[t]:
                         t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
                                     data=D.DmgInfo(element=E.FIRE), round_=0, desc=self.name)
-                        t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -50 - 3 * self.lvl,
+                        t.give_buff(BT.FIRE_RES, 0, -50 - 3 * self.lvl,
                                     efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
 
 
@@ -2470,7 +2476,7 @@ class SumaOrellia(Gear):
                     if targets[t]:
                         t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
                                     data=D.DmgInfo(element=E.ICE), round_=0, desc=self.name)
-                        t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -50 - 3 * self.lvl,
+                        t.give_buff(BT.ICE_RES, 0, -50 - 3 * self.lvl,
                                     efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
 
 
@@ -2499,7 +2505,7 @@ class ZoweOrellia(Gear):
                     if targets[t]:
                         t.give_buff(BT.TAKEDMGINC, 1, d('.2') + d('.01') * self.lvl,
                                     data=D.DmgInfo(element=E.ELEC), round_=0, desc=self.name)
-                        t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -50 - 3 * self.lvl,
+                        t.give_buff(BT.ELEC_RES, 0, -50 - 3 * self.lvl,
                                     efft=BET.DEBUFF, max_stack=1, tag=f"{self.code}_ER", desc=self.name)
 
 
@@ -2664,7 +2670,7 @@ class RebootAlpha(OS):
         if tt == TR.ROUND_START:
             if self.owner.hp / self.owner.maxhp >= 1:
                 self.owner.give_buff(BT.INABILLITY_SKILL, 0, 1, round_=1, desc=self.name)
-                self.owner.give_buff(BT.DOT_DMG, 0, 10, round_=1, desc=self.name)
+                self.owner.give_buff(BT.PHYSICAL_DOT_DMG, 0, 10, round_=1, desc=self.name)
 
 
 class RebootBeta(OS):
@@ -2736,12 +2742,12 @@ class HotPack(Gear):
 
     def init_buff(self):
         self.buff = BuffList(
-            Buff(BT.ELEMENT_RES[E.ICE], 0, 25 + d('2.5') * self.lvl, removable=False)
+            Buff(BT.ICE_RES, 0, 25 + d('2.5') * self.lvl, removable=False)
         )
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.ELEMENT_MIN[E.ICE], 0, 10 + 2 * self.lvl, round_=3, desc=self.name)
+            self.owner.give_buff(BT_ELEMENT_MIN[E.ICE], 0, 10 + 2 * self.lvl, round_=3, desc=self.name)
 
 
 class SEyePatch(Gear):
@@ -2900,7 +2906,7 @@ class MiniBlackWyrm(Gear):
         if tt == TR.GET_HIT:
             attacker = args.get('attacker')
             if attacker.get_stats(BT.SPD) > self.owner.get_stats(BT.SPD):
-                attacker.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -10 - self.lvl, round_=1, efft=BET.DEBUFF,
+                attacker.give_buff(BT.FIRE_RES, 0, -10 - self.lvl, round_=1, efft=BET.DEBUFF,
                                    max_stack=1, tag=f"{self.code}_ER", desc="사전 제압")
 
 
@@ -2918,10 +2924,8 @@ class NapalmRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.FIRE), 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, -bv, 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.FIRE_DOT_DMG, 0, bv*10, round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.FIRE_RES, 0, -bv, round_=2, efft=BET.DEBUFF, desc=self.name)
 
 
 class CryogenicRounds(Gear):
@@ -2938,10 +2942,8 @@ class CryogenicRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.ICE), 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
-                t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -bv, 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ICE_DOT_DMG, 0, bv*10, round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ICE_RES, 0, -bv, round_=2, efft=BET.DEBUFF, desc=self.name)
 
 
 class ArcDischargeRounds(Gear):
@@ -2958,7 +2960,5 @@ class ArcDischargeRounds(Gear):
             targets = args.get("targets")
             for t in targets:
                 bv = d("10") + self.lvl
-                t.give_buff(BT.DOT_DMG, 0, bv*10, data=D.DmgInfo(element=E.ELEC), 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
-                t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -bv, 
-                            round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ELEC_DOT_DMG, 0, bv*10, round_=2, efft=BET.DEBUFF, desc=self.name)
+                t.give_buff(BT.ELEC_RES, 0, -bv, round_=2, efft=BET.DEBUFF, desc=self.name)

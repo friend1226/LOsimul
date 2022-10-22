@@ -18,7 +18,7 @@ class LRL(Character):
         desc = "럭키 히트!"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc=desc, chance=19)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc=desc, chance=19)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _active2(self,
@@ -53,8 +53,8 @@ class LRL(Character):
                 if args["skill_no"] == 1:
                     if any(args["targets"].values()):
                         desc = "슈퍼 럭키 히트!"
-                        self.give_buff(BT.DEFPEN, 0, d('1.5'), efft=BET.BUFF, round_=0, desc=desc, chance=19)
-                        self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, round_=0, desc=desc, chance=19)
+                        self.give_buff(BT.DEFPEN, 0, d('1.5'), efft=BET.BUFF, overlap_type=BOT.INSTANCE, desc=desc, chance=19)
+                        self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, overlap_type=BOT.INSTANCE, desc=desc, chance=19)
                 if args["skill_no"] == 2:
                     for t in args["targets"]:
                         if args["targets"][t] > 0:

@@ -18,7 +18,7 @@ class TyrantChallenge1(Character):
         desc = "타이런트 바이트"
         for t in targets:
             if targets[t] > 0:
-                self.give_buff(BT.GIVEDMGINC, 1, bv[0], round_=0, efft=BET.BUFF, data=D.DmgInfo(hp_type=4), desc=desc)
+                self.give_buff(BT.GIVEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, efft=BET.BUFF, data=D.DmgInfo(hp_type=4), desc=desc)
                 t.give_buff(BT.DEF, 1, bv[1], round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A1_DEF", desc=desc)
                 if t.hp / t.maxhp >= d(.5):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF),
@@ -34,7 +34,7 @@ class TyrantChallenge1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[min(self.stack_limited_buff_tags[G.Tyrant_Challenge_1], 2)],
+                t.give_buff(BT.FIRE_RES, 0, bv[min(self.stack_limited_buff_tags[G.Tyrant_Challenge_1], 2)],
                             round_=2, max_stack=1, efft=BET.DEBUFF, tag="TyrantCh1_A2_FIRERES", desc="프라이멀 파이어")
                 self.remove_buff(tag=G.Tyrant_Challenge_1)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}

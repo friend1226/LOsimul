@@ -51,7 +51,7 @@ class DummyAlly(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self,
@@ -62,7 +62,7 @@ class DummyAlly(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def extra_passive(self, tt, args=None):

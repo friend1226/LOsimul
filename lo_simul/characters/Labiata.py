@@ -19,7 +19,7 @@ class Labiata(Character):
             self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, max_stack=3, tag=G.LABIATA)
         for t in targets:
             if targets[t] > 1:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[1], round_=0, desc="회심의 일격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[1], overlap_type=BOT.INSTANCE, desc="회심의 일격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self, 
@@ -31,7 +31,7 @@ class Labiata(Character):
         if self.stack_limited_buff_tags[G.LABIATA] == 3:
             for t in targets:
                 if targets[t] > 0:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="최대 출력 강타")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="최대 출력 강타")
             self.remove_buff(tag=G.LABIATA, limit=1)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     

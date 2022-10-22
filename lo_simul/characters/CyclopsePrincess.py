@@ -22,7 +22,7 @@ class CyclopsePrincess(Character):
                 stack.append(pbt)
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0]*5, round_=0, desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0]*5, overlap_type=BOT.INSTANCE, desc=desc)
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, 
                             data=D.BuffCond(type_={BT.COUNTER_ATTACK, BT.MINIMIZE_DMG}, efft=BET.BUFF), desc=desc)
                 for tagad in stack:

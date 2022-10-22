@@ -326,14 +326,14 @@ class CreateCharacter(QDialog):
 
         statbox = QGroupBox("스탯")
         statlayout = QVBoxLayout()
-        self.statspinboxes = {i: None for i in BT.BASE_STATS}
+        self.statspinboxes = {i: None for i in BT_BASE_STATS}
 
         def setmax(box):
             def func():
                 box.setValue(box.maximum())
             return func
 
-        for st in BT.BASE_STATS:
+        for st in BT_BASE_STATS:
             stlabel = QLabel(st)
             stlabel.setAlignment(Qt.AlignCenter)
             stlabel.setFixedWidth(40)
@@ -568,7 +568,7 @@ class CreateCharacter(QDialog):
         rarity = Rarity[self.raritybox.currentText()]
         level = self.levelbox.value()
         stat_lvl = [0, 0, 0, 0, 0, 0]
-        for idx, bt in enumerate(BT.BASE_STATS):
+        for idx, bt in enumerate(BT_BASE_STATS):
             stat_lvl[idx] = self.statspinboxes[bt].value()
         skill_lvl = [0, 0, 0, 0, 0]
         for idx, box in enumerate(self.skillspinboxes.values()):
@@ -983,7 +983,7 @@ class CharacterInfo(QDialog):
         layouts[0].addWidget(QLabel(f"체력\n{self.character.hp}/{self.character.maxhp}"))
         layouts[0].addWidget(QLabel(f"AP\n{self.character.ap}/20"))
 
-        stats = self.character.get_stats(*BT.BASE_STATS, BT.SPD, *BT.ELEMENT_RES)
+        stats = self.character.get_stats(*BT_BASE_STATS, BT.SPD, *BT_ELEMENT_RES)
         bstats = self.character.get_base_stats()
 
         atk = stats[BT.ATK].to_integral(rounding=decimal.ROUND_FLOOR)
@@ -1007,9 +1007,9 @@ class CharacterInfo(QDialog):
                                     (f" ({ds:+})" if
                                      (ds := stats[BT.SPD] - self.character.get_orig_spd()) != 0 else "")))
 
-        layouts[4].addWidget(QLabel(f"화염저항\n{stats[BT.ELEMENT_RES[1]]}%"))
-        layouts[4].addWidget(QLabel(f"냉기저항\n{stats[BT.ELEMENT_RES[2]]}%"))
-        layouts[4].addWidget(QLabel(f"전기저항\n{stats[BT.ELEMENT_RES[3]]}%"))
+        layouts[4].addWidget(QLabel(f"화염저항\n{stats[BT.FIRE_RES]}%"))
+        layouts[4].addWidget(QLabel(f"냉기저항\n{stats[BT.ICE_RES]}%"))
+        layouts[4].addWidget(QLabel(f"전기저항\n{stats[BT.ELEC_RES]}%"))
 
         for i in range(5):
             frames[i].setLayout(layouts[i])

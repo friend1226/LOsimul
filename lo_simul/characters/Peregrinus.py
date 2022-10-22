@@ -28,7 +28,7 @@ class Peregrinus(Character):
         for t in targets:
             if targets[t] > 0:
                 if targets[t] > 1:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc=desc)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc=desc)
                 t.give_buff(BT.DEF, 1, bv[1], efft=BET.DEBUFF, round_=3, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
@@ -41,8 +41,8 @@ class Peregrinus(Character):
         desc = "질풍격"
         for t in targets:
             if targets[t] > 0:
-                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, round_=0, desc=desc)
-                self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, proportion=(self, BT.EVA), efft=BET.BUFF, round_=0,
+                self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, efft=BET.BUFF, overlap_type=BOT.INSTANCE, desc=desc)
+                self.give_buff(BT.SKILL_RATE, 0, bv[0] / 100, proportion=(self, BT.EVA), efft=BET.BUFF, overlap_type=BOT.INSTANCE,
                                desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
@@ -84,7 +84,7 @@ class Peregrinus(Character):
             if targets[t] > 0:
                 t.give_buff(BT.EVA, 0, bv[0], efft=BET.DEBUFF, round_=3, desc=desc)
                 if t.find_buff(type_={BT.ROW_PROTECT, BT.COLUMN_PROTECT}, func=lambda b: b.efft != BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[1], round_=0, desc=desc)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[1], overlap_type=BOT.INSTANCE, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _factive2(self,
@@ -95,7 +95,7 @@ class Peregrinus(Character):
                   element: int):
         desc = "하피 왕의 숨결"
         if any(targets.values()):
-            self.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=0, desc=desc)
+            self.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, overlap_type=BOT.INSTANCE, desc=desc)
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, desc=desc, data=D.BuffCond(type_=BT.BARRIER, efft=BET.BUFF))

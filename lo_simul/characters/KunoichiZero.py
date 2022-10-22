@@ -36,7 +36,7 @@ class KunoichiZero(Character):
                 t.give_buff(BT.EVA, 0, bv[1], round_=1, efft=BET.DEBUFF, desc=desc)
                 t.give_buff(BT.ELEC_RES, 0, bv[2]*400/3, round_=1, efft=BET.DEBUFF, desc=desc)
                 if t.find_buff(type_={BT.FIRE_RES, BT.ICE_RES}, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], round_=0, desc=desc)
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[2], overlap_type=BOT.INSTANCE, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

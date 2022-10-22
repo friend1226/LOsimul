@@ -26,7 +26,7 @@ class Erato(Character):
 
                 def temppassive(self, tt, args=None):
                     if tt == TR.GET_HIT:
-                        self.owner.give_buff(BT.FORCE_MOVE, 0, -1, round_=0)
+                        self.owner.give_buff(BT.FORCE_MOVE, 0, -1, overlap_type=BOT.INSTANCE)
                 movebuff.passive = temppassive
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
 

@@ -17,7 +17,7 @@ class Phalangites1(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.type_[0] == CT.FLY:
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="대공 사격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="대공 사격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self,

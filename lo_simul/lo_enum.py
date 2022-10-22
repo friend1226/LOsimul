@@ -55,6 +55,10 @@ class Element(IntEnum):
         obj._value_ = value
         obj.desc = _Element_desc[obj.value]
         return obj
+    
+    @classmethod
+    def _missing_(cls, value: object):
+        return cls.PHYSICAL
 
     PHYSICAL = 0
     FIRE = 1
@@ -62,15 +66,19 @@ class Element(IntEnum):
     ELEC = 3
 
 
-class BuffType:
+class BuffType(StrEnum):
+    def __init__(self, *args):
+        try:
+            self.element = Element.__getitem__(self.name.partition("_")[0])
+        except KeyError:
+            self.element = Element.PHYSICAL
+    
     ATK = "공격력"
     DEF = "방어력"
     HP = "HP"
     ACC = "적중"
     EVA = "회피"
     CRIT = "치명타"
-    BASE_STATS = (HP, ATK, DEF, ACC, EVA, CRIT)
-    BASE_STATS_SET = frozenset(BASE_STATS)
 
     SPD = "행동력"
     AP = "AP"
@@ -97,8 +105,6 @@ class BuffType:
     ANTI_LIGHT = "대 경장 피해량"
     ANTI_HEAVY = "대 중장 피해량"
     ANTI_FLY = "대 기동 피해량"
-    ANTI_OS = (ANTI_LIGHT, ANTI_HEAVY, ANTI_FLY)
-    ANIT_OS_SET = frozenset(ANTI_OS)
 
     PHYSICAL_RES = "물리 저항"
     FIRE_RES = "화염 저향"
@@ -112,9 +118,6 @@ class BuffType:
     FIRE_MIN = "화염 저향 최소"
     ICE_MIN = "냉기 저항 최소"
     ELEC_MIN = "전기 저항 최소"
-    ELEMENT_RES = (PHYSICAL_RES, FIRE_RES, ICE_RES, ELEC_RES)
-    ELEMENT_REV = (PHYSICAL_REV, FIRE_REV, ICE_REV, ELEC_REV)
-    ELEMENT_MIN = (PHYSICAL_MIN, FIRE_MIN, ICE_MIN, ELEC_MIN)
 
     ROW_PROTECT = "행 보호"
     COLUMN_PROTECT = "열 보호"
@@ -131,7 +134,10 @@ class BuffType:
     BATTLE_CONTINUATION = "전투 속행"
     MINIMIZE_DMG = "피해 최소화"
     IMMUNE_DMG = "피해 무효"
-    DOT_DMG = "지속 피해"
+    PHYSICAL_DOT_DMG = "지속 물리 피해"
+    FIRE_DOT_DMG = "지속 화염 피해"
+    ICE_DOT_DMG = "지속 냉기 피해"
+    ELEC_DOT_DMG = "지속 전기 피해"
     INSTANT_DMG = "피해 (즉발)"
     FORCE_MOVE = "밀기 / 당기기"
     INABILLITY_SKILL = "스킬 사용 불가"
@@ -148,27 +154,30 @@ class BuffType:
     WIDE_TAKEDMG = "광역 피해 분산"
     WIDE_GIVEDMG = "광역 피해 집중"
 
-
-bufftypes = []
-for _x in dir(BuffType):
-    if _x.startswith('__') and _x.endswith('__'):
-        continue
-    _temp = getattr(BuffType, _x)
-    if isinstance(_temp, str):
-        bufftypes.append(_temp)
-bufftypes = tuple(bufftypes)
+BT_BASE_STATS = (BuffType.HP, BuffType.ATK, BuffType.DEF, BuffType.ACC, BuffType.EVA, BuffType.CRIT)
+BT_ANTI_OS = (BuffType.ANTI_LIGHT, BuffType.ANTI_HEAVY, BuffType.ANTI_FLY)
+BT_ELEMENT_RES = (BuffType.PHYSICAL_RES, BuffType.FIRE_RES, BuffType.ICE_RES, BuffType.ELEC_RES)
+BT_ELEMENT_REV = (BuffType.PHYSICAL_REV, BuffType.FIRE_REV, BuffType.ICE_REV, BuffType.ELEC_REV)
+BT_ELEMENT_MIN = (BuffType.PHYSICAL_MIN, BuffType.FIRE_MIN, BuffType.ICE_MIN, BuffType.ELEC_MIN)
+BT_DOT_DMG = (BuffType.PHYSICAL_DOT_DMG, BuffType.FIRE_DOT_DMG, BuffType.ICE_DOT_DMG, BuffType.ELEC_DOT_DMG)
+BT_BASE_STATS_SET = frozenset(BT_BASE_STATS)
+BT_ANTI_OS_SET = frozenset(BT_ANTI_OS)
+BT_ELEMENT_RES_SET = frozenset(BT_ELEMENT_RES)
+BT_ELEMENT_REV_SET = frozenset(BT_ELEMENT_REV)
+BT_ELEMENT_MIN_SET = frozenset(BT_ELEMENT_MIN)
+BT_DOT_DMG_SET = frozenset(BT_DOT_DMG)
 
 BT_NOVAL = set()
 for _typestr in ('ROOTED', 'MARKED', 'PROVOKED', 'ROW_PROTECT', 'COLUMN_PROTECT', 'TARGET_PROTECT',
                  'FOLLOW_ATTACK', 'COOP_ATTACK', 'IGNORE_BARRIER_DMGDEC', 'IMMUNE_DMG',
                  'INABILLITY_SKILL', 'INABILLITY_ACT', 'GIMMICK', 'RACON', 'REMOVE_BUFF', 'IMMUNE_BUFF',
                  'IGNORE_PROTECT', 'GIMMICK'):
-    BT_NOVAL.add(getattr(BuffType, _typestr))
+    BT_NOVAL.add(BuffType[_typestr])
 BT_NOVAL = frozenset(BT_NOVAL)
 
-BT_CYCLABLE = {*BuffType.BASE_STATS_SET, *BuffType.ELEMENT_RES, *BuffType.ELEMENT_MIN}
+BT_CYCLABLE = {*BT_BASE_STATS_SET, *BT_ELEMENT_RES, *BT_ELEMENT_MIN}
 for _typestr in ("SPD", "AP", "DEFPEN", "BARRIER", ):
-    BT_CYCLABLE.add(getattr(BuffType, _typestr))
+    BT_CYCLABLE.add(BuffType[_typestr])
 BT_CYCLABLE = frozenset(BT_CYCLABLE)
 
 

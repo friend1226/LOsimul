@@ -306,12 +306,12 @@ class Character:
         return tuple(map(d, self.stats[self.rarity][10:]))
 
     def get_orig_stats(self) -> Dict[str, d]:
-        return {i: self.getOrigStatFuncs[i]() for i in BT.BASE_STATS}
+        return {i: self.getOrigStatFuncs[i]() for i in BT_BASE_STATS}
 
     def get_base_stats(self) -> Dict[str, d]:
         base_buff_sum = self.baseBuffs.get_sum()
         orig_stats = self.get_orig_stats()
-        return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT.BASE_STATS}
+        return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT_BASE_STATS}
 
     def get_stats(self, *bufftypes) -> Union[d, Dict[str, Union[d, Iterable[d]]]]:
         if not bufftypes:
@@ -326,7 +326,7 @@ class Character:
         psppm = propb_add * special_buff_sum * propb_mul
         psppp = propb_add + special_buff_sum + propb_mul
         base_stats = self.get_base_stats()
-        element_resist = {k: v for k, v in zip(BT.ELEMENT_RES, (0, *self.get_orig_res()))}
+        element_resist = {k: v for k, v in zip(BT_ELEMENT_RES, (0, *self.get_orig_res()))}
         gtdmgdict = {
             BT.GIVEDMGINC: self.dmgGiveIncBuffs,
             BT.GIVEDMGDEC: self.dmgGiveDecBuffs,
@@ -335,15 +335,15 @@ class Character:
         }
         result = {bt: None for bt in bufftypes}
         for bt in result:
-            if bt in BT.BASE_STATS_SET:
+            if bt in BT_BASE_STATS_SET:
                 result[bt] = pstp.calc(bt, base_stats[bt], True)
             elif bt == BT.SPD:
                 result[bt] = psppm.calc(bt, self.get_orig_spd(), True)
             elif bt == BT.AP:
                 result[bt] = self.ap
-            elif bt in BT.ELEMENT_RES:
+            elif bt in BT_ELEMENT_RES_SET:
                 result[bt] = psppm.calc(bt, element_resist[bt], True)
-            elif bt in BT.ELEMENT_MIN:
+            elif bt in BT_ELEMENT_MIN_SET:
                 result[bt] = d('-Infinity')
                 for emb in self.specialBuffs.find(type_=bt):
                     result[bt] = max(result[bt], emb.value)
@@ -357,7 +357,7 @@ class Character:
                         type_ = bf.data.hp_type
                         element = bf.data.element
                     result[bt][type_][element] += bf.value
-            elif bt in BT.ANTI_OS:
+            elif bt in BT_ANTI_OS_SET:
                 result[bt] = (self.antiOSBuffs.find(type_=bt).get_sum() + propb_mul).calc(bt, 1)
             elif bt == BT.DEFPEN:
                 result[bt] = psppp.calc(bt, 0, True)
@@ -383,10 +383,10 @@ class Character:
                 result[bt] = 0
                 for bf in self.specialBuffs.find(type_=bt):
                     result[bt] = max(result[bt], bf.value)
-            elif bt == BT.DOT_DMG:
-                result[bt] = [0, 0, 0, 0]
+            elif bt in BT_DOT_DMG_SET:
+                result[bt] = 0
                 for bf in self.specialBuffs.find(type_=bt):
-                    result[bt][0 if bf.data is None else bf.data.element] += bf.value
+                    result[bt] += bf.value
             elif bt == BT.ACT_PER_TURN:
                 result[bt] = psppm.calc(bt, 2, True)
 
@@ -441,10 +441,10 @@ class Character:
                     type_=bt, opr=1, func=lambda b: b.proportion is None and b not in char.baseBuffs
                 ).get_sum().calc(bt, 1)
                 bv = 0
-                if bt in BT.BASE_STATS_SET:
+                if bt in BT_BASE_STATS_SET:
                     bv = char.get_base_stats()[bt]
-                elif bt in BT.ELEMENT_RES:
-                    bv = char.get_orig_res()[BT.ELEMENT_RES.index(bt)]
+                elif bt in BT_ELEMENT_RES_SET:
+                    bv = char.get_orig_res()[bt.element]
                 elif bt == BT.SPD:
                     bv = char.get_orig_spd()
                 elif bt == BT.AP:
@@ -495,10 +495,10 @@ class Character:
     def get_res_dmgrate(self, element: int):
         if element == 0:
             return 1
-        res = self.get_stats(BT.ELEMENT_RES[element])
-        if eml := self.find_buff(type_=BT.ELEMENT_MIN[element]):
+        res = self.get_stats(BT_ELEMENT_RES[element])
+        if eml := self.find_buff(type_=BT_ELEMENT_MIN[element]):
             res = max(res, eml[-1].value)
-        if self.find_buff(type_=BT.ELEMENT_REV[element]):
+        if self.find_buff(type_=BT_ELEMENT_REV[element]):
             res *= -1
         return 1 - res / d(100)
 
@@ -564,7 +564,7 @@ class Character:
         return self.get_skill(skill_no-1)['apcost'][self.skillvl[(skill_no-1) % 5]]
 
     def get_skill_element(self, skill_no):
-        return self.get_skill(skill_no-1)['element'][self.skillvl[(skill_no-1) % 5]]
+        return Element(self.get_skill(skill_no-1)['element'][self.skillvl[(skill_no-1) % 5]])
 
     def judge_hit(self, obj: 'Character', acc_bonus: int = 0):
         mystats = self.get_stats(BT.ACC, BT.CRIT)
@@ -642,7 +642,7 @@ class Character:
         # True = 저항 성공
         # False = 저항 실패
 
-    def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
+    def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
         substats = self.get_stats(BT.ATK, BT.DEFPEN, BT.GIVEDMGDEC, BT.GIVEDMGINC, BT.WIDE_GIVEDMG)
@@ -650,7 +650,7 @@ class Character:
         objelementres = tuple(obj.get_res_dmgrate(i) for i in range(4))
         damage = substats[BT.ATK] * self.get_skill_atk_rate(value=rate[0]) * rate[1]
         # 자신 대타입 피증/피감 (합연산)
-        if antiosb := self.find_buff(objtype := BT.ANTI_OS[obj.type_[0]]):
+        if antiosb := self.find_buff(objtype := BT_ANTI_OS[obj.type_[0]]):
             damage = antiosb.get_sum().calc(objtype, damage, True)
         hprate = [1, self.hp_rate, obj.hp_rate, 1 - self.hp_rate, 1 - obj.hp_rate]
         # 적 받피감 (체력 비례 포함) (합연산)
@@ -799,7 +799,7 @@ class Character:
                     self.give_damage(b.value * element_rate, True)
                 self.dead_judge_process()
             if b.do_print:
-                print(f"[brm] <{self}> - 버프 제거됨: [{b}] (만료)", file=self.stream)
+                print(f"[brm] <{self}> - 버프 제거됨 (만료) : [{b}]", file=self.stream)
         return result
 
     def dead_judge_process(self,

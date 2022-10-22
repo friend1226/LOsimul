@@ -19,14 +19,14 @@ class Rhea(Character):
         bv1 = bv[0]*3/5
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
+                t.give_buff(BT.FIRE_RES, 0, bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
                             tag=G.FLOOD_FIRE, desc=G.FLOOD)
-                t.give_buff(BT.ELEMENT_RES[E.ICE], 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
+                t.give_buff(BT.ICE_RES, 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
                             tag=G.FLOOD_ICE, desc=G.FLOOD)
-                t.give_buff(BT.ELEMENT_RES[E.ELEC], 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
+                t.give_buff(BT.ELEC_RES, 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
                             tag=G.FLOOD_ELEC, desc=G.FLOOD)
                 if t.find_buff(tag=G.CORROSION):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv1 / 100, round_=0, data=D.DmgInfo(element=E.ELEC), desc="급속 부식")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv1 / 100, overlap_type=BOT.INSTANCE, data=D.DmgInfo(element=E.ELEC), desc="급속 부식")
                 if targets[t] > 1:
                     t.give_buff(BT.ACC, 0, -bv1, round_=2, efft=BET.DEBUFF, max_stack=1, tag="Rhea_A1_ACC", desc=desc)
                     t.give_buff(BT.EVA, 0, -bv1, round_=2, efft=BET.DEBUFF, max_stack=1, tag="Rhea_A1_EVA", desc=desc)
@@ -43,7 +43,7 @@ class Rhea(Character):
             if targets[t] > 0:
                 t.give_buff(BT.DEF, 1, bv[0], round_=2, efft=BET.DEBUFF, desc=desc)
                 t.give_buff(BT.TAKEDMGINC, 1, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
-                t.give_buff(BT.TAKEDMGINC, 1, 1, round_=0, efft=BET.DEBUFF, data=D.DmgInfo(element=E.FIRE), desc=desc)
+                t.give_buff(BT.TAKEDMGINC, 1, 1, overlap_type=BOT.INSTANCE, efft=BET.DEBUFF, data=D.DmgInfo(element=E.FIRE), desc=desc)
                 if targets[t] > 1:
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF))
                 if t.find_buff(tag=G.CORROSION):
@@ -68,7 +68,7 @@ class Rhea(Character):
                 p.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc=desc)
                 p.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, desc=desc)
                 for i in range(1, 4):
-                    p.give_buff(BT.ELEMENT_RES[i], 0, bv2, efft=BET.BUFF, desc=desc)
+                    p.give_buff(BT_ELEMENT_RES[i], 0, bv2, efft=BET.BUFF, desc=desc)
                 p.give_buff(BT.ACTIVE_RESIST, 1, bv2, efft=BET.BUFF, desc=desc)
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

@@ -136,13 +136,7 @@ LOsimul
   |`E.ELEC`|3|전기|
 
 - ## `lo_enum.BuffType`<br>`lo_enum.BT`
-  버프 타입.  
-  _<주의>_ [`enum.Enum`]을 상속받지 않습니다. 문자열을 직접 사용해도 전혀 문제가 되지 않습니다.
-  ```python
-  ...
-  char.give_buff("공격력", 1, d(".1"))
-  ...
-  ```
+  버프 타입. [`str`], [`enum.Enum`]을 상속받습니다.   
   |Variable|Value|
   |---|:---:|
   |`BT.ATK`|공격력|
@@ -194,7 +188,10 @@ LOsimul
   |`BT.BATTLE_CONTINUATION`|전투 속행|
   |`BT.MINIMIZE_DMG`|피해 최소화|
   |`BT.IMMUNE_DMG`|피해 무효|
-  |`BT.DOT_DMG`|지속 피해|
+  |`BT.PHYSICAL_DOT_DMG`|지속 물리 피해|
+  |`BT.FIRE_DOT_DMG`|지속 화염 피해|
+  |`BT.ICE_DOT_DMG`|지속 냉기 피해|
+  |`BT.ELEC_DOT_DMG`|지속 전기 피해|
   |`BT.INSTANT_DMG`|피해 (즉발)|
   |`BT.FORCE_MOVE`|밀기 / 당기기|
   |`BT.INABILLITY_SKILL`|스킬 사용 불가|
@@ -208,21 +205,21 @@ LOsimul
   |`BT.ACT_PER_TURN`|턴당 행동 횟수|
   |`BT.WIDE_TAKEDMG`|광역 피해 분산|
   |`BT.WIDE_GIVEDMG`|광역 피해 집중|
-  ### `BuffType` 추가 편의 변수들 (1)
+  ### `BuffType` 추가 편의 변수들
   |Variable|Value|
   |---|:---:|
-  |`BT.BASE_STATS`|`(BT.HP, BT.ATK, BT.DEF, BT.ACC, BT.EVA, BT.CRIT)`|
-  |`BT.BASE_STATS_SET`|`BT.BASE_STATS`의 [frozenset]|
-  |`BT.ANTI_OS`|`(BT.ANTI_LIGHT, BT.ANTI_HEAVY, BT.ANTI_FLY)`|
-  |`BT.ELEMENT_RES`|`("물리 저항", BT.FIRE_RES, BT.ICE_RES, BT.ELEC_RES)`|
-  |`BT.ELEMENT_REV`|`("물리 저항 반전", BT.FIRE_REV, BT.ICE_REV, BT.ELEC_REV)`|
-  |`BT.ELEMENT_MIN`|`("물리 저항 최소", BT.FIRE_MIN, BT.ICE_MIN, BT.ELEC_MIN)`|   
-  ### `BuffType` 추가 편의 변수들 (2)
-  |Variable|Description|
-  |---|:---:|
-  |lo_enum.`bufftypes`|**모든** [`BuffType`]을 모아놓은 튜플.|
+  |lo_enum.`BUFFTYPES`|**모든** [`BuffType`]을 모아놓은 튜플.|
+  |lo_enum.`BT_BASE_STATS`|`(BT.HP, BT.ATK, BT.DEF, BT.ACC, BT.EVA, BT.CRIT)`|
+  |lo_enum.`BT_ANTI_OS`|`(BT.ANTI_LIGHT, BT.ANTI_HEAVY, BT.ANTI_FLY)`|
+  |lo_enum.`BT_ELEMENT_RES`|`("물리 저항", BT.FIRE_RES, BT.ICE_RES, BT.ELEC_RES)`|
+  |lo_enum.`BT_ELEMENT_REV`|`("물리 저항 반전", BT.FIRE_REV, BT.ICE_REV, BT.ELEC_REV)`|
+  |lo_enum.`BT_ELEMENT_MIN`|`("물리 저항 최소", BT.FIRE_MIN, BT.ICE_MIN, BT.ELEC_MIN)`|
+  |lo_enum.`BT_DOT_DMG`|`(BT.PHYSICAL_DOT_DMG, BT.FIRE_DOT_DMG, BT.ICE_DOT_DMG, BT.ELEC_DOT_DMG)`|
   |lo_enum.`BT_NOVAL`|**값이 필요 없는** [`BuffType`]을 모아놓은 [frozenset].|
   |lo_enum.`BT_CYCLABLE`|**비례할 수 있는 수치**를 모아놓은 [frozenset].<br>(체공방적회치, 속성 저항, 속성 저항 하한, 행동력, AP, 방관, 방어막)|
+
+  `BT_BASE_STATS`, `BT_ANTI_OS`, `BT_ELEMENT_RES`, `BT_ELEMENT_REV`, `BT_ELEMENT_MIN`, `BT_DOT_DMG`는   
+  각각의 [frozenset] 버전인 `BT_BASE_STATS_SET`, `BT_ANTI_OS_SET`, `BT_ELEMENT_RES_SET`, `BT_ELEMENT_REV_SET`, `BT_ELEMENT_MIN_SET`, `BT_DOT_DMG_SET`가 있습니다.
 
 - ## `lo_enum.BuffOverlapType`<br>`lo_enum.BOT`
   버프 적용 방식. [`enum.IntEnum`]을 상속받습니다.  
@@ -235,6 +232,7 @@ LOsimul
   |`BOT.UPDATE`|2|갱신|
   |`BOT.RENEW`|3|재생성|
   |`BOT.INSTANCE`|4|즉발|
+  
   각 방식의 차이들은 [멸망 전의 전술 교본](https://lo.swaytwig.com)을 참고해 주십시오.
 
 - ## `lo_enum.BasicData`
@@ -252,7 +250,7 @@ LOsimul
   |`BasicData.prange_all_rel`|패시브 스킬 전체 비고정 범위 데이터|
 
 - ## `lo_enum.Trigger`<br>`lo_enum.TR` 
-  트리거 타입 모음.  [`str`], [`enum.Enum`]을 상속받습니다.
+  트리거 타입 모음. [`str`], [`enum.Enum`]을 상속받습니다.
 
   |Variable|Value|
   |---|:---:|

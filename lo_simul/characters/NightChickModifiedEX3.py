@@ -17,7 +17,7 @@ class NightChickModifiedEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self,
@@ -28,7 +28,7 @@ class NightChickModifiedEX3(Character):
                  element: int):
         for t in targets:
             if targets[t] > 0 and t.find_buff(BT.ROOTED, efft=BET.DEBUFF):
-                t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="직격")
+                t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="직격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

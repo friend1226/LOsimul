@@ -37,6 +37,7 @@ if __name__ != "__main__":
     from .Empress import Empress
     from .Erato import Erato
     from .EratoOld import EratoOld
+    from .Faucre import Faucre
     from .Fotia import Fotia
     from .Glacias import Glacias
     from .Goltarion import Goltarion
@@ -48,6 +49,8 @@ if __name__ != "__main__":
     from .LegionEX1 import LegionEX1
     from .Lise import Lise
     from .LRL import LRL
+    from .MagicalBaekto import MagicalBaekto
+    from .MagicalMomo import MagicalMomo
     from .NightChickDetector3 import NightChickDetector3
     from .NightChickEX3 import NightChickEX3
     from .NightChickModifiedEX3 import NightChickModifiedEX3

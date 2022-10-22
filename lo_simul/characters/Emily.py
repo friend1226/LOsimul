@@ -27,7 +27,7 @@ class Emily(Character):
         for t in targets:
             if targets[t] > 0:
                 if t.find_buff(type_=BT.MARKED, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], efft=BET.BUFF, round_=0, desc="포착")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], efft=BET.BUFF, overlap_type=BOT.INSTANCE, desc="포착")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self, 
@@ -46,7 +46,7 @@ class Emily(Character):
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.BARRIER, efft=BET.BUFF))
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF))
                 if targets[t] > 1:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="회심의 일격")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="회심의 일격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -74,7 +74,7 @@ class Emily(Character):
                            overlap_type=BOT.SINGLE)
             self.give_buff(BT.EVA, 0, bv[2], max_stack=1, efft=BET.BUFF, desc=Gimmick.EMILY, tag="Emily_P3_EVA")
         if tt == TR.ATTACK:
-            self.give_buff(BT.DOT_DMG, 0, bv[0], round_=1, desc="과부하")
+            self.give_buff(BT.PHYSICAL_DOT_DMG, 0, bv[0], round_=1, desc="과부하")
     
     def _factive2(self, 
                   targets: Dict['Character', NUM_T],
@@ -87,5 +87,5 @@ class Emily(Character):
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.BARRIER, efft=BET.BUFF))
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TAKEDMGDEC, efft=BET.BUFF))
                 if targets[t] > 1:
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, desc="회심의 일격")
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, desc="회심의 일격")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}

@@ -321,8 +321,8 @@ class Datas:
         """찾고자 하는 태그 또는 그 태그의 접두어"""
         func: Callable = None
         """``Buff`` 를 인자로 갖는 함수이며, 버프가 조건에 부합하면 :obj:`True`, 아니면 :obj:`False` 를 반환해야 합니다."""
-        id_: int = None
-        """찾고자 하는 버프의 ID"""
+        id_: int | Iterable[int] = None
+        """찾고자 하는 버프의 ID 또는 ID들의 집합"""
         val_sign: int = None
         """`-1`, `0`, `1` 중 하나; 버프 수치의 부호"""
         limit: int = MAX

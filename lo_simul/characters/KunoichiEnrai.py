@@ -56,8 +56,9 @@ class KunoichiEnrai(Character):
                 except AttributeError:
                     return b_.type == BT.EVA
             for t in targets:
-                if targets[t] > 0 and t.find_buff(type_={BT.DOT_DMG, BT.EVA}, func=tempf, efft=BET.DEBUFF):
-                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], round_=0, data=D.DmgInfo(element=element), desc=desc)
+                if targets[t] > 0 and t.find_buff(type_={BT.FIRE_DOT_DMG, BT.EVA}, func=tempf, efft=BET.DEBUFF):
+                    t.give_buff(BT.TAKEDMGINC, 1, bv[0], overlap_type=BOT.INSTANCE, 
+                                data=D.DmgInfo(element=element), desc=desc)
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "연화보"

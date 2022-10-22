@@ -18,8 +18,8 @@ class Fotia(Character):
         desc = "점화"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.DOT_DMG, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.SINGLE)
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.FIRE_DOT_DMG, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.SINGLE)
+                t.give_buff(BT.FIRE_RES, 0, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _active2(self,
@@ -31,8 +31,8 @@ class Fotia(Character):
         desc = "점화"
         for t in targets:
             if targets[t] > 0:
-                t.give_buff(BT.DOT_DMG, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.SINGLE)
-                t.give_buff(BT.ELEMENT_RES[E.FIRE], 0, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
+                t.give_buff(BT.FIRE_DOT_DMG, 0, bv[0], round_=3, efft=BET.DEBUFF, desc=desc, overlap_type=BOT.SINGLE)
+                t.give_buff(BT.FIRE_RES, 0, bv[1], round_=2, efft=BET.DEBUFF, desc=desc)
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
