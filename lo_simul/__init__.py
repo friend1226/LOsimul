@@ -20,4 +20,4 @@ except NameError:
     pass
 del traceback, path, classes, errors, modloader
 
-__version__ = "0.0.2.221012"
+__version__ = "0.0.3.221023"
