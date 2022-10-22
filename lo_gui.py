@@ -512,6 +512,7 @@ class MyWindow(QMainWindow):
         helpmenu.addAction(helpaction)
 
         self.setWindowTitle(f"LastOrigin Battle Simulator (System {ver} / GUI {__version__})")
+        self.setWindowIcon(QIcon(os.path.abspath(os.path.join(PATH, "splash.png"))))
         self.setGeometry(50, 50, 600, 700)
         self.setMinimumWidth(600)
         self.show()

@@ -2,6 +2,10 @@ import sys, os
 from PyQt5.QtWidgets import QSplashScreen, QApplication
 from PyQt5.QtGui import QPixmap
 
+import ctypes
+myappid = u'mycompany.myproduct.subproduct.version' # arbitrary string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 
 def main():
     app = QApplication(sys.argv)
