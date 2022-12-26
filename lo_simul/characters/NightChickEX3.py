@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class NightChickEX3(Character):
-    id_ = "NightChickEX_TU3"
     name = "강화형 나이트 칙"
     code = "NightChickEX_TU3"
     group = Group.PARASITE

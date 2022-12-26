@@ -1,0 +1,12 @@
+**/__pycache__/
+.idea/
+temp.txt
+*.ipynb
+test/
+makeexe.py
+mod/
+.git*/
+guess_stat.py
+**/*LastOriginWiki*/
+test*.py
+*.code-workspace

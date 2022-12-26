@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class DummyEnemy(Character):
-    id_ = "DummyEnemy"
     name = "더미(적군)"
     code = "DummyEnemy"
     group = None

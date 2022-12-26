@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Ellie(Character):
-    id_ = 230
+    _id = 230
     name = "엘리"
     code = "BR_Ellie"
     group = Group.AGENCY_080

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class CyclopsePrincess(Character):
-    id_ = 240
+    _id = 240
     name = "사이클롭스 프린세스"
     code = "PECS_CyclopsePrincess"
     group = Group.BISMARK
@@ -61,7 +61,7 @@ class CyclopsePrincess(Character):
                     self.give_buff(BT.IGNORE_PROTECT, 0, 1, efft=BET.BUFF, round_=1, max_stack=1, 
                                    tag="CyclopsePrincess_P1_IP", desc=f"<{desc} : 운명조작>")
         elif tt == TR.KILL:
-            self.give_buff(BT.BATTLE_CONTINUATION, 0, bv[1], max_stack=3, 
+            self.give_buff(BT.BATTLE_CONTINUATION, 0, bv[1], max_stack=3, count=1,
                            tag="CyclopsePrincess_P1_BC", desc=f"<{desc} : 불사>")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):

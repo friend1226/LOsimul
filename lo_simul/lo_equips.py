@@ -7,11 +7,12 @@ if TYPE_CHECKING:
 
 
 class EquipPools:
-    CHIP_NAME: Dict[str, Type['Chip']] = {}
-    OS_NAME: Dict[str, Type['OS']] = {}
-    GEAR_NAME: Dict[str, Type['Gear']] = {}
-    ALL_NAME_LIST: List[Dict[str, Type['Equip']]] = [CHIP_NAME, OS_NAME, GEAR_NAME]
-    ALL_NAME: Dict[str, Type['Equip']] = {}
+    CHIP_NAME: dict[str, Type['Chip']] = {}
+    OS_NAME: dict[str, Type['OS']] = {}
+    GEAR_NAME: dict[str, Type['Gear']] = {}
+    ALL_NAME_LIST: list[dict[str, Type['Equip']]] = [CHIP_NAME, OS_NAME, GEAR_NAME]
+    ALL_NAME: dict[str, Type['Equip']] = {}
+    ALL_CODE: dict[str, Type['Equip']] = {}
 
 
 _EQUIP_TYPE_CODE = ['Chip', 'System', 'Sub']
@@ -31,8 +32,10 @@ class Equip:
         super().__init_subclass__()
         if cls.__name__ in _META_CLASS_SET:
             return
-        EquipPools.ALL_NAME_LIST[cls.EQUIP_TYPE][cls.nick] = cls
+        assert cls.nick not in EquipPools.ALL_NAME and cls.code not in EquipPools.ALL_CODE
         EquipPools.ALL_NAME[cls.nick] = cls
+        EquipPools.ALL_CODE[cls.code] = cls
+        EquipPools.ALL_NAME_LIST[cls.EQUIP_TYPE][cls.nick] = cls
 
     def __init__(self, rarity: int = -1, lvl: int = 0, owner=None):
         if not isinstance(lvl, NUMBER) or lvl != lvl // 1:
@@ -42,7 +45,7 @@ class Equip:
         elif rarity > self.PROMOTION:
             self.rarity = self.PROMOTION
         else:
-            self.rarity = list(R)[rarity]
+            self.rarity = R(rarity)
         self.lvl = lvl
         self.owner = owner
         self.buff = BuffList()
@@ -670,7 +673,7 @@ class Stimulant(Gear):
             hpv = self.val[1][self.rarity][0] + self.val[1][self.rarity][1] * self.lvl
             if self.rarity == R.SS and self.lvl == 10:
                 hpv += 5
-            self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, hpv, desc=self.name)
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, hpv, count=1, desc=self.name)
 
 
 class Hologram(Gear):
@@ -706,7 +709,7 @@ class SpecialRifleBullet(Gear):
             d('7.75'), d('8.5'), d('10'), d('12'), d('14.5'), d('17.5'))]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 3
+        return char.code == "3P_Constantia"
 
     def init_buff(self):
         self.buff = BuffList(Buff(BT.ATK, 0, self.val[0][self.lvl], removable=False),
@@ -728,7 +731,7 @@ class AMRAAMPod(Gear):
             d('0.23'), d('0.25'), d('0.27'), d('0.29'), d('0.31'), d('0.33')]]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 92
+        return char.code == "BR_PA00EL"
 
     def init_buff(self):
         self.buff = BuffList(Buff(BT.ATK, 0, d('50') + d('5') * self.lvl, removable=False),
@@ -752,7 +755,7 @@ class SuperAlloyArmor(Gear):
     val = [15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 121
+        return char.code == "DS_Johanna"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -779,7 +782,7 @@ class DragonSlayer(Gear):
             d('14'), d('15'), d('16'), d('17'), d('18'), d('20'))]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 118
+        return char.code == "PECS_LRL"
 
     def init_buff(self):
         self.buff = BuffList(Buff(BT.CRIT, 0, d('10') + d('2') * self.lvl, removable=False),
@@ -840,7 +843,7 @@ class CounterTerrorismArmor(Gear):
             d('0.23'), d('0.25'), d('0.27'), d('0.29'), d('0.31'), d('0.35'))]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 84
+        return char.code == "BR_Bulgasari"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -866,7 +869,7 @@ class DUBullet(Gear):
     code = "40mmDUBullet"
     
     def isfit(self, char: 'Character'):
-        return char.id_ == 87
+        return char.code == "BR_Nereid"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -887,7 +890,7 @@ class ATFLIR(Chip):
     code = "ATFLIR"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 55
+        return char.code == "BR_Sylphid"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -904,7 +907,7 @@ class CM67SpaceBooster(Gear):
     code = "CM67SpaceBooster"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 103
+        return char.code == "PECS_Stinger"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -928,7 +931,7 @@ class MG80ModKit(Gear):
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
     
     def isfit(self, char: 'Character'):
-        return char.id_ == 33
+        return char.code == "BR_Nymph"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -950,7 +953,7 @@ class Steroid(Gear):
     code = "STEROID"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 122
+        return char.code == "Scathy"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -972,7 +975,7 @@ class SK14ModKit(Gear):
     dval = [0, 1, 2, 4, 7, 11, 14, 20, 28, 40, 60]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 82
+        return char.code == "BR_Miho"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1042,7 +1045,7 @@ class EyesOfBeholderD(Gear):
     dval = [0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 21
+        return char.code == "BR_Marie"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1221,7 +1224,7 @@ class ASN6G(Gear):
     dval = [(0, 1, 2, 4, 7, 11, 14, 20, 28, 38, 50), (0, 1, 2, 4, 7, 11, 14, 20, 30, 40, 60)]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 88
+        return char.code == "BR_Undine"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1452,7 +1455,7 @@ class MiniHachiko(Gear):
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
             self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, 100 + 50 * self.lvl, desc="민트 미트파이 드세여!",
-                                 max_stack=1, tag="MiniHachiko_BC")
+                                 count=1, max_stack=1, tag="MiniHachiko_BC")
 
 
 class MiniLilith(Gear):
@@ -1565,7 +1568,7 @@ class CMIIShield(Gear):
     dval = (0, 1, 2, 3, 4, 5, 7, 9, 11, 13, 15)
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 113
+        return char.code == "PECS_Cerberus"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1587,7 +1590,7 @@ class VerminEliminator(Gear):
     code = "VerminEliminator"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 7
+        return char.code == "3P_ScissorsLise"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1611,7 +1614,7 @@ class GigantesArmor(Gear):
     dval2 = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15)
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 203
+        return char.code == "AGS_Gigantes"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1640,7 +1643,7 @@ class QMObserver(Gear):
            ]
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 31
+        return char.code == "BR_Leona"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1820,7 +1823,7 @@ class RangerSet(Gear):
     code = "RangerSet"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 135
+        return char.code == "PECS_DarkElf"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1842,7 +1845,7 @@ class UnevenTerrain(Gear):
     code = "UnevenTerrain"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 133
+        return char.code == "PECS_ElvenForestmaker"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1868,7 +1871,7 @@ class ThornNecklace(Gear):
     val = (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14)
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 138
+        return char.code == "PECS_Veronica"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1889,7 +1892,7 @@ class OverFlow(OS):
     code = "OverFlow"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 224
+        return char.code == "AGS_Tyrant"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -1909,7 +1912,7 @@ class FCS(Gear):
     code = "FCS"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 202
+        return char.code == "AGS_Seljuq"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2039,7 +2042,7 @@ class DustStorm(Gear):
     code = "AngelLegs"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 41
+        return char.code == "BR_Khan"
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
@@ -2055,7 +2058,7 @@ class LRCannon(Gear):
     code = "LRCannon"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 41
+        return char.code == "BR_Khan"
     
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
@@ -2248,7 +2251,7 @@ class TuinStone(Gear):
     code = "FlameStone"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 206
+        return char.code == "SJ_Tachi"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2270,7 +2273,7 @@ class SumaStone(Gear):
     code = "FrostStone"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 206
+        return char.code == "SJ_Tachi"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2292,7 +2295,7 @@ class JowiStone(Gear):
     code = "ThunderStone"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 206
+        return char.code == "SJ_Tachi"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2314,7 +2317,7 @@ class LRAD(OS):
     code = "LRAD"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 141
+        return char.code == "PECS_Draculina"
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
@@ -2331,7 +2334,7 @@ class S42Adlib(Chip):
     code = "S42Adlib"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 128
+        return char.code == "AGS_Goltarion"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2349,7 +2352,7 @@ class ASEARadar(Gear):
     val = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
     
     def isfit(self, char: 'Character'):
-        return char.id_ == 95
+        return char.code == "BR_Blackhound"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2370,7 +2373,7 @@ class MKEngine(Gear):
     val = (0, 2, 4, 6, 8, 10, 12, 14, 18, 23, 28)
     
     def isfit(self, char: 'Character'):
-        return char.id_ == 96
+        return char.code == "BR_Lindwurm"
     
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
@@ -2386,7 +2389,7 @@ class PileBunker(Gear):
     code = "BulgasariPileBunker"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 84
+        return char.code == "BR_Bulgasari"
     
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
@@ -2412,7 +2415,7 @@ class HQ1Commander(OS):
     code = "HQ1Commander"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 201
+        return char.code == "AGS_Albatross"
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
@@ -2429,7 +2432,7 @@ class TuinOrellia(Gear):
     code = "TuinOrellia"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 205
+        return char.code == "SJ_Orellia"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2438,7 +2441,7 @@ class TuinOrellia(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, count=1, desc=self.name)
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
         elif tt == TR.HIT:
             if args.get("skill_no") == 2:
@@ -2458,7 +2461,7 @@ class SumaOrellia(Gear):
     code = "SumaOrellia"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 205
+        return char.code == "SJ_Orellia"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2467,7 +2470,7 @@ class SumaOrellia(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, count=1, desc=self.name)
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
         elif tt == TR.HIT:
             if args.get("skill_no") == 2:
@@ -2487,7 +2490,7 @@ class ZoweOrellia(Gear):
     code = "ZoweOrellia"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 205
+        return char.code == "SJ_Orellia"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2496,7 +2499,7 @@ class ZoweOrellia(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.3') + d('.03') * self.lvl, count=1, desc=self.name)
             self.owner.give_buff(BT.TAKEDMGDEC, 1, d('.3') + d('.03') * self.lvl, desc=self.name)
         elif tt == TR.HIT:
             if args.get("skill_no") == 2:
@@ -2757,7 +2760,7 @@ class SEyePatch(Gear):
     code = "SEyePatch"
 
     def isfit(self, char: 'Character'):
-        return char.id_ == 240
+        return char.code == "PECS_CyclopsePrincess"
 
     def init_buff(self):
         self.buff = BuffList(
@@ -2767,7 +2770,7 @@ class SEyePatch(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.WAVE_START:
-            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.4') + d('.05') * self.lvl, desc="혈화요란")
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 1, d('.4') + d('.05') * self.lvl, count=1, desc="혈화요란")
             self.owner.give_buff(BT.COUNTER_ATTACK, 1, d('.5') + d('.06') * self.lvl, desc="혈화요란")
 
 
@@ -2828,7 +2831,7 @@ class MiniSnowFeather(Gear):
 
     def passive(self, tt, args=None):
         if tt == TR.ROUND_START:
-            self.owner.give_buff(BT.MINIMIZE_DMG, 0, 9999999, count=1, count_trig={TR.GET_HIT, },
+            self.owner.give_buff(BT.MINIMIZE_DMG, 0, 9999999, count=1,
                                  overlap_type=BOT.RENEW, desc="얼어붙은 날개")
 
 
@@ -2962,3 +2965,121 @@ class ArcDischargeRounds(Gear):
                 bv = d("10") + self.lvl
                 t.give_buff(BT.ELEC_DOT_DMG, 0, bv*10, round_=2, efft=BET.DEBUFF, desc=self.name)
                 t.give_buff(BT.ELEC_RES, 0, -bv, round_=2, efft=BET.DEBUFF, desc=self.name)
+
+
+class SPACE(Gear):
+    BASE_RARITY = R.SS
+    nick = "스파토이아 전장"
+    name = "S.P.A.C.E"
+    code = "SPACE"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "PECS_Spartoia"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.ATK, 0, 100 + 10 * self.lvl, removable=False)
+        )
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.FOLLOW_ATTACK, 0, 1, data=D.FollowAttack(attacker=self), desc=self.name)
+
+
+class GoldenCage(Gear):
+    BASE_RARITY = R.SS
+    nick = "에이미 전장"
+    name = "파랑새가 있던 새장"
+    code = "GoldenCage"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "BR_Amy"
+    
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            self.owner.give_buff(BT.DEFPEN, 1, d('.2') + d('.03') * self.lvl, round_=1, desc="Tyltyl")
+            self.owner.give_buff(BT.ACT_PER_TURN, 0, 1, round_=1, desc="Myltyl")
+            self.owner.give_buff(BT.RANGE_1SKILL, 0, 2 if self.lvl == 10 else 1, round_=1)
+
+
+class MagicalMomoRPG(Gear):
+    BASE_RARITY = R.SS
+    nick = "모모 전장"
+    name = "MMORPG"
+    code = "MagicalRPG"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "DS_Momo"
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.SKILL_RATE, 0, d('.2') + d('.02') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.RANGE, 0, 1, desc=self.name)
+            self.owner.give_buff(BT.BATTLE_CONTINUATION, 0, 150 + 15 * self.lvl, count=1, desc=self.name)
+
+
+class WaterPipe(Gear):
+    BASE_RARITY = R.SS
+    nick = "스카라비아 전장"
+    name = "아나톨리아 산 물담배"
+    code = "WaterPipe"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "BR_Scarabya"
+
+    def init_buff(self):
+        self.buff = BuffList(
+            Buff(BT.FIRE_RES, 0, 20 + 2 * self.lvl, removable=False),
+            Buff(BT.ICE_RES, 0, 20 + 2 * self.lvl, removable=False),
+            Buff(BT.ELEC_RES, 0, 20 + 2 * self.lvl, removable=False),
+        )
+    
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START and not self.owner.game.round % 2:
+            desc = "구름과자"
+            bv = 5 + d('.5') * self.lvl
+            self.owner.give_buff(BT.ATK, 1, bv / 100, round_=2, efft=BET.BUFF, desc=desc)
+            self.owner.give_buff(BT.CRIT, 0, bv, round_=2, efft=BET.BUFF, desc=desc)
+            self.owner.give_buff(BT.ACC, 0, bv, round_=2, efft=BET.BUFF, desc=desc)
+            self.owner.give_buff(BT.ACT_PER_TURN, 0, 1, round_=1, efft=BET.BUFF, desc=desc)
+
+
+class CelestialGlobe(OS):
+    BASE_RARITY = R.SS
+    nick = "아르망 전장"
+    name = "라플라시안 글로브"
+    code = "CelestialGlobe"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "DS_Arman"
+
+    def init_buff(self):
+        bv = d(10 + self.lvl)
+        self.buff = BuffList(
+            Buff(BT.CRIT, 0, bv, removable=False),
+            Buff(BT.SPD, 0, bv / 100, removable=False)
+        )
+    
+    def passive(self, tt, args=None):
+        if tt == TR.ROUND_START:
+            desc = "라플라스"
+            bv = d('.05') + d('.005') * self.lvl
+            self.owner.give_buff(BT.ANTI_LIGHT, 1, bv, round_=1, desc=desc)
+            self.owner.give_buff(BT.ANTI_HEAVY, 1, bv, round_=1, desc=desc)
+            self.owner.give_buff(BT.ANTI_FLY, 1, bv, round_=1, desc=desc)
+
+
+class ThreeAuthority(Gear):
+    BASE_RARITY = R.SS
+    nick = "무용 전장"
+    name = "삼정"
+    code = "ThreeAuthority"
+    
+    def isfit(self, char: 'Character'):
+        return char.code == "BR_InvDragon"
+    
+    def passive(self, tt, args=None):
+        if tt == TR.WAVE_START:
+            self.owner.give_buff(BT.AP, 0, 1 + d('.1') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.SPD, 1, d('.05') + d('.01') * self.lvl, desc=self.name)
+            self.owner.give_buff(BT.RACON, 0, 1, tag=G.DRAGON_STANDBY, desc=self.name)

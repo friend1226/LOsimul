@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Constantia(Character):
-    id_ = 3
+    _id = 3
     name = "콘스탄챠S2"
     code = "3P_ConstantiaS2"
     group = Group.BATTLE_MAID

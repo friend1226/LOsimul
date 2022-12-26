@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Labiata(Character):
-    id_ = 2
+    _id = 2
     name = "라비아타"
     code = "3P_Labiata"
     group = Group.BATTLE_MAID

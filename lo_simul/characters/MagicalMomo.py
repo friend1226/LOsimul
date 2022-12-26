@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class MagicalMomo(Character):
-    id_ = 123
+    _id = 123
     name = "마법소녀 매지컬 모모"
     code = "DS_MoMo"
     group = Group.D_ENTERTAINMENT
@@ -52,8 +52,8 @@ class MagicalMomo(Character):
                 self.give_buff(BT.ACC, 0, bv2 * 2, round_=1, efft=BET.BUFF, desc=desc, chance=40)
                 self.give_buff(BT.EVA, 0, bv[1], round_=1, efft=BET.BUFF, desc=desc, chance=40)
                 self.give_buff(BT.TAKEDMGDEC, 1, bv2 * 2 / 100, round_=1, efft=BET.BUFF, desc=desc, chance=15)
-            if CP.get("DS_Baekto").id_ in set(map(lambda c: c.id_, 
-                                                  self.game.get_chars(field=self.isenemy).values())):
+            if "DS_Baekto" in set(map(lambda c: c.code, 
+                                      self.game.get_chars(field=self.isenemy).values())):
                 desc1 = "꿈과 희망"
                 self.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc1)
                 self.give_buff(BT.CRIT, 0, bv2, round_=1, efft=BET.BUFF, desc=desc1)
@@ -80,5 +80,5 @@ class MagicalMomo(Character):
             self.give_buff(BT.EVA, 0, bv[1], round_=1, efft=BET.BUFF, desc=desc)
             self.give_buff(BT.TAKEDMGDEC, 1, bv2 * 2 / 100, round_=1, efft=BET.BUFF, desc=desc)
         elif tt == TR.WAVE_START:
-            self.give_buff(BT.BATTLE_CONTINUATION, 0, 300, desc=desc)
+            self.give_buff(BT.BATTLE_CONTINUATION, 0, 300, count=1, desc=desc)
             self.give_buff(BT.GIMMICK, 0, 1, tag="Momo_P3", desc="성장 완료!")

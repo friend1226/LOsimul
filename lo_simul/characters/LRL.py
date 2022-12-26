@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class LRL(Character):
-    id_ = 118
+    _id = 118
     name = "LRL"
     code = "PECS_LRL"
     group = Group.PUBLIC_SERVANT

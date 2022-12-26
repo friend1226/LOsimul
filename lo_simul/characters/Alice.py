@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Alice(Character):
-    id_ = 4
+    _id = 4
     name = "앨리스"
     code = "3P_Alice"
     group = Group.BATTLE_MAID

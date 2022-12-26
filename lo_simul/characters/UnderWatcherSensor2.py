@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class UnderWatcherSensor2(Character):
-    id_ = "UnderWatcherSensor_TU2"
     name = "언더왓쳐 센서"
     code = "UnderWatcherSensor_TU2"
     group = Group.PARASITE

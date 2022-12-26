@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Vanilla(Character):
-    id_ = 5
+    _id = 5
     name = "바닐라"
     code = "3P_Vanilla"
     group = Group.BATTLE_MAID

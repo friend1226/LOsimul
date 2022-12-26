@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Glacias(Character):
-    id_ = 232
+    _id = 232
     name = "글라시아스"
     code = "PECS_Glacias"
     group = Group.BISMARK

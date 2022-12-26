@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Fotia(Character):
-    id_ = 15
+    _id = 15
     name = "포티아"
     code = "3P_Fotia"
     group = Group.ANYWHERE

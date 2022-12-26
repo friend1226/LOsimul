@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Erato(Character):
-    id_ = 208
+    _id = 208
     name = "에라토"
     code = "PECS_Erato"
     group = Group.AMUSE_ATTENDANT
@@ -82,14 +82,14 @@ class Erato(Character):
         elif tt == TR.ENEMY_DEAD:
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag='Erato_A2_ATK_DOWN'))
         elif tt == TR.WAVE_START and \
-                CP.get("PECS_Muse").id_ in {ch.id_ for ch in self.game.get_chars(field=self.isenemy).values()}:
-            self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], desc="작곡가님...!")
+                "PECS_Muse" in {ch.code for ch in self.game.get_chars(field=self.isenemy).values()}:
+            self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], count=1, desc="작곡가님...!")
 
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "형광팬"
             for t in self.get_passive_targets(targets, True):
-                fan_stack = len(t.find_buff(tag='Erato_A1_EVA'))
+                fan_stack = t.find_buff(tag='Erato_A1_EVA').count
                 colpos = t.getposy() if t.isenemy else 2 - t.getposy()
                 if fan_stack >= 1:
                     t.give_buff(BT.SPD, 1, bv[0] * (4 - colpos) / 4, round_=1, desc=desc[2:])

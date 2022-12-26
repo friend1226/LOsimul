@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class KunoichiEnrai(Character):
-    id_ = 99
+    _id = 99
     name = "쿠노이치 엔라이"
     code = "DS_KunoichiEnrai"
     group = Group.D_ENTERTAINMENT
@@ -39,7 +39,7 @@ class KunoichiEnrai(Character):
         desc = "은형술"
         if tt == TR.ROUND_START:
             targets = self.get_passive_targets(targets)
-            if {CP.get("DS_KunoichiKaen").id_, CP.get("DS_KunoichiZero").id_} & set(map(lambda c_: c_.id_, targets)):
+            if {"DS_KunoichiKaen", "DS_KunoichiZero"} & set(map(lambda c_: c_.code, targets)):
                 self.give_buff(BT.IGNORE_BARRIER_DMGDEC, 0, 1, round_=1, efft=BET.BUFF, desc=desc)
             else:
                 for p in targets:

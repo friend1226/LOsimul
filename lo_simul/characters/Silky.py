@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Silky(Character):
-    id_ = 26
+    _id = 26
     name = "실키"
     code = "BR_PXSilky"
     group = Group.STEEL_LINE
@@ -52,8 +52,7 @@ class Silky(Character):
             self.give_buff(BT.ACTIVE_RESIST, 1, bv[0], efft=BET.BUFF, count=1, count_trig={TR.GET_HIT},
                            max_stack=2, tag="Silky_P1_ACTIVE_RESIST")
         elif tt == TR.EXPECT_GET_HIT:
-            self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, count=1, count_trig={TR.GET_HIT},
-                           max_stack=2, tag="Silky_P1_MINIMIZE_DMG")
+            self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, count=1, max_stack=2, tag="Silky_P1_MINIMIZE_DMG")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "거대 배낭"

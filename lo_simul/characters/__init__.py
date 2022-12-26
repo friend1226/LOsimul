@@ -25,10 +25,13 @@ if EDIT:
 del EDIT
 
 if __name__ != "__main__":
+    from .Alexandra import Alexandra
     from .Alice import Alice
+    from .Aqua import Aqua
     from .Cerestia import Cerestia
     from .Constantia import Constantia
     from .CyclopsePrincess import CyclopsePrincess
+    from .Daphne import Daphne
     from .DummyAlly import DummyAlly
     from .DummyEnemy import DummyEnemy
     from .EliteCenturion1 import EliteCenturion1
@@ -41,12 +44,15 @@ if __name__ != "__main__":
     from .Fotia import Fotia
     from .Glacias import Glacias
     from .Goltarion import Goltarion
+    from .Griffon import Griffon
     from .Ignis import Ignis
+    from .InvincibleDragon import InvincibleDragon
     from .KunoichiEnrai import KunoichiEnrai
     from .KunoichiKaen import KunoichiKaen
     from .KunoichiZero import KunoichiZero
     from .Labiata import Labiata
     from .LegionEX1 import LegionEX1
+    from .LemonadeAlpha import LemonadeAlpha
     from .Lise import Lise
     from .LRL import LRL
     from .MagicalBaekto import MagicalBaekto

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class MagicalBaekto(Character):
-    id_ = 127
+    _id = 127
     name = "마법소녀 매지컬 백토"
     code = "DS_Baekto"
     group = Group.D_ENTERTAINMENT
@@ -40,9 +40,8 @@ class MagicalBaekto(Character):
                     desc = "매지컬 파워! (물리)"
                     t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.DEF, efft=BET.BUFF), desc=desc)
                     t.give_buff(BT.TAKEDMGINC, 1, bv[1], overlap_type=BOT.INSTANCE, desc=desc)
-                momo_id = CP.get("DS_MoMo").id_
                 for p in self.game.get_chars(field=self.isenemy).values():
-                    if p.id_ == momo_id:
+                    if p.code == "DS_MoMo":
                         self.give_buff(BT.COOP_ATTACK, 0, 1, data=D.CoopAttack(p, 2), round_=1, efft=BET.BUFF, 
                                        desc="Fatality - 마법소녀 매지컬 모모")
         return {t: (self.calc_damage(t, atk_rate[t], element=element, wr=wr) if targets[t] > 0 else 0) for t in targets}

@@ -1,3 +1,7 @@
+"""
+    LastOrigin Simulator
+"""
+
 from .lo_enum import *
 from .lo_imports import *
 from .lo_system import *
@@ -20,4 +24,4 @@ except NameError:
     pass
 del traceback, path, classes, errors, modloader
 
-__version__ = "0.0.3.221023"
+__version__ = "0.1.1"

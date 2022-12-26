@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class TyrantChallenge1(Character):
-    id_ = "Tyrant_Challenge1"
     name = "폭군 타이런트"
     code = "Tyrant_Challenge1"
     group = Group.PARASITE
@@ -71,7 +70,7 @@ class TyrantChallenge1(Character):
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.TARGET_PROTECT, efft=BET.BUFF), desc=desc1)
             self.give_buff(BT.MARKED, 0, 1, round_=2, efft=BET.BUFF, max_stack=1, tag="TyrantCh1_P2_MARKED", desc=desc1)
         elif tt == TR.WAVE_START:
-            self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, tag="TyrantCh1_P2_B.C.", desc=desc2)
+            self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, count=1, tag="TyrantCh1_P2_B.C.", desc=desc2)
         elif tt == TR.BATTLE_CONTINUED:
             self.give_buff(BT.SPD, 1, bv[2], max_stack=1, tag="TyrantCh1_P2_SPD", desc=desc2)
             self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(type_=BT.BATTLE_CONTINUATION))

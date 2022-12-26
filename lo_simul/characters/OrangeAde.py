@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class OrangeAde(Character):
-    id_ = 211
+    _id = 211
     name = "오렌지에이드"
     code = "PECS_Orangeade"
     group = Group.PUBLIC_SERVANT

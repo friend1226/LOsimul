@@ -23,6 +23,7 @@ class Game:
         self.round = 0
         self.wave = 0
         self.__impacts = deque()
+        self.__move_tasks = []
         self.__stream = sys.stdout
         self.__random = random.Random()
         self.battle_log = []
@@ -111,6 +112,7 @@ class Game:
             if c := self.get_char(i, field=1):
                 c.trigger(trigtype, args)
         self.passive(trigtype, args)
+        self.process_move()
 
     def passive(self, tt=TR.DUMMY, args=None):
         pass
@@ -252,7 +254,7 @@ class Game:
             print(f"[idl] <{subjc}> - 대기.", file=self.stream)
             return
         elif impact == 0:
-            impact_turn = subjc.get_skill(skill_no-1, True)['impact'][subjc.skillvl[(skill_no-1) % 5]]
+            impact_turn = subjc.get_skill(skill_no-1, True)[1]['impact'][subjc.skillvl[(skill_no-1) % 5]]
             if impact_turn >= 0:
                 self.__impacts.append([impact_turn,
                                        (subjc, skill_no, objpos, catkr, follow, coop, impact_turn)])
@@ -260,12 +262,11 @@ class Game:
                 return
         if catkr is not None:
             skill_no = 1
-        skill_no = subjc.skill_no_convert(skill_no - 1) + 1
+        skill_idx, skill_data = subjc.get_skill(skill_no-1)
+        skill_no = skill_idx + 1
+        skillvl_val = subjc.skillvl[skill_idx % 5]
         if not (catkr or follow or coop or impact):
             subjc.give_ap(-subjc.get_skill_cost(skill_no))
-        skill_idx = skill_no - 1
-        skillvl_val = subjc.skillvl[skill_idx % 5]
-        skill_data = subjc.get_skill(skill_idx)
         fn = int(subjc.isenemy)
         isatk = bool(skill_data['isattack'] & (1 << skillvl_val))
         tf = fn ^ isatk
@@ -313,7 +314,7 @@ class Game:
                 targ_hits[t] = 1
 
         atkr = d(skill_data['atkrate'][skillvl_val])
-        damages: Dict['Character', NUM_T]
+        damages: Dict['Character', tuple[NUM_T, int]]
         if follow is None or coop is None:
             print(f"[acs] {subjc}(이)가 {objpos}번 위치에 액티브 {skill_no}스킬 사용", file=self.stream)
             damages = subjc.active(
@@ -334,8 +335,9 @@ class Game:
                 for t in targ_atkr
             }
         for t in damages:
-            damages[t] = t.give_damage(damages[t],
-                                       ignore_barrier=bool(subjc.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC)))
+            damages[t]: Dict['Character', NUM_T] = \
+                t.give_damage(*damages[t],
+                              ignore_barrier=bool(subjc.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC)))
             # -1 = 방어막
             # -2 = 피해 무효
             if catkr is None:
@@ -414,12 +416,12 @@ class Game:
 
     def give_buff(self,
                   target: 'Character',
-                  type_: str,
+                  type_: BuffType,
                   opr: int,
                   value: NUM_T,
                   round_: int = MAX,
                   count: int = MAX,
-                  count_trig: Set[str] = None,
+                  count_trig: Collection[Trigger] = None,
                   efft: BET = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
@@ -475,25 +477,38 @@ class Game:
             target.remove_buff(tag=tag, force=True, limit=1)
         # 효과 저항 / 강화 해제 관련 메커니즘은 다음을 참고함
         # https://arca.live/b/lastorigin/47046451
+        # https://arca.live/b/lastorigin/48033013
+        _active_chance = 100
+        _resist_chance = 100
+        if made_by is not None:
+            _res = made_by.judge_active()
+            if not _res[0]:
+                if do_print:
+                    print(f"[brs] <{target}> - 버프 추가 실패 (확률) : [{buff}] ({_res[1]:2.2f}% 확률)", 
+                          file=self.stream)
+                return None
+            _active_chance = _res[1]
         if not force and efft != BET.NORMAL:
             for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
                 if buff.issatisfy(**immune_buff.data._asdict()):
                     if do_print:
                         print(f"[bim] <{target}> - 버프 무효됨 (무효 버프 존재) : [{buff}]", file=self.stream)
                     return None
-            if target.judge_resist_buff(buff, chance):
+            _res = target.judge_resist_buff(buff, chance)
+            if _res[0]:
                 if do_print:
-                    print(f"[brs] <{target}> - 버프 추가 실패 (저항) : [{buff}]" +
-                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                    print(f"[brs] <{target}> - 버프 추가 실패 (저항) : [{buff}] ({_res[1]:2.2f}% 확률)", 
+                          file=self.stream)
                 return None
+            _resist_chance = _res[1]
         else:
             if target.random() > chance:
                 if do_print:
-                    print(f"[brs] <{target}> - 버프 추가 실패 (확률) : [{buff}]" +
-                          ("" if chance == 100 else f" ({chance}% 확률)"), file=self.stream)
+                    print(f"[brs] <{target}> - 버프 추가 실패 (확률) : [{buff}] ({chance}% 확률)", file=self.stream)
                 return None
         if do_print:
-            print(f"[bad] <{target}> - 버프 추가됨: [{buff}]" + ("" if chance == 100 else f" ({chance}% 확률)"),
+            print(f"[bad] <{target}> - 버프 추가됨: [{buff}] "
+                  f"({_active_chance * _resist_chance / 100:2.2f}% 확률)",
                   file=self.stream)
         if type_ == BT.REMOVE_BUFF:
             if data is not None:
@@ -520,7 +535,8 @@ class Game:
             else:
                 target.specialBuffs.append(buff)
             if type_ == BT.FORCE_MOVE:
-                pass  # TODO
+                _val = value * (1 if target.isenemy else -1)
+                heappush(self.__move_tasks, (target.getposy() * (-1 if _val >= 0 else 1), target, _val))
             if max_stack > 0:
                 target.stack_limited_buff_tags[tag] += 1
         self.battle_log.append(buff)
@@ -604,6 +620,27 @@ class Game:
                       f"({'적군' if x[0].isenemy else '아군'} {BasicData.keypad[x[3]]}번 자리)\n" \
                       f"AP = {x[1]} / 행동력 = {x[2]}\n\n"
         return restxt.rstrip()
+    
+    def process_move(self):
+        while self.__move_tasks:
+            _, p, mv = heappop(self.__move_tasks)
+            _y = p.getposy()
+            if mv >= 0:
+                if _y == 2:
+                    continue
+                for __y in range(_y + 1, 3):
+                    if self.get_char(p.getposx(), __y, field=p.isenemy):
+                        break
+                else:
+                    p.move(p.getposn() + mv, force_move=True)
+            else:
+                if _y == 0:
+                    continue
+                for __y in range(_y - 1, -1, -1):
+                    if self.get_char(p.getposx(), __y, field=p.isenemy):
+                        break
+                else:
+                    p.move(p.getposn() + mv, force_move=True)
 
 
 class Buff:
@@ -613,10 +650,11 @@ class Buff:
              'max_stack', 'removable', 'tag', 'data',
              'desc', 'owner')
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, update_id=True, **kwargs):
         instance = super().__new__(cls)
+        if update_id:
+            cls.__id += 1
         instance.__id = cls.__id
-        cls.__id += 1
         return instance
 
     def __init__(self,
@@ -625,7 +663,7 @@ class Buff:
                  value: NUM_T,
                  round_: int = MAX,
                  count: int = MAX,
-                 count_trig: Set[str] = None,
+                 count_trig: set[Trigger] = None,
                  efft: BET = BET.NORMAL,
                  max_stack: int = 0,
                  removable: bool = True,
@@ -653,7 +691,7 @@ class Buff:
         self.value: NUM_T = value
         self.round: int = round_
         self.count: int = count
-        self.count_triggers: Set[str] = set() if count_trig is None else count_trig
+        self.count_triggers: set[Trigger] = set() if count_trig is None else count_trig
         self.efftype: BET = efft
         self.max_stack: int = max_stack
         self.removable: bool = removable
@@ -669,29 +707,55 @@ class Buff:
         self.do_print = do_print
         self.expired = False
 
-        self.random = None
         if self.owner:
             self.random = self.owner.random
         elif self.game:
             def custom_random(self, r=100, offset=0):
                 return self.game.random.uniform(offset, offset + r)
             self.random = custom_random
+        else:
+            def custom_random(self, r=100, offset=0):
+                return random.uniform(offset, offset + r)
+            self.random = custom_random
 
         if self.type == BT.IMMUNE_DMG:
-            self.count_triggers.add(TR.GET_HIT)
             self.count = self.value
+        elif self.type == BT.BATTLE_CONTINUATION:
+            self.count_triggers.add(TR.BATTLE_CONTINUED)
         elif self.type == BT.INSTANT_DMG:
+            self.count_triggers.add(TR.GET_HIT)
             self.expired = True
 
     @property
     def id(self):
         return self.__id
+    
+    @property
+    def tuple(self):
+        return tuple(getattr(self, _attr) for _attr in self.attrs)
+    
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return any(getattr(self, _attr) == getattr(other, _attr) 
+                   for _attr in self.attrs)
+    
+    def __hash__(self):
+        return hash((self.__id, *self.tuple))
 
     def __copy__(self):
-        return self
+        cls = self.__class__
+        new_obj = cls.__new__(cls, update_id=False)
+        new_obj.__dict__.update(self.__dict__)
+        return new_obj
 
-    def __deepcopy__(self):
-        return Buff(**{a: getattr(self, a) for a in self.attrs}) 
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
 
     def __mul__(self, other):
         if isinstance(other, NUMBER):
@@ -771,7 +835,7 @@ class Buff:
     def __str__(self):
         result = ''
         if self.tag in GIMMICKS:
-            result += f"[{self.desc if self.desc else self.tag}] : "
+            result += f"[{self.desc if self.desc else self.tag.partition('_')[0]}] : "
         elif self.desc:
             result += f"{self.desc} : "
         result += self.simpl_str()
@@ -816,7 +880,7 @@ class Buff:
             extra_rate = d('1')
         if self.proportion:
             targ, bt = self.proportion
-            if bt in {*BT_BASE_STATS, *BT_ELEMENT_RES, BT.SPD, BT.AP}:
+            if bt in BT_CYCLABLE:
                 extra_rate *= targ.get_stats(bt)
         if self.opr:
             if self.type in BT_DOT_DMG_SET:
@@ -845,12 +909,12 @@ class Buff:
     
     def issatisfy(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None, chance=100,
                   **kwargs):
-        if self.random is not None and self.random() > chance:
+        if self.random() > chance:
             return False
         if id_:
             if isinstance(id_, int) and self.id != id_:
                 return False
-            if isinstance(id_, Iterable) and self.id not in id_:
+            if isinstance(id_, Collection) and self.id not in id_:
                 return False
         if val_sign is not None:
             if self.value == 0:
@@ -865,7 +929,7 @@ class Buff:
         if type_:
             if isinstance(type_, BT) and self.type != type_:
                 return False
-            if isinstance(type_, Iterable) and self.type not in type_:
+            if isinstance(type_, Collection) and self.type not in type_:
                 return False
         if efft:
             if self.efftype not in efft:
@@ -874,7 +938,7 @@ class Buff:
             if self.tag is None or not self.tag.startswith(tag):
                 return False
         if func:
-            if not (hasattr(func, '__call__') and func(self)):
+            if not (isinstance(func, Callable) and func(self)):
                 return False
         return True
 
@@ -911,7 +975,7 @@ class BuffList:
             r = BuffList(*self.buffs)
             for _ in range(len(r.buffs)):
                 b = r.popleft()
-                b *= other
+                b = b * other
                 r.append(b)
             return r
         else:
@@ -928,6 +992,9 @@ class BuffList:
             raise TypeError(f"잘못된 타입 : {type(other)}")
 
     def __str__(self):
+        return f"<{len(self)}개의 버프 리스트 {hex(id(self))}>"
+    
+    def show_str(self):
         result = []
         for b in self.buffs:
             result.append(str(b))
@@ -958,28 +1025,21 @@ class BuffList:
             self.append(other.popleft())
         return self
     
-    def update(self, tt=TR.DUMMY, args=None, except_condition: Callable[[Buff], bool] = lambda b: False):
+    def update(self, tt=TR.DUMMY, args=None, except_condition: Callable[[Buff], bool] = None):
         removed = BuffList()
-        immunedmg_activated = False
-        battlecontinue_activated = False
-        for i in range(len(self.buffs)):
+        for _ in range(len(self.buffs)):
             b = self.buffs.popleft()
-            if except_condition(b):
+            if except_condition is not None and except_condition(b):
                 self.buffs.append(b)
                 continue
-            if (immunedmg_activated and b.type == BT.IMMUNE_DMG and tt == TR.GET_HIT) or \
-                    (battlecontinue_activated and b.type == BT.BATTLE_CONTINUATION and tt == TR.BATTLE_CONTINUED):
-                continue
-            b.trigger(tt, args)
+            if not (tt == TR.BATTLE_CONTINUED and b.type == BT.BATTLE_CONTINUATION \
+                    and b.id != args["buff_id"]):
+                b.trigger(tt, args)
             if b.owner is not None and b.type in BT_DOT_DMG_SET and tt == TR.ROUND_END and b.owner.hp > 0:
-                b.owner.give_damage(b.value * b.owner.get_res_dmgrate(b.type.element), True)
+                b.owner.give_damage((b.calc(1) - 1) * b.owner.get_res_dmgrate(b.type.element), direct=True)
             if b.round > 0 and b.count > 0 and not (tt == TR.DUMMY and b.expired):
                 self.buffs.append(b)
             else:
-                if b.type == BT.IMMUNE_DMG and tt == TR.GET_HIT:
-                    immunedmg_activated = True
-                elif b.type == BT.BATTLE_CONTINUATION and tt == TR.BATTLE_CONTINUED:
-                    battlecontinue_activated = True
                 removed.append(b)
         return removed
 
@@ -1022,7 +1082,7 @@ class BuffSUM:
             else:
                 self.values[b.type][b.opr] += b.calc(1) - 1
 
-    def calc(self, t, v=d(1), switch_order=False, extra_rate=None):
+    def calc(self, t, v=1, switch_order=False, extra_rate=None):
         b = self.values[t]
         if extra_rate is None:
             extra_rate = d('1')

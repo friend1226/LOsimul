@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Cerestia(Character):
-    id_ = 176
+    _id = 176
     name = "세레스티아"
     code = "PECS_HighElven"
     group = Group.PUBLIC_SERVANT
@@ -30,10 +30,8 @@ class Cerestia(Character):
                  wr: NUM_T,
                  element: int):
         desc = "숲의 노래"
-        elvenid = CP.get("PECS_ElvenForestmaker").id_
-        darkid = CP.get("PECS_DarkElf").id_
         for t in targets:
-            if t.id_ == elvenid or t.id_ == darkid or t.type_[0] == CT.LIGHT:
+            if t.code == "PECS_ElvenForestmaker" or t.code == "PECS_DarkElf" or t.type_[0] == CT.LIGHT:
                 t.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc=desc)
                 t.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(efft=BET.DEBUFF), efft=BET.BUFF, desc=desc)
                 t.give_buff(BT.ATK, 1, bv[1], efft=BET.BUFF, round_=3, desc=desc)
@@ -48,22 +46,22 @@ class Cerestia(Character):
             self.give_buff(BT.BARRIER, 0, bv[0], efft=BET.BUFF, round_=3, desc=desc)
         elif tt == TR.ROUND_START:
             self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=1, desc=desc)
-            allys = set(map(lambda ch: ch.id_, self.game.get_chars(field=self.isenemy).values()))
-            if CP.get("PECS_ElvenForestmaker").id_ in allys:
+            allys = set(map(lambda ch: ch.code, self.game.get_chars(field=self.isenemy).values()))
+            if "PECS_ElvenForestmaker" in allys:
                 self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=1, desc=desc + "(엘븐)")
-            if CP.get("PECS_DarkElf").id_ in allys:
+            if "PECS_DarkElf" in allys:
                 self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, round_=1, desc=desc + "(다크 엘븐)")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "세계수의 은총"
         if tt == TR.ROUND_START:
-            allys = set(map(lambda ch: ch.id_, self.game.get_chars(field=self.isenemy).values()))
-            elvenid = CP.get("PECS_ElvenForestmaker").id_
-            darkid = CP.get("PECS_DarkElf").id_
-            elven = elvenid in allys
-            darkelven = darkid in allys
+            allys = set(map(lambda ch: ch.code, self.game.get_chars(field=self.isenemy).values()))
+            elven_code = "PECS_ElvenForestmaker"
+            dark_elven_code = "PECS_DarkElf"
+            elven = elven_code in allys
+            darkelven = dark_elven_code in allys
             for t in self.get_passive_targets(targets):
-                if t.id_ == elvenid or t.id_ == darkid or t.type_[0] == CT.LIGHT:
+                if t.code == elven_code or t.code == dark_elven_code or t.type_[0] == CT.LIGHT:
                     t.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.SPD, 1, bv[0]/2, efft=BET.BUFF, round_=1, desc=desc)
                     t.give_buff(BT.DEFPEN, 0, bv[0], efft=BET.BUFF, round_=1, desc=desc)

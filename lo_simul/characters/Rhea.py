@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Rhea(Character):
-    id_ = 6
+    _id = 6
     name = "레아"
     code = "3P_Rhea"
     group = Group.FAIRY
@@ -20,11 +20,11 @@ class Rhea(Character):
         for t in targets:
             if targets[t] > 0:
                 t.give_buff(BT.FIRE_RES, 0, bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
-                            tag=G.FLOOD_FIRE, desc=G.FLOOD)
+                            tag=G.FLOOD_FIRE)
                 t.give_buff(BT.ICE_RES, 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
-                            tag=G.FLOOD_ICE, desc=G.FLOOD)
+                            tag=G.FLOOD_ICE)
                 t.give_buff(BT.ELEC_RES, 0, -bv[0], round_=2, efft=BET.DEBUFF, max_stack=1,
-                            tag=G.FLOOD_ELEC, desc=G.FLOOD)
+                            tag=G.FLOOD_ELEC)
                 if t.find_buff(tag=G.CORROSION):
                     t.give_buff(BT.TAKEDMGINC, 1, bv1 / 100, overlap_type=BOT.INSTANCE, data=D.DmgInfo(element=E.ELEC), desc="급속 부식")
                 if targets[t] > 1:
@@ -77,11 +77,10 @@ class Rhea(Character):
             self.give_buff(BT.ATK, 0, 1, efft=BET.BUFF, count=1, count_trig={TR.AFTER_SKILL, },
                            max_stack=1, tag="Rhea_P3_ATK", desc=desc)
         elif tt == TR.GET_ATTACKED:
-            self.give_buff(BT.MINIMIZE_DMG, 0, 999999, efft=BET.BUFF, count=1, count_trig={TR.GET_HIT, },
+            self.give_buff(BT.MINIMIZE_DMG, 0, 999999, efft=BET.BUFF, count=1, 
                            max_stack=1, tag="Rhea_P3_MINIMIZEDMG", desc=desc)
     
-    def get_passive_active_chance(self, skill_no: int):
-        if skill_no == 4:
+    def get_passive_active_chance(self, skill_idx: int):
+        if skill_idx == 4:
             return self.skillvl[4] + 1
-        else:
-            return 100
+        return 100

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class KunoichiKaen(Character):
-    id_ = 180
+    _id = 180
     name = "쿠노이치 카엔"
     code = "DS_KunoichiKaen"
     group = Group.D_ENTERTAINMENT
@@ -52,7 +52,7 @@ class KunoichiKaen(Character):
                                round_=1, efft=BET.BUFF, desc=desc)
         elif tt == TR.DEAD:
             for p in self.get_passive_targets(targets):
-                if p.id_ == CP.get("DS_KuoichiZero").id_:
+                if p.code == "DS_KuoichiZero":
                     p.give_buff(BT.ATK, 1, bv[2], round_=2, efft=BET.BUFF, desc="사그라든 불꽃")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
@@ -68,12 +68,12 @@ class KunoichiKaen(Character):
             self.give_buff(BT.GIMMICK, 0, 1, tag=G.AUSGJROWJS, desc=G.AUSGJROWJS + " <무라사키 류>", removable=False)
             self.give_buff(BT.ANTI_LIGHT, 1, bv[0], desc=G.AUSGJROWJS)
         elif tt == TR.IDLE:
-            if CP.get("DS_KunoichiEnrai").id_ in set(map(lambda c_: c_.id_, targets)) \
+            if "DS_KunoichiEnrai" in set(map(lambda c_: c_.code, targets)) \
                     and not self.find_buff(type_=BT.GIMMICK, tag="Kaen_P2_일격필살"):
                 self.give_buff(BT.GIMMICK, 0, 1, count=1, count_trig={TR.AFTER_HIT, },
                                desc="일격필살", tag="Kaen_P2_일격필살")
         elif tt == TR.DEAD:
-            if CP.get("DS_KunoichiEnrai").id_ in set(map(lambda c_: c_.id_, targets)):
+            if "DS_KunoichiEnrai" in set(map(lambda c_: c_.code, targets)):
                 for p in targets:
                     p.give_buff(BT.ATK, 1, bv[1], round_=2, efft=BET.BUFF,
                                 max_stack=1, tag="Kunoichi_P3_ATK", desc="진에")

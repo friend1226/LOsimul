@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Lise(Character):
-    id_ = 7
+    _id = 7
     name = "리제"
     code = "3P_ScissorsLise"
     group = Group.BATTLE_MAID
@@ -49,11 +49,11 @@ class Lise(Character):
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.WAVE_START:
             self.give_buff(BT.AP, 0, bv[0], efft=BET.BUFF, desc="해충 처리")
-            allys = set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values()))
-            if 12 in allys:
+            allys = set(map(lambda c: c.code, self.game.get_chars(field=self.isenemy).values()))
+            if "3P_Sowan" in allys:
                 self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, max_stack=1, tag="Lise_P2_LILITHSPD",
                                desc="나랑 처리할 일이 있지 않아?")
-            if 16 in allys:
+            if "3P_BlackLilith" in allys:
                 self.give_buff(BT.SPD, 1, bv[1], efft=BET.BUFF, max_stack=1, tag="Lise_P2_SOWANSPD",
                                desc="네가 그랬지?")
         elif tt == TR.KILL:

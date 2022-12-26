@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Empress(Character):
-    id_ = 161
+    _id = 161
     name = "엠프리스"
     code = "PECS_Empress"
     group = Group.PUBLIC_SERVANT
@@ -47,16 +47,14 @@ class Empress(Character):
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "의태"
         if tt == TR.WAVE_START:
-            self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, efft=BET.BUFF, count=2, count_trig={TR.GET_HIT}, 
-                           desc=desc, tag="Empress_P1_MD")
+            self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, efft=BET.BUFF, count=2, desc=desc, tag="Empress_P1_MD")
         elif tt == TR.ROUND_START:
             if self.find_buff(tag="Empress_P1_MD"):
                 self.give_buff(BT.ATK, 1, bv[0], efft=BET.BUFF, round_=3, desc=desc)
                 self.give_buff(BT.CRIT, 0, bv[1], efft=BET.BUFF, round_=3, desc=desc)
         elif tt == TR.IDLE:
             if not self.find_buff(tag="Empress_P1_MD"):
-                self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, efft=BET.BUFF, count=2, count_trig={TR.GET_HIT}, 
-                               desc=desc, tag="Empress_P1_MD")
+                self.give_buff(BT.MINIMIZE_DMG, 0, 9999999, efft=BET.BUFF, count=2, desc=desc, tag="Empress_P1_MD")
 
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "극지 대비책"

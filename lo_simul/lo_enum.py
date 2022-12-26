@@ -307,6 +307,9 @@ class Gimmick(StrEnum):
     FLOOD_ELEC = "침수_전"
 
     CORROSION = "부식"
+    CORROSION_SPD = "부식_행동력"
+    CORROSION_DEF = "부식_방어력"
+    CORROSION_DOT = "부식_지속피해"
 
     LABIATA = "플라즈마 제너레이터"
     EMILY = "리미터 해제"
@@ -324,6 +327,9 @@ class Gimmick(StrEnum):
     FREEZE = "빙결"
 
     AUSGJROWJS = "면허개전"
+    
+    DRAGON_STANDBY = "포격 대기"
+    DRAGON_BOMBARDMENT = "함대 포격 모드"
 
 
 GIMMICKS = set()

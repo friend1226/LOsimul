@@ -5,47 +5,41 @@ from .lo_equips import *
 
 
 class CharacterPools:
-    ALL_CODES: Dict[str, Type['Character']] = {}
-    ALLY: Dict[str, Type['Character']] = {}
-    ENEMY: Dict[str, Type['Character']] = {}
-    ALL: Dict[str, Type['Character']] = {}
+    ALL_CODES: dict[str, Type['Character']] = {}
+    ALLY: dict[str, Type['Character']] = {}
+    ENEMY: dict[str, Type['Character']] = {}
+    ALL: dict[str | int, Type['Character']] = {}
 
     @classmethod
-    def get(cls, s: str):
-        if s in cls.ALL_CODES:
-            return cls.ALL_CODES[s]
-        if s in cls.ALL:
-            return cls.ALL[s]
-        return None
+    def get(cls, s: str | int):
+        return cls.ALL_CODES.get(s) or cls.ALL.get(s)
 
 
 CP = CharacterPools
 
 
 class Character:
-    id_: int
+    _id: int = None
     name: str
     code: str
-    group: str
+    group: Group = None
     isenemy: bool
     is21squad: bool = False
     isboss: bool = False
     icon_name: str = ''
 
-    stats: Tuple[str, ...]
+    stats: tuple[tuple[str, ...] | None, ...]
     skills: Union[
-        Tuple[Tuple[Optional[MappingProxyType]], Tuple[Optional[MappingProxyType]], Optional[MappingProxyType]],
-        Tuple[Union[Tuple, MappingProxyType], ...]
+        tuple[tuple[Optional[MappingProxyType]], tuple[Optional[MappingProxyType]], Optional[MappingProxyType]],
+        tuple[Union[tuple, MappingProxyType], ...]
     ]
-    type_: Tuple[CharType, CharRole]
-    isags: int
+    type_: tuple[CharType, CharRole]
+    isags: int | bool
     link_bonus: BuffList
     full_link_bonuses: list
-    equip_condition: Tuple[EquipType, EquipType, EquipType, EquipType] = (ET.CHIP, ET.CHIP, ET.OS, ET.GEAR)
+    equip_condition: tuple[EquipType, EquipType, EquipType, EquipType] = (ET.CHIP, ET.CHIP, ET.OS, ET.GEAR)
     base_rarity: Rarity = R.B
     promotion: Rarity = base_rarity
-
-    extra_num: str = ''
 
     equips: List[Optional[Equip]]
 
@@ -55,6 +49,8 @@ class Character:
         super().__init_subclass__()
         CharacterPools.ALL_CODES[cls.code] = cls
         CharacterPools.ALL[cls.name] = cls
+        if isinstance(cls._id, int):
+            CharacterPools.ALL[cls._id] = cls
         CharacterPools.ALL[cls.__name__] = cls
         if cls.isenemy:
             CharacterPools.ENEMY[cls.name] = cls
@@ -84,24 +80,31 @@ class Character:
         self.affection = affection
         self.pledge = pledge
         if self.code in UNITDATA:
-            self.type_, self.isags, lbl, flbl, self.equip_condition, self.base_rarity, self.promotion, self.icon_name\
-                = self.get_info().values()
+            if self.isenemy:
+                self.type_, self.isboss, lbl, flbl, self.equip_condition, \
+                    self.base_rarity, self.promotion, self.icon_name\
+                    = self.get_info().values()
+            else:
+                self.type_, self.isags, lbl, flbl, self.equip_condition, \
+                    self.base_rarity, self.promotion, self.icon_name\
+                    = self.get_info().values()
             self.link_bonus = BuffList(*[Buff(*bi, removable=False) for bi in lbl])
             self.full_link_bonuses = [Buff(*bi, removable=False) if bi else None for bi in flbl]
             if self.rarity is None or self.rarity < self.base_rarity:
                 self.rarity = self.base_rarity
             self.stats = UNITDATA[self.code][1]
-            self.skills = tuple(map(
-                lambda data: tuple(map(
-                    lambda eata: MappingProxyType(eata) if eata else None, data
-                )) if isinstance(data, list) else MappingProxyType(data) if data else None,
-                UNITDATA[self.code][2]
-            ))
+            self.skills = UNITDATA[self.code][2]
             if self.skills is None:
                 self.skills = tuple(tuple(None for _ in range(5)) for __ in range(2)) + (None, )
         else:
             if self.rarity is None:
                 self.rarity = self.base_rarity
+        self.skills = tuple(map(
+            lambda data: tuple(map(
+                lambda eata: MappingProxyType(eata) if eata else None, data
+            )) if isinstance(data, list) else MappingProxyType(data) if data else None,
+            self.skills
+        ))
         if self.base_rarity > self.promotion:
             raise ValueError(f"승급 가능한 최대 등급이 태생 등급보다 낮습니다. "
                              f"(태생 {self.base_rarity.name}급 > 최대 {self.promotion.name}승급)")
@@ -172,6 +175,17 @@ class Character:
         self.__ap = d(0)
 
         self.rarity = Rarity(self.rarity)
+        
+        self.has_impact_skill = False
+        for _i in (0, 1, 5, 6):
+            _sk = self.get_skill(_i, False)[1]
+            if _sk is None:
+                continue
+            if _sk["impact"][self.skillvl[(_i - 1) % 5]] >= 0:
+                self.has_impact_skill = True
+                break
+        
+        self.extra_num = ""
 
     def random(self, r=100, offset=0):
         return self.game.random.uniform(offset, offset+r)
@@ -270,13 +284,13 @@ class Character:
     def isformchanged(self):
         return False
 
-    def skill_no_convert(self, skill_no):
-        return skill_no
+    def skill_idx_convert(self, skill_idx):
+        return skill_idx
 
-    def get_skill(self, no, apply_formchange: bool = True):
+    def get_skill(self, skill_idx, apply_formchange: bool = True):
         if apply_formchange:
-            no = self.skill_no_convert(no)
-        return self.skills[no // 5][no % 5]
+            skill_idx = self.skill_idx_convert(skill_idx)
+        return skill_idx, self.skills[skill_idx // 5][skill_idx % 5]
 
     def get_orig_hp(self):
         return simpl(d(self.stats[self.rarity][0]) + d(self.stats[self.rarity][1])*(self.lvl-1) +
@@ -386,7 +400,7 @@ class Character:
             elif bt in BT_DOT_DMG_SET:
                 result[bt] = 0
                 for bf in self.specialBuffs.find(type_=bt):
-                    result[bt] += bf.value
+                    result[bt] += bf.calc(1) - 1
             elif bt == BT.ACT_PER_TURN:
                 result[bt] = psppm.calc(bt, 2, True)
 
@@ -426,7 +440,7 @@ class Character:
             return BuffList()
 
         tempbuffs = BuffList()
-        index: Dict[Tuple['Character', str], int] = {v: i for i, v in enumerate(dfs_visited)}
+        index: Dict[tuple['Character', str], int] = {v: i for i, v in enumerate(dfs_visited)}
         pairn = len(index)
         mulv = [1 for _ in range(pairn)]
         basev = [0 for _ in range(pairn)]
@@ -502,12 +516,12 @@ class Character:
             res *= -1
         return 1 - res / d(100)
 
-    def get_aoe(self, targ_pos, skill_no) -> Union[List[Tuple[int, int]], List[Tuple[int, int, NUM_T]]]:
+    def get_aoe(self, targ_pos, skill_no) -> Union[List[tuple[int, int]], List[tuple[int, int, NUM_T]]]:
         r = []
         idx = -1
         skill_no -= 1
         lvl = self.skillvl[skill_no % 5]
-        temp = self.get_skill(skill_no)['aoe']
+        temp = self.get_skill(skill_no)[1]['aoe']
         for x in temp:
             if lvl < x[0]:
                 break
@@ -532,7 +546,7 @@ class Character:
 
     def get_skill_atk_rate(self, skill_no=None, value=None):
         if skill_no is not None:
-            value = d(self.get_skill(skill_no-1)['atkrate'][self.skillvl[(skill_no-1) % 5]])
+            value = d(self.get_skill(skill_no-1)[1]['atkrate'][self.skillvl[(skill_no-1) % 5]])
         if value is None:
             return 0
         return self.find_buff(BT.SKILL_RATE).get_sum().calc(BT.SKILL_RATE, value, True)
@@ -541,7 +555,7 @@ class Character:
         skill_no -= 1
         lvl = self.find_buff(BT.BUFFLVL).get_sum().calc(BT.BUFFLVL, self.skillvl[skill_no % 5], True) - 1
         r = []
-        for x in self.get_skill(skill_no)['buff']:
+        for x in self.get_skill(skill_no)[1]['buff']:
             if isinstance(x, str):
                 r.append(d(x))
             elif isinstance(x, tuple):
@@ -553,7 +567,7 @@ class Character:
     def get_skill_range(self, skill_no):
         skill_no -= 1
         rangesum = self.find_buff({BT.RANGE, BT.RANGE_1SKILL, BT.RANGE_2SKILL}).get_sum()
-        _range = rangesum.calc(BT.RANGE, d(self.get_skill(skill_no)['range'][self.skillvl[skill_no % 5]]), True)
+        _range = rangesum.calc(BT.RANGE, d(self.get_skill(skill_no)[1]['range'][self.skillvl[skill_no % 5]]), True)
         if skill_no % 5:
             _range = rangesum.calc(BT.RANGE_2SKILL, _range, True)
         else:
@@ -561,10 +575,10 @@ class Character:
         return _range
 
     def get_skill_cost(self, skill_no):
-        return self.get_skill(skill_no-1)['apcost'][self.skillvl[(skill_no-1) % 5]]
+        return self.get_skill(skill_no-1)[1]['apcost'][self.skillvl[(skill_no-1) % 5]]
 
     def get_skill_element(self, skill_no):
-        return Element(self.get_skill(skill_no-1)['element'][self.skillvl[(skill_no-1) % 5]])
+        return Element(self.get_skill(skill_no-1)[1]['element'][self.skillvl[(skill_no-1) % 5]])
 
     def judge_hit(self, obj: 'Character', acc_bonus: int = 0):
         mystats = self.get_stats(BT.ACC, BT.CRIT)
@@ -578,47 +592,40 @@ class Character:
         else:
             return d('1')
 
-    def judge_active(self, chance: NUM_T = 100):
+    def judge_active(self, chance: NUM_T = d(100)):
         chance = self.specialBuffs.get_sum().calc(BT.ACTIVE_RATE, chance, True)
-        return self.random() <= chance
+        return self.random() <= chance, chance
         # True = 발동 성공
         # False = 발동 실패
 
-    def judge_resist_buff(self, buff, chance: NUM_T = 100, print_p=False, return_value=False):
-        active_p = 0
+    def judge_resist_buff(self, buff, chance: NUM_T = d(100)):
+        active_p = d(0)
         active_chances = []
         if buff.efftype == BET.DEBUFF and (buff.type != BT.ACTIVE_RESIST or not self.isenemy):
             for b in self.specialBuffs.find(type_=BT.ACTIVE_RESIST):
                 if b.opr:  # 효과 저항 (독립시행)
-                    active_chances.append(b.value)
+                    active_chances.append(-b.value)
                 else:      # 효과 저항 (기본 확률 증감)
                     active_p -= b.value
-        remove_p = 0
-        remove_flag = False
+        remove_p = d(0)
         remove_chances = []
         if buff.type == BT.REMOVE_BUFF:
             for b in self.specialBuffs.find(type_=BT.REMOVE_BUFF_RESIST):
-                if buff.data in b.data:
+                if buff.data not in b.data:
                     continue
-                """
                 if b.opr:
-                    remove_chances.append(b.value)
+                    remove_chances.append(-b.value)
                 else:
                     remove_p -= b.value
-                    remove_flag = True
-                """
-                # 강화 해제 저항 (모두 기본 확률 증감)
-                remove_p -= b.value
-                remove_flag = True
 
         def m(p):
             if p > 1:
-                return 1
+                return d(1)
             elif p < 0:
-                return 0
+                return d(0)
             else:
                 return p
-        total_p = 100
+        total_p = d(100)
         if remove_chances:
             for c in active_chances:
                 total_p *= m((chance + active_p + c) / 100)
@@ -627,22 +634,14 @@ class Character:
         else:
             if active_chances:
                 for c in active_chances:
-                    total_p *= m((chance + active_p + c) / 100)
-                if remove_flag:
-                    total_p *= m((chance + active_p + remove_p) / 100)
+                    total_p *= m((chance + active_p + remove_p + c) / 100)
             else:
                 total_p *= m((chance + active_p + remove_p) / 100)
-        if print_p:
-            print(f"[tmp] {buff.type} ({buff.efftype}) / "
-                  f"버프 발동 확률 = {total_p}%", file=self.stream)
-        if return_value:
-            return total_p
-        else:
-            return self.random() > total_p
+        return self.random() > total_p, total_p
         # True = 저항 성공
         # False = 저항 실패
 
-    def calc_damage(self, obj: 'Character', rate: Tuple[NUM_T, NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
+    def calc_damage(self, obj: 'Character', rate: tuple[NUM_T, NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
         # rate = [스킬 계수, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
         substats = self.get_stats(BT.ATK, BT.DEFPEN, BT.GIVEDMGDEC, BT.GIVEDMGINC, BT.WIDE_GIVEDMG)
@@ -655,7 +654,7 @@ class Character:
         hprate = [1, self.hp_rate, obj.hp_rate, 1 - self.hp_rate, 1 - obj.hp_rate]
         # 적 받피감 (체력 비례 포함) (합연산)
         
-        def mulpair(p: Tuple[NUM_T, NUM_T]) -> NUM_T:
+        def mulpair(p: tuple[NUM_T, NUM_T]) -> NUM_T:
             return p[0] * p[1]
         
         if not self.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC):
@@ -707,20 +706,23 @@ class Character:
         # 피해 최소화
         if minib := obj.find_buff(type_=BT.MINIMIZE_DMG):
             if minib[-1].value >= damage:
-                print(f"[amd] <{obj}>의 피해 최소화 발동.", file=self.stream)
                 damage = 1
 
         # 광역 피해 분산/집중
         damage *= (1 - (objstats[BT.WIDE_TAKEDMG] - 1) * wr) * (1 + (substats[BT.WIDE_GIVEDMG] - 1) * (1 - wr))
         
-        return simpl(damage)
+        return simpl(damage), (0 if not minib else minib[-1].id)
 
-    def give_damage(self, dmg, direct=False, ignore_barrier=False):
+    def give_damage(self, dmg, minimize_buff_id=0, direct=False, ignore_barrier=False):
         if not direct:
-            if self.find_buff(type_=BT.IMMUNE_DMG):
+            if immb := self.find_buff(type_=BT.IMMUNE_DMG):
                 print(f"[adi] <{self}> - 피해 무효 발동.", file=self.stream)
+                immb[-1].count -= 1
                 self.game.battle_log.append((self, -2))
                 return -2
+            if minimize_buff_id:
+                print(f"[amd] <{self}> - 피해 최소화 발동.", file=self.stream)
+                self.find_buff(type_=BT.MINIMIZE_DMG, id_=minimize_buff_id)[0].count -= 1
             if not ignore_barrier:
                 for b in self.find_buff(type_=BT.BARRIER, func=lambda b: not b.expired):
                     if dmg > b.value:
@@ -740,14 +742,41 @@ class Character:
             print(f"[dmg] <{self}> - {{ {dmg} }} 피해를 입음.", file=self.stream)
         self.game.battle_log.append((self, dmg))
         return dmg
+    
+    def _get_possible_buff_lists(self, types: BuffType | Iterable[BuffType] | None):
+        if types is None:
+            return self.buff_iter
+        result = set()
+        if isinstance(types, BuffType):
+            types = {types}
+        for _t in types:
+            tempset = set()
+            if _t in BT_CYCLABLE:
+                tempset.add("proportionBuffs")
+            if _t in BT_BASE_STATS_SET:
+                tempset.add("statBuffs")
+            elif _t in BT_ANTI_OS_SET:
+                tempset.add("antiOSBuffs")
+            elif _t == BT.TAKEDMGINC:
+                tempset.add("dmgTakeIncBuffs")
+            elif _t == BT.TAKEDMGDEC:
+                tempset.add("dmgTakeDecBuffs")
+            elif _t == BT.GIVEDMGINC:
+                tempset.add("dmgGiveIncBuffs")
+            elif _t == BT.GIVEDMGDEC:
+                tempset.add("dmgGiveDecBuffs")
+            else:
+                tempset.add("specialBuffs")
+            result.update(tempset)
+        return tuple(map(self.__getattribute__, result))
 
     def give_buff(self,
-                  type_: str,
+                  type_: BuffType,
                   opr: int,
                   value: NUM_T,
                   round_: int = MAX,
                   count: int = MAX,
-                  count_trig: Set[str] = None,
+                  count_trig: Set[Trigger] = None,
                   efft: BET = BET.NORMAL,
                   max_stack: int = 0,
                   removable: bool = True,
@@ -767,14 +796,14 @@ class Character:
 
     def find_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None):
         result = BuffList()
-        for bl in self.buff_iter:
+        for bl in self._get_possible_buff_lists(type_):
             result += bl.find(type_, efft, tag, func, id_, val_sign, opr)
         return result
 
     def remove_buff(self, type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None,
                     limit=MAX, force=False, log=True, **kwargs):
         result = BuffList()
-        for bl in self.buff_iter:
+        for bl in self._get_possible_buff_lists(type_):
             result += bl.remove(type_, efft, tag, func, id_, val_sign, opr, limit-len(result), force)
         for b in result:
             if log and b.do_print:
@@ -793,10 +822,10 @@ class Character:
                 if b.opr:
                     self.give_damage(
                         b.value * b.data.subject.get_stats(BT.ATK) * element_rate,
-                        True
+                        direct=True
                     )
                 else:
-                    self.give_damage(b.value * element_rate, True)
+                    self.give_damage(b.value * element_rate, direct=True)
                 self.dead_judge_process()
             if b.do_print:
                 print(f"[brm] <{self}> - 버프 제거됨 (만료) : [{b}]", file=self.stream)
@@ -860,7 +889,7 @@ class Character:
             self,
             skill_no: int,
             targets: Dict['Character', NUM_T],
-            atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+            atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
             aoe_len: int):
         buff_values: Sequence[NUM_T] = self.get_skill_buff_value(skill_no)
         wr: NUM_T = 0
@@ -881,7 +910,7 @@ class Character:
 
     def _active1(self,
                  targets: Dict['Character', NUM_T],
-                 atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                 atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
@@ -889,7 +918,7 @@ class Character:
 
     def _active2(self,
                  targets: Dict['Character', NUM_T],
-                 atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                 atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
@@ -897,7 +926,7 @@ class Character:
 
     def _factive1(self,
                   targets: Dict['Character', NUM_T],
-                  atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                  atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
                   bv: Sequence[NUM_T],
                   wr: NUM_T,
                   element: int):
@@ -905,13 +934,13 @@ class Character:
 
     def _factive2(self,
                   targets: Dict['Character', NUM_T],
-                  atk_rate: Dict['Character', Tuple[NUM_T, NUM_T]],
+                  atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
                   bv: Sequence[NUM_T],
                   wr: NUM_T,
                   element: int):
         return self._active2(targets, atk_rate, bv, wr, element)
 
-    def get_passive_active_chance(self, skill_no: int):
+    def get_passive_active_chance(self, skill_idx: int):
         return 100
 
     def passive(self, trigtype, args=None):
@@ -925,7 +954,7 @@ class Character:
         }
         for i in range(3):
             if self.rarity > i:
-                skn = self.skill_no_convert(i + 2)
+                skn = self.skill_idx_convert(i + 2)
                 if not self.judge_active(self.get_passive_active_chance(skn)):
                     continue
                 buff_values = self.get_skill_buff_value(skn+1)
@@ -933,28 +962,28 @@ class Character:
                 passives[skn](trigtype, args, aoe, buff_values)
 
     def get_passive_targets(self,
-                            aoe: List[Union[Tuple[int, int], int, 'Pos']],
+                            aoe: List[Union[tuple[int, int], int, 'Pos']],
                             enemy: bool = False
                             ) -> List['Character']:
         return sorted(self.game.get_chars(aoe, int(self.isenemy ^ enemy)).values(),
                       key=lambda c: c.getposn())
 
-    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _fpassive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive1(tt, args, targets, bv)
 
-    def _fpassive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive2(tt, args, targets, bv)
 
-    def _fpassive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive3(tt, args, targets, bv)
 
     def base_passive_before(self, tt, args=None):
@@ -965,8 +994,7 @@ class Character:
                     self.hp = bcb.calc(self.maxhp) - self.maxhp
                 else:
                     self.hp = bcb.value
-                self.remove_buff(id_=bcb.id, force=True)
-                self.trigger(TR.BATTLE_CONTINUED)
+                self.trigger(TR.BATTLE_CONTINUED, {"buff_id": bcb.id})
                 print(f"[bcn] <{self}> - 전투속행 발동!", file=self.stream)
 
     def base_passive_after(self, tt, args=None):
@@ -984,14 +1012,16 @@ class Character:
     def extra_passive(self, tt, args=None):
         pass
 
-    def move(self, pos):
-        self.give_ap(-2)
+    def move(self, pos, force_moved=False):
         if self.game.get_char(pos, field=int(self.isenemy)):
             return False
         self.game.remove_char(self)
         self.pos = Pos(pos)
         self.game.put_char(self)
-        self.trigger(TR.MOVE, {"pos": pos})
+        if not force_moved:
+            self.give_ap(-2)
+            self.trigger(TR.MOVE, {"pos": pos})
+        return True
 
     def idle(self):
         self.give_ap(-1)

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class UnderWatcher2(Character):
-    id_ = "UnderWatcher_TU2"
+    
     name = "언더왓쳐"
     code = "UnderWatcher_TU2"
     group = Group.PARASITE
@@ -41,7 +41,7 @@ class UnderWatcher2(Character):
         if tt == TR.GET_ATTACKED:
             if self.find_buff(tag=G.UNDER_WATCHER_GENERATOR_TU2):
                 self.give_buff(BT.MINIMIZE_DMG, 0, bv[0], count=1, max_stack=1, tag="UWTU2_P1", desc=desc,
-                               efft=BET.BUFF, count_trig={TR.GET_HIT}, chance=90, overlap_type=BOT.RENEW)
+                               efft=BET.BUFF, chance=90, overlap_type=BOT.RENEW)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:

@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class RocCGeneratorChallenge2(Character):
-    id_ = "RocCGenerator_Challenge2"
     name = "재생 애너지 컨덴서"
     code = "RocCGenerator_Challenge2"
     group = Group.PARASITE
@@ -37,7 +36,8 @@ class RocCGeneratorChallenge2(Character):
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ALLY_DEAD:
-            self.give_buff(BT.BATTLE_CONTINUATION, 1, 1, round_=1, desc="자동 수복", overlap_type=BOT.RENEW)
+            self.give_buff(BT.BATTLE_CONTINUATION, 1, 1, round_=1, count=1, 
+                           desc="자동 수복", overlap_type=BOT.RENEW)
     
     def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.BATTLE_CONTINUED:

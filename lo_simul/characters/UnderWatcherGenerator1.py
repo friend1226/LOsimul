@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class UnderWatcherGenerator1(Character):
-    id_ = "UnderWatcherGenerator_B05"
     name = "언더왓쳐 제네레이터"
     code = "UnderWatcherGenerator_B05"
     group = Group.PARASITE

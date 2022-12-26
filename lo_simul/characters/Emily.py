@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Emily(Character):
-    id_ = 68
+    _id = 68
     name = "에밀리"
     code = "BR_Emily"
     group = Group.AA_CANNONIERS
@@ -12,11 +12,10 @@ class Emily(Character):
     def isformchanged(self):
         return bool(self.find_buff(type_=BT.GIMMICK, tag=Gimmick.EMILY))
     
-    def skill_no_convert(self, skill_no):
-        if skill_no == 1 and self.isformchanged():
+    def skill_idx_convert(self, skill_idx):
+        if skill_idx == 1 and self.isformchanged():
             return 6
-        else:
-            return skill_no
+        return skill_idx
     
     def _active1(self, 
                  targets: Dict['Character', NUM_T], 

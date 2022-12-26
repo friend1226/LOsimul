@@ -12,6 +12,7 @@ from copy import deepcopy
 from collections import deque, defaultdict
 from typing import *
 from types import MappingProxyType
+from heapq import heappop, heappush
 import pickle
 import gzip
 import traceback
@@ -224,7 +225,7 @@ class Pos:
 
         Notes:
             오로지 :obj:`int`, (:obj:`int`, :obj:`int`), ``Pos`` 객체와만 비교할 수 있으며,
-            다른 데이터 형태와의 비교는 무조건 :obj:`False` 값을 반환합니다.
+            다른 데이터 형태와의 비교는 무조건 :obj:`NotImplemented` 값을 반환합니다.
         """
         if isinstance(other, Pos):
             return self.x() == other.x() and self.y() == other.y()
@@ -233,7 +234,7 @@ class Pos:
         elif isinstance(other, tuple) and len(other) == 2:
             return self.xy() == other
         else:
-            return False
+            return NotImplemented
 
     def __add__(self, other):
         """좌표끼리 더합니다.

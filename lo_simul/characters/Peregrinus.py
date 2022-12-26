@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Peregrinus(Character):
-    id_ = 239
+    _id = 239
     name = "페레그리누스"
     code = "PECS_Peregrinus"
     group = Group.BISMARK
@@ -12,11 +12,10 @@ class Peregrinus(Character):
     def isformchanged(self):
         return bool(self.find_buff(type_=BT.GIMMICK, tag=G.PEREGRINUS_HUMAN))
 
-    def skill_no_convert(self, skill_no):
-        if skill_no < 3 and self.isformchanged():
-            return skill_no + 5
-        else:
-            return skill_no
+    def skill_idx_convert(self, skill_idx):
+        if skill_idx < 3 and self.isformchanged():
+            return skill_idx + 5
+        return skill_idx
 
     def _active1(self,
                  targets: Dict['Character', NUM_T],
@@ -66,8 +65,8 @@ class Peregrinus(Character):
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "뛰어난 적응력"
-            falcon = len(self.find_buff(type_=BT.EVA, tag=G.PEREGRINUS_FALCON))
-            human = len(self.find_buff(type_=BT.WIDE_GIVEDMG, tag=G.PEREGRINUS_HUMAN))
+            falcon = self.find_buff(type_=BT.EVA, tag=G.PEREGRINUS_FALCON).count
+            human = self.find_buff(type_=BT.WIDE_GIVEDMG, tag=G.PEREGRINUS_HUMAN).count
             if falcon:
                 self.give_buff(BT.AP, 0, bv[0]*(falcon+1)/2, efft=BET.BUFF, desc=desc)
             if human:

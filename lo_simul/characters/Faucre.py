@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Faucre(Character):
-    id_ = 171
+    _id = 171
     name = "뽀끄루 대마왕"
     code = "DS_Faucre"
     group = Group.D_ENTERTAINMENT
@@ -52,11 +52,11 @@ class Faucre(Character):
     
     def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         desc = "세뇌의 파동"
-        golt = CP.get("AGS_Goltarion").id_
+        golt = "AGS_Goltarion"
         horn = self.find_buff(tag=HornOfBADK.code)
         if tt == TR.ROUND_START:
             for t in self.get_passive_targets(targets):
-                if t.isenemy or not t.isags or t.id_ == golt:
+                if t.isenemy or not t.isags or t.code == golt:
                     t.give_buff(BT.ATK, 1, bv[0], round_=1, efft=BET.BUFF, desc=desc)
                     t.give_buff(BT.ACC, 0, bv[0] * 100, round_=1, efft=BET.BUFF, desc=desc)
                     t.give_buff(BT.CRIT, 0, bv[1], round_=1, efft=BET.BUFF, desc=desc)
@@ -74,7 +74,7 @@ class Faucre(Character):
         elif tt == TR.IDLE:
             desc += "!"
             for t in self.get_passive_targets(targets):
-                if t.isenemy or not t.isags or t.id_ == golt:
+                if t.isenemy or not t.isags or t.code == golt:
                     t.give_buff(BT.ATK, 1, bv[0], round_=2, efft=BET.BUFF, 
                                 max_stack=1, tag="Faucre_P1_ATK", desc=desc)
                     t.give_buff(BT.ACC, 0, bv[0] * 100, round_=2, efft=BET.BUFF, 
@@ -105,11 +105,10 @@ class Faucre(Character):
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
         if tt == TR.ROUND_START:
             desc = "마의 장막"
-            golt = CP.get("AGS_Goltarion").id_
             for t in self.get_passive_targets(targets):
                 t.give_buff(BT.IMMUNE_BUFF, 0, 1, data=D.BuffCond(type_=BT.MARKED, efft=BET.DEBUFF), 
                             round_=1, efft=BET.BUFF, desc=desc)
-                if t.id_ == golt:
+                if t.code == "AGS_Goltarion":
                     t.give_buff(BT.TAKEDMGINC, 1, d('.2'), round_=1, efft=BET.BUFF, desc=desc)
                     t.give_buff(BT.SKILL_RATE, 0, bv[0], round_=1, efft=BET.BUFF, desc=desc)
                 else:

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class KunoichiZero(Character):
-    id_ = 174
+    _id = 174
     name = "쿠노이치 제로"
     code = "DS_KunoichiZero"
     group = Group.D_ENTERTAINMENT
@@ -70,12 +70,12 @@ class KunoichiZero(Character):
                     p.give_buff(BT.CRIT, 0, bv[3]*200, round_=1, efft=BET.BUFF, desc=desc)
                     p.give_buff(BT.SPD, 1, bv[3], round_=4, efft=BET.BUFF, max_stack=3, tag="Zero_P1_SPD", desc=desc)
         elif tt == TR.DEAD:
-            if CP.get("DS_KunoichiEnrai").id_ in set(map(lambda c_: c_.id_, targets)):
+            if "DS_KunoichiEnrai" in set(map(lambda c_: c_.code, targets)):
                 for p in targets:
                     p.give_buff(BT.ATK, 1, bv[4], round_=2, efft=BET.BUFF,
                                 max_stack=1, tag="Kunoichi_P3_ATK", desc="진에")
         elif tt == TR.KILL:
-            if CP.get("DS_KunoichiEnrai").id_ in set(map(lambda c_: c_.id_, targets)):
+            if "DS_KunoichiEnrai" in set(map(lambda c_: c_.code, targets)):
                 desc = "가속"
                 for p in targets:
                     if p.name.startswith("쿠노이치") and p != self:

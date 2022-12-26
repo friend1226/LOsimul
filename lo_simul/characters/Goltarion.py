@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Goltarion(Character):
-    id_ = 128
+    _id = 128
     name = "골타리온"
     code = "AGS_Goltarion"
     group = Group.D_ENTERTAINMENT
@@ -38,8 +38,8 @@ class Goltarion(Character):
         if tt in {TR.ROUND_START, TR.GET_ATTACKED, TR.ATTACK}:
             if self.hp / self.maxhp >= d('.9'):
                 if len(list(filter(lambda c: c.isags, self.game.get_chars(field=self.isenemy).values()))) > 3:
-                    self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION, overlap_type=BOT.SINGLE)
+                    self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[0], max_stack=1, count=1, 
+                                   tag=G.GOLTARION, overlap_type=BOT.SINGLE)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True),
                                desc="내부 부품 손상")
@@ -61,17 +61,16 @@ class Goltarion(Character):
                     t.give_buff(BT.TAKEDMGINC, 1, bv[1], overlap_type=BOT.INSTANCE, desc="깊어지는 낙인")
     
     def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[Tuple[int, int]], bv: List[NUM_T]):
-        ally_ids = set(map(lambda c: c.id_, self.game.get_chars(field=self.isenemy).values()))
-        momo_id = CP.get("DS_MoMo").id_
-        baekto_id = CP.get("DS_Baekto").id_
-        faucre_id = CP.get("DS_Faucre").id_
-        momo = momo_id in ally_ids
-        baekto = baekto_id in ally_ids
-        faucre = faucre_id in ally_ids
+        ally_codes = set(map(lambda c: c.code, self.game.get_chars(field=self.isenemy).values()))
+        momo_code = "DS_MoMo"
+        baekto_code = "DS_Baekto"
+        momo = momo_code in ally_codes
+        baekto = baekto_code in ally_codes
+        faucre = "DS_Faucre" in ally_codes
         if tt == TR.ROUND_START:
             desc = "마왕님의 명이라면...!"
             for t in self.get_passive_targets(targets):
-                if t.id_ == momo_id or t.id_ == baekto_id:
+                if t.code == momo_code or t.code == baekto_code:
                     t.give_buff(BT.TARGET_PROTECT, 0, 1, efft=BET.BUFF, round_=1,
                                 data=D.TargetProtect(self), desc=desc)
             if faucre:
@@ -84,7 +83,7 @@ class Goltarion(Character):
         elif tt == TR.ATTACK:
             desc = "이번만이다, 마법소녀!"
             for t in self.get_passive_targets(targets):
-                if t.id_ == momo_id or t.id_ == baekto_id:
+                if t.code == momo_code or t.code == baekto_code:
                     t.give_buff(BT.ACTIVE_RESIST, 1, bv[3], efft=BET.BUFF, round_=2, desc=desc)
                     for i in range(1, 4):
                         t.give_buff(BT_ELEMENT_RES[i], 0, bv[3], efft=BET.BUFF, round_=2, desc=desc)
@@ -94,6 +93,6 @@ class Goltarion(Character):
             if self.hp / self.maxhp >= d('.9'):
                 if faucre:
                     self.give_buff(BT.BATTLE_CONTINUATION, 1, bv[2], max_stack=1, count=1,
-                                   count_trig={TR.BATTLE_CONTINUED, }, tag=G.GOLTARION, overlap_type=BOT.SINGLE)
+                                   tag=G.GOLTARION, overlap_type=BOT.SINGLE)
             elif self.find_buff(tag=G.GOLTARION):
                 self.give_buff(BT.REMOVE_BUFF, 0, 1, data=D.BuffCond(tag=G.GOLTARION, force=True), desc="내부 부품 손상")

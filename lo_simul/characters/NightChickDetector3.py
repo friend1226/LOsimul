@@ -2,7 +2,6 @@ from ..lo_char import *
 
 
 class NightChickDetector3(Character):
-    id_ = "NightChickDE_TU3"
     name = "나이트 칙 디텍터"
     code = "NightChickDE_TU3"
     group = Group.PARASITE
@@ -50,8 +49,7 @@ class NightChickDetector3(Character):
                 p.give_buff(BT.REMOVE_BUFF, 0, 1, desc=desc, data=D.BuffCond(type_=BT.ACC, efft=BET.BUFF))
                 p.give_buff(BT.ACC, 0, -buff_values[0], round_=1, desc=desc)
     
-    def get_passive_active_chance(self, skill_no: int):
-        if skill_no == 2:
+    def get_passive_active_chance(self, skill_idx: int):
+        if skill_idx == 2:
             return 40
-        else:
-            return 100
+        return 100

@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class UnderWatcherArm2(Character):
-    id_ = "UnderWatcherArm_TU2"
+    
     name = "언더왓쳐 암"
     code = "UnderWatcherArm_TU2"
     group = Group.PARASITE

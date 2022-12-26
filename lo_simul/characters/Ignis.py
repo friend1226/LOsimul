@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Ignis(Character):
-    id_ = 134
+    _id = 134
     name = "이그니스"
     code = "PECS_Ignis"
     group = Group.PUBLIC_SERVANT

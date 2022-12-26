@@ -2,7 +2,7 @@ from ..lo_char import *
 
 
 class Titania(Character):
-    id_ = 10
+    _id = 10
     name = "티타니아"
     code = "3P_Titania"
     group = Group.FAIRY
