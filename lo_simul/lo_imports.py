@@ -164,7 +164,7 @@ class Pos:
         None
 
     Notes:
-        대소관계 중 같음(``=``)만 지원됩니다. 다른 비교에 대해서는 정상 작동을 보장하지 않습니다.
+        대소관계 중 같음(``==``)만 지원됩니다. 다른 비교에 대해서는 정상 작동을 보장하지 않습니다.
         오로지 :obj:`int`, (:obj:`int`, :obj:`int`), ``Pos`` 객체와만 비교할 수 있으며,
         다른 데이터 형태와의 비교는 무조건 :obj:`False` 값을 반환합니다.
 
@@ -390,7 +390,7 @@ class Datas:
     class BattleLogInfo(NamedTuple):
         """``Game.buff_log`` 에서, 전투/공격 이벤트 기록에 사용됩니다."""
         # Game.buff_log에 전투 이벤트를 구분하기 위해 사용
-        bufftype: str
+        event: str
         """"""
         desc: str
         """"""

@@ -80,7 +80,7 @@ class Rhea(Character):
             self.give_buff(BT.MINIMIZE_DMG, 0, 999999, efft=BET.BUFF, count=1, 
                            max_stack=1, tag="Rhea_P3_MINIMIZEDMG", desc=desc)
     
-    def get_passive_active_chance(self, skill_idx: int):
+    def get_active_chance(self, skill_idx: int):
         if skill_idx == 4:
             return self.skillvl[4] + 1
         return 100

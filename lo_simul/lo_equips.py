@@ -20,7 +20,7 @@ _META_CLASS_SET = {"Chip", "OS", "Gear"}
 
 
 class Equip:
-    EQUIP_TYPE: int
+    EQUIP_TYPE: EquipType
     nick: str = "???"
     name: str = "-"
     code: str = "None"

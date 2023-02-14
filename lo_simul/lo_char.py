@@ -111,7 +111,7 @@ class Character:
         if self.rarity >= len(self.stats) or self.stats[self.rarity] is None:
             raise ValueError(f"해당 등급의 스탯이 존재하지 않습니다.")
 
-        self.getOrigStatFuncs = {
+        self.get_orig_stat_funcs = {
             BT.HP: self.get_orig_hp,
             BT.ATK: self.get_orig_atk,
             BT.DEF: self.get_orig_def,
@@ -186,6 +186,7 @@ class Character:
                 break
         
         self.extra_num = ""
+        self._givebuff_blocked = False
 
     def random(self, r=100, offset=0):
         return self.game.random.uniform(offset, offset+r)
@@ -319,15 +320,15 @@ class Character:
     def get_orig_res(self):
         return tuple(map(d, self.stats[self.rarity][10:]))
 
-    def get_orig_stats(self) -> Dict[str, d]:
-        return {i: self.getOrigStatFuncs[i]() for i in BT_BASE_STATS}
+    def get_orig_stats(self) -> dict[BuffType, d]:
+        return {i: self.get_orig_stat_funcs[i]() for i in BT_BASE_STATS}
 
-    def get_base_stats(self) -> Dict[str, d]:
+    def get_base_stats(self) -> dict[BuffType, d]:
         base_buff_sum = self.baseBuffs.get_sum()
         orig_stats = self.get_orig_stats()
         return {i: base_buff_sum.calc(i, orig_stats[i], True) for i in BT_BASE_STATS}
 
-    def get_stats(self, *bufftypes) -> Union[d, Dict[str, Union[d, Iterable[d]]]]:
+    def get_stats(self, *bufftypes) -> d | Sequence[d] | dict[BuffType, d | Sequence[d]]:
         if not bufftypes:
             return dict()
         bufftypes = set(bt for bt in bufftypes if bt not in BT_NOVAL)
@@ -440,7 +441,7 @@ class Character:
             return BuffList()
 
         tempbuffs = BuffList()
-        index: Dict[tuple['Character', str], int] = {v: i for i, v in enumerate(dfs_visited)}
+        index: dict[tuple['Character', str], int] = {v: i for i, v in enumerate(dfs_visited)}
         pairn = len(index)
         mulv = [1 for _ in range(pairn)]
         basev = [0 for _ in range(pairn)]
@@ -516,7 +517,7 @@ class Character:
             res *= -1
         return 1 - res / d(100)
 
-    def get_aoe(self, targ_pos, skill_no) -> Union[List[tuple[int, int]], List[tuple[int, int, NUM_T]]]:
+    def get_aoe(self, targ_pos, skill_no) -> list[tuple[int, int]] | list[tuple[int, int, NUM_T]]:
         r = []
         idx = -1
         skill_no -= 1
@@ -642,7 +643,7 @@ class Character:
         # False = 저항 실패
 
     def calc_damage(self, obj: 'Character', rate: tuple[NUM_T, NUM_T, NUM_T], element: int = 0, wr: NUM_T = 0):
-        # rate = [스킬 계수, 범위 스킬 계수]
+        # rate = [스킬 계수, 치명 여부, 범위 스킬 계수]
         # 기본 공격력 + 공벞 + 스킬 계수 + 치명타
         substats = self.get_stats(BT.ATK, BT.DEFPEN, BT.GIVEDMGDEC, BT.GIVEDMGINC, BT.WIDE_GIVEDMG)
         objstats = obj.get_stats(BT.DEF, BT.TAKEDMGDEC, BT.WIDE_TAKEDMG)
@@ -789,6 +790,8 @@ class Character:
                   chance: NUM_T = 100,
                   made_by: Optional['Character'] = None,
                   do_print: bool = True):
+        if self._givebuff_blocked:
+            return None
         if made_by is None:
             made_by = inspect.currentframe().f_back.f_locals.get('self', None)
         return self.game.give_buff(self, type_, opr, value, round_, count, count_trig, efft, max_stack, removable,
@@ -888,12 +891,14 @@ class Character:
     def active(
             self,
             skill_no: int,
-            targets: Dict['Character', NUM_T],
-            atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
+            targets: dict['Character', NUM_T],
+            atk_rate: dict['Character', tuple[NUM_T, NUM_T]],
             aoe_len: int):
         buff_values: Sequence[NUM_T] = self.get_skill_buff_value(skill_no)
         wr: NUM_T = 0
         element = self.get_skill_element(skill_no)
+        if not self.judge_active(self.get_active_chance(skill_no)):
+            self._givebuff_blocked = True
         if aoe_len > 1:
             wr = d(len(targets) - 1) / d(aoe_len - 1)
         if skill_no == 1:
@@ -906,41 +911,42 @@ class Character:
             damages = self._factive2(targets, atk_rate, buff_values, wr, element)
         else:
             damages = dict()
+        self._givebuff_blocked = False
         return damages
 
     def _active1(self,
-                 targets: Dict['Character', NUM_T],
-                 atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
+                 targets: dict['Character', NUM_T],
+                 atk_rate: dict['Character', tuple[NUM_T, NUM_T]],
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
         return {}
 
     def _active2(self,
-                 targets: Dict['Character', NUM_T],
-                 atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
+                 targets: dict['Character', NUM_T],
+                 atk_rate: dict['Character', tuple[NUM_T, NUM_T]],
                  bv: Sequence[NUM_T],
                  wr: NUM_T,
                  element: int):
         return {}
 
     def _factive1(self,
-                  targets: Dict['Character', NUM_T],
-                  atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
+                  targets: dict['Character', NUM_T],
+                  atk_rate: dict['Character', tuple[NUM_T, NUM_T]],
                   bv: Sequence[NUM_T],
                   wr: NUM_T,
                   element: int):
         return self._active1(targets, atk_rate, bv, wr, element)
 
     def _factive2(self,
-                  targets: Dict['Character', NUM_T],
-                  atk_rate: Dict['Character', tuple[NUM_T, NUM_T]],
+                  targets: dict['Character', NUM_T],
+                  atk_rate: dict['Character', tuple[NUM_T, NUM_T]],
                   bv: Sequence[NUM_T],
                   wr: NUM_T,
                   element: int):
         return self._active2(targets, atk_rate, bv, wr, element)
 
-    def get_passive_active_chance(self, skill_idx: int):
+    def get_active_chance(self, skill_idx: int):
         return 100
 
     def passive(self, trigtype, args=None):
@@ -955,35 +961,34 @@ class Character:
         for i in range(3):
             if self.rarity > i:
                 skn = self.skill_idx_convert(i + 2)
-                if not self.judge_active(self.get_passive_active_chance(skn)):
+                if not self.judge_active(self.get_active_chance(skn)):
                     continue
                 buff_values = self.get_skill_buff_value(skn+1)
                 aoe = self.get_aoe(self.pos, skn+1)
                 passives[skn](trigtype, args, aoe, buff_values)
 
     def get_passive_targets(self,
-                            aoe: List[Union[tuple[int, int], int, 'Pos']],
-                            enemy: bool = False
-                            ) -> List['Character']:
+                            aoe: list[Union[tuple[int, int], int, 'Pos']],
+                            enemy: bool = False) -> list['Character']:
         return sorted(self.game.get_chars(aoe, int(self.isenemy ^ enemy)).values(),
                       key=lambda c: c.getposn())
 
-    def _passive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _passive1(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _passive2(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _passive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _passive3(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         pass
 
-    def _fpassive1(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive1(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive1(tt, args, targets, bv)
 
-    def _fpassive2(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive2(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive2(tt, args, targets, bv)
 
-    def _fpassive3(self, tt: str, args: Optional[Dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
+    def _fpassive3(self, tt: str, args: Optional[dict[str, Any]], targets: List[tuple[int, int]], bv: List[NUM_T]):
         self._passive3(tt, args, targets, bv)
 
     def base_passive_before(self, tt, args=None):

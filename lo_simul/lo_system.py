@@ -314,7 +314,7 @@ class Game:
                 targ_hits[t] = 1
 
         atkr = d(skill_data['atkrate'][skillvl_val])
-        damages: Dict['Character', tuple[NUM_T, int]]
+        damages: dict['Character', tuple[NUM_T, int]]
         if follow is None or coop is None:
             print(f"[acs] {subjc}(이)가 {objpos}번 위치에 액티브 {skill_no}스킬 사용", file=self.stream)
             damages = subjc.active(
@@ -334,27 +334,29 @@ class Game:
                     if targ_hits[t] > 0 else 0)
                 for t in targ_atkr
             }
+        given_dmgs: dict['Character', NUM_T] = {}
         for t in damages:
-            damages[t]: Dict['Character', NUM_T] = \
-                t.give_damage(*damages[t],
-                              ignore_barrier=bool(subjc.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC)))
+            given_dmgs[t] = t.give_damage(
+                *damages[t],
+                ignore_barrier=bool(subjc.find_buff(type_=BT.IGNORE_BARRIER_DMGDEC))
+            )
             # -1 = 방어막
             # -2 = 피해 무효
             if catkr is None:
-                print(f"[dmg] <{t}> - <{subjc}>의 공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 공격으로 {{ {simpl(given_dmgs[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             elif follow is not None:
-                print(f"[dmg] <{t}> - <{subjc}>의 지원공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 지원공격으로 {{ {simpl(given_dmgs[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             elif coop is not None:
-                print(f"[dmg] <{t}> - <{subjc}>의 협동공격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
+                print(f"[dmg] <{t}> - <{subjc}>의 협동공격으로 {{ {simpl(given_dmgs[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
             else:
                 print(f"[dmg] <{t}> - <{subjc}>의 반격으로 {{ {simpl(damages[t])} }} 피해를 입음." +
                       (' (치명타)' if targ_hits[t] > 1 else ''), file=self.stream)
         
-        for t in damages:
-            t.dead_judge_process(targ_hits[t], damages[t], subjc, skill_no, follow)
+        for t in given_dmgs:
+            t.dead_judge_process(targ_hits[t], given_dmgs[t], subjc, skill_no, follow)
 
         self.trigger()
         
@@ -365,7 +367,7 @@ class Game:
         if ishit:
             subjc.trigger(TR.AFTER_HIT, {"skill_no": skill_no, "targets": targ_hits})
             
-        counters = {t: t.find_buff(BT.COUNTER_ATTACK) for t in damages if t.attackable(subjc, 1) and t.hp > 0}
+        counters = {t: t.find_buff(BT.COUNTER_ATTACK) for t in given_dmgs if t.attackable(subjc, 1) and t.hp > 0}
         if any(counters.values()):
             catkc = max(counters, key=lambda c: c.get_stats(BT.ATK))
             catkr = counters[catkc][-1].value
@@ -380,7 +382,7 @@ class Game:
             coopb = coopb[-1]
             coopc, coopsk = coopb.data
             if grid:
-                cooptarg = self.random.choice(list(damages.keys()))
+                cooptarg = self.random.choice(list(given_dmgs.keys()))
             else:
                 cooptarg = self.get_char(targets[Pos(objpos).xy()][1].getpos(), field=tf)
             self._use_skill(coopc, coopsk, cooptarg.getposn(), coop=subjc.getposn())
@@ -390,7 +392,7 @@ class Game:
             followc = max(map(lambda b: b.data.attacker, filter(lambda b: subjc.random() <= b.data.chance, followers)),
                           key=lambda c: c.get_stats(BT.ATK))
             if grid:
-                followtarg = self.random.choice(list(damages.keys()))
+                followtarg = self.random.choice(list(given_dmgs.keys()))
             else:
                 followtarg = self.get_char(targets[Pos(objpos).xy()][1], field=tf)
             if followc.attackable(followtarg, 1):
@@ -480,14 +482,6 @@ class Game:
         # https://arca.live/b/lastorigin/48033013
         _active_chance = 100
         _resist_chance = 100
-        if made_by is not None:
-            _res = made_by.judge_active()
-            if not _res[0]:
-                if do_print:
-                    print(f"[brs] <{target}> - 버프 추가 실패 (확률) : [{buff}] ({_res[1]:2.2f}% 확률)", 
-                          file=self.stream)
-                return None
-            _active_chance = _res[1]
         if not force and efft != BET.NORMAL:
             for immune_buff in target.find_buff(type_=BT.IMMUNE_BUFF):
                 if buff.issatisfy(**immune_buff.data._asdict()):
@@ -716,7 +710,7 @@ class Buff:
         else:
             def custom_random(self, r=100, offset=0):
                 return random.uniform(offset, offset + r)
-            self.random = custom_random
+            self.random = custom_random.__get__(self)
 
         if self.type == BT.IMMUNE_DMG:
             self.count = self.value

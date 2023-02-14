@@ -257,7 +257,7 @@ g = Game()
 ## `lo_system.Buff`
 버프를 담당하는 클래스입니다.
 
-- ### `Buff` *(type_, opr, value, round_=MAX, count=MAX, count_trig=None, efft=BET.NORMAL, max_stack=0, removable=True, tag=None, data=None, proportion=None, desc=None, owner=None, made_by=None, game=None, do_print=True)*
+- ### `Buff(...)`
   - |Parameter|Type|Default Value|Description|
     |---|---|---|---|
     |`type_`|[`str`]\([`BuffType`])|*필수 입력*|**버프 타입**|
@@ -489,7 +489,7 @@ g = Game()
 
 - ### `BuffList.find` *(type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None, **kwargs)*
   조건에 맞는 버프를 검색하여 새 [`BuffList`]로 반환합니다.  
-  [`Buff.issatisfy`]에 있는 파라메터 이름과 동일한 파라메터는 그 부분에 있는 설명을 참고하십시오.
+  [`Buff.issatisfy`]에 동일한 이름으로 존재하는 파라메터는 해당 설명을 참고하십시오.
   
   - |Return type|Description|
     |---|---|
@@ -497,7 +497,7 @@ g = Game()
 
 - ### `BuffList.remove` *(type_=None, efft=None, tag=None, func=None, id_=None, val_sign=None, opr=None, limit=MAX, force=False)*
   조건에 맞는 버프를 검색하여 제거합니다.  
-  [`Buff.issatisfy`]에 있는 파라메터 이름과 동일한 파라메터는 그 부분에 있는 설명을 참고하십시오.
+  [`Buff.issatisfy`]에 동일한 이름으로 존재하는 파라메터는 해당 설명을 참고하십시오.
 
   - 추가 파라메터들  
     |Parameter|Type|Description|
